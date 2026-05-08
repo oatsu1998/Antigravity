@@ -1854,10 +1854,6 @@
         }
 
         function renderPanel(lg, result) {
-            const liveGames = result.events.filter(e => gameStatus(e).isLive);
-            const schedGames = result.events.filter(e => !gameStatus(e).isFinal && !gameStatus(e).isLive);
-            const finalGames = result.events.filter(e => gameStatus(e).isFinal);
-
             let html = '';
 
             if (!result.ok) {
@@ -1876,10 +1872,9 @@
                     const isPinA = espnPinned.has(a.id), isPinB = espnPinned.has(b.id);
                     if (isPinA !== isPinB) return isPinA ? -1 : 1; // pinned first
                     const statusOrder = (e) => {
-                        const s = e.status?.type;
-                        if (!s) return 1;
-                        if (s.completed) return 2;
-                        if (s.state === 'in' || s.description === 'In Progress' || s.description === 'Halftime') return 0;
+                        const s = gameStatus(e);
+                        if (s.isLive) return 0;
+                        if (s.isFinal) return 2;
                         return 1;
                     };
                     const oa = statusOrder(a), ob = statusOrder(b);
