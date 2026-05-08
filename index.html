@@ -1854,9 +1854,9 @@
         }
 
         function renderPanel(lg, result) {
-            const liveGames = result.events.filter(e => e.status?.type?.description === 'In Progress');
-            const schedGames = result.events.filter(e => !e.status?.type?.completed && e.status?.type?.description !== 'In Progress');
-            const finalGames = result.events.filter(e => e.status?.type?.completed);
+            const liveGames = result.events.filter(e => gameStatus(e).isLive);
+            const schedGames = result.events.filter(e => !gameStatus(e).isFinal && !gameStatus(e).isLive);
+            const finalGames = result.events.filter(e => gameStatus(e).isFinal);
 
             let html = '';
 
@@ -1900,7 +1900,7 @@
             let allLiveEvents = [];
             LEAGUES.forEach(lg => {
                 if (leagueData[lg.id] && leagueData[lg.id].events) {
-                    const liveEvents = leagueData[lg.id].events.filter(e => e.status?.type?.description === 'In Progress');
+                    const liveEvents = leagueData[lg.id].events.filter(e => gameStatus(e).isLive);
                     liveEvents.forEach(e => {
                         allLiveEvents.push({ event: e, lg: lg });
                     });
@@ -1929,7 +1929,7 @@
             let totalLiveGames = 0;
             LEAGUES.forEach(lg => {
                 if (leagueData[lg.id] && leagueData[lg.id].events) {
-                    totalLiveGames += leagueData[lg.id].events.filter(e => e.status?.type?.description === 'In Progress').length;
+                    totalLiveGames += leagueData[lg.id].events.filter(e => gameStatus(e).isLive).length;
                 }
             });
 
@@ -1943,9 +1943,9 @@
 
             html += LEAGUES.map(lg => {
                 const events = leagueData[lg.id]?.events || [];
-                const liveCount = events.filter(e => e.status?.type?.description === 'In Progress').length;
-                const schedCount = events.filter(e => !e.status?.type?.completed && e.status?.type?.description !== 'In Progress').length;
-                const finalCount = events.filter(e => e.status?.type?.completed).length;
+                const liveCount = events.filter(e => gameStatus(e).isLive).length;
+                const schedCount = events.filter(e => !gameStatus(e).isFinal && !gameStatus(e).isLive).length;
+                const finalCount = events.filter(e => gameStatus(e).isFinal).length;
 
                 let countsStr = '';
                 if (events.length > 0) {
@@ -2469,6 +2469,7 @@
 </body>
 
 </html>
+
 
 
 
