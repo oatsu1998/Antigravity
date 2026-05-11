@@ -1239,12 +1239,16 @@
                 const finalLabel = s.shortDetail && s.shortDetail.toUpperCase().includes('OT') ? s.shortDetail.toUpperCase() : 'FINAL';
                 return { label: finalLabel, cls: 'status-final', isLive: false, isFinal: true };
             }
-            if (s.description === 'In Progress') {
-                const detail = event.status?.displayClock ? `${event.status.displayClock} — ${event.status.period ? 'Q' + event.status.period : ''}` : 'LIVE';
-                return { label: detail, cls: 'status-live', isLive: true, isFinal: false };
-            }
-            if (s.description === 'Halftime') {
-                return { label: 'HALFTIME', cls: 'status-live', isLive: true, isFinal: false };
+            if (s.state === 'in' || s.description === 'In Progress' || s.description === 'Halftime' || s.description === 'End of Period' || (s.shortDetail && s.shortDetail.toLowerCase().includes('half'))) {
+                let label = 'LIVE';
+                if (s.description === 'Halftime' || (s.shortDetail && s.shortDetail.toLowerCase().includes('half'))) {
+                    label = 'HALFTIME';
+                } else if (s.description === 'End of Period') {
+                    label = `END Q${event.status.period || ''}`;
+                } else if (event.status?.displayClock) {
+                    label = `${event.status.displayClock} — ${event.status.period ? 'Q' + event.status.period : ''}`;
+                }
+                return { label: label, cls: 'status-live', isLive: true, isFinal: false };
             }
             const d = event.date ? new Date(event.date) : null;
             const timeStr = d ? d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : s.description;
