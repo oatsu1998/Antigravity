@@ -2369,7 +2369,9 @@
     </div>
     <script>
         let bankroll = 10000.00;
-        let betSlip = [];
+        let betSlip = [
+            { id: 1, team: 'Timberwolves', type: 'Parlay (+15 & U 224)', odds: -120, wager: 120 }
+        ];
 
         // Initialize: clear past wagers & reset bankroll
         localStorage.removeItem('wagers');
@@ -2465,6 +2467,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             updateBankrollDisplay();
+            renderBetSlip();
         });
     </script>
     <script src="nav.js"></script>
