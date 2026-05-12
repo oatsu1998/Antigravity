@@ -2364,14 +2364,32 @@
             refreshAll();
         }
 
+        let isTabVisible = true;
+        document.addEventListener("visibilitychange", () => {
+            isTabVisible = !document.hidden;
+            if (isTabVisible) {
+                // When coming back, if the countdown is paused or far behind, we can optionally refresh immediately.
+                // For now, just let the timer resume or refresh immediately to be fresh.
+                if (refreshInterval > 0) {
+                    refreshCountdown = refreshInterval;
+                    refreshAll();
+                }
+            }
+        });
+
         setInterval(() => {
-            if (refreshInterval > 0) {
+            // Only tick down and refresh if the tab is currently visible
+            if (refreshInterval > 0 && isTabVisible) {
                 refreshCountdown--;
                 if (refreshCountdown <= 0) {
                     refreshCountdown = refreshInterval;
                     refreshAll();
                 }
                 updateRefreshBtn();
+            } else if (refreshInterval > 0 && !isTabVisible) {
+                // Update the button to indicate paused state while hidden (if they somehow see it)
+                const btn = document.getElementById('refreshBtn');
+                if (btn) btn.textContent = `↻ REFRESH (PAUSED - TAB HIDDEN)`;
             }
         }, 1000);
     </script>
