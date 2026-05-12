@@ -1081,16 +1081,7 @@
                 title="Odds API Credits Remaining"></span>
             <span id="clock"></span>
             <div style="display:flex; gap:8px; align-items:center;">
-                <select id="refreshRate" class="refresh-select" onchange="changeRefreshRate()">
-                    <option value="60">1 MIN</option>
-                    <option value="120">2 MIN</option>
-                    <option value="300">5 MIN</option>
-                    <option value="600">10 MIN</option>
-                    <option value="1800">30 MIN</option>
-                    <option value="3600">1 HOUR</option>
-                    <option value="-1">PAUSED</option>
-                </select>
-                <button class="refresh-btn" id="refreshBtn" onclick="manualRefresh()">↻ REFRESH (60s)</button>
+                <button class="refresh-btn" id="refreshBtn" onclick="manualRefresh()" style="width: auto; padding: 6px 12px;">↻ FORCE REFRESH</button>
             </div>
         </div>
     </header>
@@ -1111,6 +1102,13 @@
         let leagueData = {};
         let oddsCache = {};
 
+        let previousGameState = {};
+        let leaguePollingState = {
+            'nba': { nextPoll: 0, interval: 3600 },
+            'nhl': { nextPoll: 0, interval: 3600 },
+            'mlb': { nextPoll: 0, interval: 3600 }
+        };
+
         // THE ODDS API INTEGRATION
         const ODDS_API_KEY = "4b3eeba2d1e049c875c619c01cf1307d";
         let paidOddsCache = {};
@@ -1123,63 +1121,12 @@
         let globalMaxUsed = parseInt(localStorage.getItem('espn_api_usage')) || null;
         let globalRemaining = null;
         let lastRefreshCost = 0;
-        let lastOddsFetchTime = {};
 
         async function fetchPaidOdds(lg) {
             const oddsSport = ODDS_SPORT_MAP[lg.id];
             if (!oddsSport) return [];
 
-            const now = Date.now();
-            const lgData = leagueData[lg.id];
-            let shouldFetch = true;
-            let reason = "Initial load";
-
-            if (lgData && lgData.events) {
-                const events = lgData.events;
-                let hasActive = false;
-                let hasUpcomingSoon = false;
-                let allFinal = true;
-                let hasUpcomingFar = false;
-
-                events.forEach(e => {
-                    const status = e.status.type.state;
-                    if (status !== 'post') allFinal = false;
-                    if (status === 'in') hasActive = true;
-                    if (status === 'pre') {
-                        const gameTime = new Date(e.date).getTime();
-                        const minsAway = (gameTime - now) / 60000;
-                        if (minsAway <= 5) hasUpcomingSoon = true;
-                        else hasUpcomingFar = true;
-                    }
-                });
-
-                if (events.length === 0) {
-                    shouldFetch = false;
-                    reason = "No games today";
-                } else if (allFinal) {
-                    shouldFetch = false;
-                    reason = "All games final";
-                } else if (hasActive || hasUpcomingSoon) {
-                    shouldFetch = true;
-                    reason = "Games active or starting within 5m";
-                } else if (hasUpcomingFar) {
-                    const lastFetch = lastOddsFetchTime[lg.id] || 0;
-                    if (now - lastFetch > 60 * 60 * 1000) {
-                        shouldFetch = true;
-                        reason = "Hourly refresh for future games";
-                    } else {
-                        shouldFetch = false;
-                        reason = "Future games only; within 1h cache window";
-                    }
-                }
-            }
-
-            if (!shouldFetch && paidOddsCache[lg.id]) {
-                console.log(`[Odds API] Serving ${lg.id} from cache. Reason: ${reason}`);
-                return paidOddsCache[lg.id];
-            }
-
-            console.log(`[Odds API] Fetching ${lg.id} from network. Reason: ${reason}`);
+            console.log(`[Odds API] Fetching ${lg.id} from network due to score/status change.`);
 
             const url = `https://api.the-odds-api.com/v4/sports/${oddsSport}/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=h2h,spreads,totals&oddsFormat=american&eventStatus=pre,in`;
             try {
@@ -1196,7 +1143,6 @@
                 }
 
                 if (!res.ok) return paidOddsCache[lg.id] || [];
-                lastOddsFetchTime[lg.id] = now;
                 return await res.json();
             } catch (e) {
                 console.error("Odds API Error:", e);
@@ -2015,39 +1961,75 @@
             if (panel) panel.classList.add('active');
         }
 
-        async function refreshAll() {
-            buildMain();
-            const prevUsed = globalMaxUsed;
-
-            const fetches = LEAGUES.map(async lg => {
-                const [result, oddsData] = await Promise.all([
-                    fetchLeague(lg),
-                    fetchPaidOdds(lg)
-                ]);
-                leagueData[lg.id] = result;
-                paidOddsCache[lg.id] = oddsData;
-                if (result.leagues && result.leagues[0] && result.leagues[0].logos) {
-                    lg.logo = result.leagues[0].logos[0].href;
-                }
-                const panel = document.getElementById('panel-' + lg.id);
-                if (panel) {
-                    panel.innerHTML = renderPanel(lg, result);
-                }
-                const livePanel = document.getElementById('panel-live');
-                if (livePanel) {
-                    livePanel.innerHTML = renderLivePanel();
-                }
-                buildTabs();
-            });
-            await Promise.all(fetches);
-
-            if (prevUsed !== null && globalMaxUsed !== null) {
-                lastRefreshCost = globalMaxUsed - prevUsed;
-                localStorage.setItem('espn_api_usage', globalMaxUsed);
-            } else if (globalMaxUsed !== null) {
-                lastRefreshCost = 0;
-                localStorage.setItem('espn_api_usage', globalMaxUsed);
+        async function pollLeague(lg, manual = false) {
+            const now = Date.now();
+            const result = await fetchLeague(lg);
+            leagueData[lg.id] = result;
+            
+            if (result.leagues && result.leagues[0] && result.leagues[0].logos) {
+                lg.logo = result.leagues[0].logos[0].href;
             }
+
+            let shouldFetchOdds = manual || !paidOddsCache[lg.id];
+            let hasActive = false;
+            let hasUpcomingSoon = false;
+
+            if (result.ok && result.events) {
+                result.events.forEach(e => {
+                    const comp = e.competitions?.[0];
+                    const competitors = comp?.competitors || [];
+                    const home = competitors.find(c => c.homeAway === 'home') || competitors[0];
+                    const away = competitors.find(c => c.homeAway === 'away') || competitors[1];
+                    const currentScore = `${home?.score || 0}-${away?.score || 0}`;
+                    const currentStatus = e.status?.type?.state || '';
+                    
+                    const stateKey = currentScore + '|' + currentStatus;
+
+                    if (currentStatus === 'in') hasActive = true;
+                    if (currentStatus === 'pre') {
+                        const gameTime = new Date(e.date).getTime();
+                        const minsAway = (gameTime - now) / 60000;
+                        if (minsAway <= 60) hasUpcomingSoon = true;
+                    }
+
+                    if (previousGameState[e.id] !== stateKey) {
+                        // Only trigger odds fetch if the game is active or pre-game
+                        if (currentStatus === 'in' || currentStatus === 'pre') {
+                            shouldFetchOdds = true;
+                        }
+                        previousGameState[e.id] = stateKey;
+                    }
+                });
+            }
+
+            // Determine next poll interval for ESPN
+            let interval = 3600; // 1 hour default
+            if (hasActive) interval = 15; // 15 seconds if any live game
+            else if (hasUpcomingSoon) interval = 60; // 1 min if game within an hour
+
+            leaguePollingState[lg.id].interval = interval;
+            leaguePollingState[lg.id].nextPoll = Date.now() + (interval * 1000);
+
+            // Fetch Odds API only if there was a score/status change, or manual override
+            if (shouldFetchOdds) {
+                const prevUsed = globalMaxUsed;
+                const oddsData = await fetchPaidOdds(lg);
+                if (oddsData && oddsData.length > 0) {
+                    paidOddsCache[lg.id] = oddsData;
+                }
+
+                if (prevUsed !== null && globalMaxUsed !== null) {
+                    lastRefreshCost = globalMaxUsed - prevUsed;
+                    localStorage.setItem('espn_api_usage', globalMaxUsed);
+                }
+            }
+
+            // Re-render
+            const panel = document.getElementById('panel-' + lg.id);
+            if (panel) panel.innerHTML = renderPanel(lg, result);
+            const livePanel = document.getElementById('panel-live');
+            if (livePanel) livePanel.innerHTML = renderLivePanel();
+            buildTabs();
 
             const usageEl = document.getElementById('api-usage');
             if (usageEl && globalRemaining !== null) {
@@ -2329,68 +2311,47 @@
             detailsEl.innerHTML = html || '<div class="no-games">No deep data available yet.</div>';
         }
 
-        buildTabs();
-        buildMain();
-        refreshAll();
-
-        let refreshInterval = 60;
-        let refreshCountdown = 60;
-
-        function changeRefreshRate() {
-            const val = parseInt(document.getElementById('refreshRate').value);
-            refreshInterval = val;
-            if (val > 0) {
-                refreshCountdown = val;
-                updateRefreshBtn();
-            } else {
-                updateRefreshBtn();
-            }
+        async function initialLoad() {
+            buildMain();
+            const fetches = LEAGUES.map(lg => pollLeague(lg, true));
+            await Promise.all(fetches);
         }
 
-        function updateRefreshBtn() {
-            const btn = document.getElementById('refreshBtn');
-            if (btn) {
-                if (refreshInterval > 0) {
-                    btn.textContent = `↻ REFRESH (${refreshCountdown}s)`;
-                } else {
-                    btn.textContent = `↻ REFRESH (PAUSED)`;
-                }
-            }
-        }
+        initialLoad();
 
         function manualRefresh() {
-            if (refreshInterval > 0) refreshCountdown = refreshInterval;
-            updateRefreshBtn();
-            refreshAll();
+            const btn = document.getElementById('refreshBtn');
+            if (btn) btn.textContent = `↻ FETCHING...`;
+            LEAGUES.forEach(lg => pollLeague(lg, true).then(() => {
+                if (btn) btn.textContent = `↻ FORCE REFRESH`;
+            }));
         }
 
         let isTabVisible = true;
         document.addEventListener("visibilitychange", () => {
             isTabVisible = !document.hidden;
             if (isTabVisible) {
-                // When coming back, if the countdown is paused or far behind, we can optionally refresh immediately.
-                // For now, just let the timer resume or refresh immediately to be fresh.
-                if (refreshInterval > 0) {
-                    refreshCountdown = refreshInterval;
-                    refreshAll();
-                }
+                const now = Date.now();
+                // If we were hidden and missed a poll, poll immediately
+                LEAGUES.forEach(lg => {
+                    if (now >= leaguePollingState[lg.id].nextPoll) {
+                        leaguePollingState[lg.id].nextPoll = now + 9999999;
+                        pollLeague(lg).catch(e => console.error(e));
+                    }
+                });
             }
         });
 
         setInterval(() => {
-            // Only tick down and refresh if the tab is currently visible
-            if (refreshInterval > 0 && isTabVisible) {
-                refreshCountdown--;
-                if (refreshCountdown <= 0) {
-                    refreshCountdown = refreshInterval;
-                    refreshAll();
+            if (!isTabVisible) return;
+            const now = Date.now();
+            LEAGUES.forEach(lg => {
+                if (now >= leaguePollingState[lg.id].nextPoll) {
+                    // Prevent concurrent overlapping polls for the same league
+                    leaguePollingState[lg.id].nextPoll = now + 9999999; 
+                    pollLeague(lg).catch(e => console.error(e));
                 }
-                updateRefreshBtn();
-            } else if (refreshInterval > 0 && !isTabVisible) {
-                // Update the button to indicate paused state while hidden (if they somehow see it)
-                const btn = document.getElementById('refreshBtn');
-                if (btn) btn.textContent = `↻ REFRESH (PAUSED - TAB HIDDEN)`;
-            }
+            });
         }, 1000);
     </script>
     <button class="bs-toggle" onclick="toggleBetSlip()">BET SLIP (<span id="bs-count">0</span>)</button>
