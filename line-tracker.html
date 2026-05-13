@@ -736,21 +736,24 @@
                     <select class="ctrl-select" id="bookSel" onchange="renderChart()">
                         <option value="all">ALL BOOKS (avg)</option>
                     </select>
+                    <span class="ctrl-label" style="margin-left:12px;">MARKET:</span>
+                    <select class="ctrl-select" id="marketSel" onchange="renderChart()">
+                        <option value="ml" selected>Moneyline</option>
+                        <option value="spr">Spreads</option>
+                        <option value="tot">Totals</option>
+                    </select>
                     <div class="legend" style="gap:12px; font-size:10px;">
                         <div class="legend-item">
-                            <div class="legend-line" style="background:#2D8EFF;"></div>AWAY ML
+                            <div class="legend-line" style="background:rgba(123, 97, 255, 0.8); border-top:2px dashed #7B61FF;"></div>AWAY SCORE
                         </div>
                         <div class="legend-item">
-                            <div class="legend-line" style="background:#E53E3E;"></div>HOME ML
+                            <div class="legend-line" style="background:rgba(229, 62, 62, 0.8); border-top:2px solid #E53E3E;"></div>HOME SCORE
                         </div>
-                        <div class="legend-item">
-                            <div class="legend-line" style="background:#0BC5EA;"></div>AWAY SPR
+                        <div class="legend-item" id="legAwayOdds">
+                            <div class="legend-line" style="background:#2D8EFF;"></div>AWAY ODDS
                         </div>
-                        <div class="legend-item">
-                            <div class="legend-line" style="background:#F6AD55;"></div>HOME SPR
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-line" style="background:#8B5CF6;"></div>TOTAL
+                        <div class="legend-item" id="legHomeOdds">
+                            <div class="legend-line" style="background:#F6AD55;"></div>HOME ODDS
                         </div>
                     </div>
                 </div>
@@ -1269,8 +1272,6 @@
                 var diff = (last - first).toFixed(m.mkt === 'tot' || m.mkt === 'spr' || m.mkt === 'und' ? 1 : 0);
                 return { label: m.label, val: (diff > 0 ? '+' : '') + diff, cls: diff > 0 ? 'pos' : diff < 0 ? 'neg' : 'neu' };
             });
-        }
-
         function populateBookSel() {
             var g = games[selectedGame]; if (!g) return;
             var sel = document.getElementById('bookSel');
@@ -1285,7 +1286,7 @@
             var box = document.getElementById('chartBox');
             var msg = document.getElementById('chartMsg');
             var book = document.getElementById('bookSel').value;
-            var side = document.getElementById('teamSel').value;
+            var market = document.getElementById('marketSel') ? document.getElementById('marketSel').value : 'ml';
 
             if (g.snapshots.length < 1) { if (msg) msg.style.display = 'flex'; return; }
             if (msg) msg.style.display = 'none';
@@ -1297,14 +1298,19 @@
                         layout: { background: { type: 'solid', color: '#111922' }, textColor: '#4A6A8A' },
                         grid: { vertLines: { color: '#1A2636' }, horzLines: { color: '#1A2636' } },
                         rightPriceScale: { borderColor: '#1A2636' },
-                        leftPriceScale: { visible: true, borderColor: '#1A2636' },
+                        leftPriceScale: { visible: true, borderColor: '#1A2636', scaleMargins: { top: 0.1, bottom: 0.1 } },
                         timeScale: { borderColor: '#1A2636', timeVisible: true, secondsVisible: false },
                         crosshair: { mode: 1 },
                     });
 
+                    // Score Series on Left Axis
+                    lwAwayScore = lwChart.addSeries(LightweightCharts.LineSeries, { color: '#7B61FF', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dashed, priceScaleId: 'left', crosshairMarkerRadius: 4 });
+                    lwHomeScore = lwChart.addSeries(LightweightCharts.LineSeries, { color: '#E53E3E', lineWidth: 2, priceScaleId: 'left', crosshairMarkerRadius: 4 });
+
+                    // Odds Series on Right Axis
                     lwAwayMl    = lwChart.addSeries(LightweightCharts.LineSeries, { color: '#2D8EFF', lineWidth: 2, crosshairMarkerRadius: 4, priceScaleId: 'right' });
-                    lwHomeMl    = lwChart.addSeries(LightweightCharts.LineSeries, { color: '#E53E3E', lineWidth: 2, crosshairMarkerRadius: 4, priceScaleId: 'right' });
-                    lwAwaySpr   = lwChart.addSeries(LightweightCharts.LineSeries, { color: '#0BC5EA', lineWidth: 2, crosshairMarkerRadius: 4, priceScaleId: 'right' });
+                    lwHomeMl    = lwChart.addSeries(LightweightCharts.LineSeries, { color: '#F6AD55', lineWidth: 2, crosshairMarkerRadius: 4, priceScaleId: 'right' });
+                    lwAwaySpr   = lwChart.addSeries(LightweightCharts.LineSeries, { color: '#2D8EFF', lineWidth: 2, crosshairMarkerRadius: 4, priceScaleId: 'right' });
                     lwHomeSpr   = lwChart.addSeries(LightweightCharts.LineSeries, { color: '#F6AD55', lineWidth: 2, crosshairMarkerRadius: 4, priceScaleId: 'right' });
                     lwTotSeries = lwChart.addSeries(LightweightCharts.LineSeries, { color: '#8B5CF6', lineWidth: 2, crosshairMarkerRadius: 4, priceScaleId: 'right' });
 
@@ -1314,7 +1320,7 @@
                 }
             }
 
-            const aMlData = [], hMlData = [], aSprData = [], hSprData = [], totData = [];
+            const aMlData = [], hMlData = [], aSprData = [], hSprData = [], totData = [], aScoreData = [], hScoreData = [];
             const markers = { away: [], home: [] };
             let lastAScore = null, lastHScore = null;
 
@@ -1339,13 +1345,15 @@
                 pushVal(hSprData, hsprs);
                 pushVal(totData, tots);
 
-                if (snap.aScore !== undefined && snap.aScore !== '0') {
+                if (snap.aScore !== undefined && snap.aScore !== '') {
+                    aScoreData.push({ time, value: parseInt(snap.aScore || '0') });
                     if (lastAScore !== null && snap.aScore !== lastAScore) {
-                        markers.away.push({ time, position: 'aboveBar', color: '#2D8EFF', shape: 'arrowDown', text: snap.aScore });
+                        markers.away.push({ time, position: 'aboveBar', color: '#7B61FF', shape: 'arrowDown', text: snap.aScore });
                     }
                     lastAScore = snap.aScore;
                 }
-                if (snap.hScore !== undefined && snap.hScore !== '0') {
+                if (snap.hScore !== undefined && snap.hScore !== '') {
+                    hScoreData.push({ time, value: parseInt(snap.hScore || '0') });
                     if (lastHScore !== null && snap.hScore !== lastHScore) {
                         markers.home.push({ time, position: 'aboveBar', color: '#E53E3E', shape: 'arrowDown', text: snap.hScore });
                     }
@@ -1364,13 +1372,29 @@
             };
 
             if (!lwAwayMl) return;
+            lwAwayScore.setData(unique(aScoreData));
+            lwHomeScore.setData(unique(hScoreData));
             lwAwayMl.setData(unique(aMlData));
             lwHomeMl.setData(unique(hMlData));
             lwAwaySpr.setData(unique(aSprData));
             lwHomeSpr.setData(unique(hSprData));
             lwTotSeries.setData(unique(totData));
-            if (lwAwayScore) lwAwayScore.setData(unique(aScoreData));
-            if (lwHomeScore) lwHomeScore.setData(unique(hScoreData));
+
+            // Set visibility based on market dropdown
+            lwAwayMl.applyOptions({ visible: market === 'ml' });
+            lwHomeMl.applyOptions({ visible: market === 'ml' });
+            lwAwaySpr.applyOptions({ visible: market === 'spr' });
+            lwHomeSpr.applyOptions({ visible: market === 'spr' });
+            lwTotSeries.applyOptions({ visible: market === 'tot' });
+
+            // Update Legends text
+            if (document.getElementById('legAwayOdds')) {
+                document.getElementById('legAwayOdds').innerHTML = `<div class="legend-line" style="background:#2D8EFF;"></div>` + (market === 'tot' ? 'TOTAL O/U' : (market === 'spr' ? 'AWAY SPR' : 'AWAY ML'));
+                document.getElementById('legAwayOdds').style.display = market === 'tot' ? 'none' : 'flex';
+            }
+            if (document.getElementById('legHomeOdds')) {
+                document.getElementById('legHomeOdds').innerHTML = `<div class="legend-line" style="background:${market === 'tot' ? '#8B5CF6' : '#F6AD55'};"></div>` + (market === 'tot' ? 'TOTAL' : (market === 'spr' ? 'HOME SPR' : 'HOME ML'));
+            }
 
             lwAwayMl.setMarkers(markers.away);
             lwHomeMl.setMarkers(markers.home);
