@@ -1273,6 +1273,8 @@
                 var diff = (last - first).toFixed(m.mkt === 'tot' || m.mkt === 'spr' || m.mkt === 'und' ? 1 : 0);
                 return { label: m.label, val: (diff > 0 ? '+' : '') + diff, cls: diff > 0 ? 'pos' : diff < 0 ? 'neg' : 'neu' };
             });
+        }
+
         function populateBookSel() {
             var g = games[selectedGame]; if (!g) return;
             var sel = document.getElementById('bookSel');
