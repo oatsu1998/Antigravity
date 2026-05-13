@@ -2413,10 +2413,10 @@
             if (bet) {
                 bet.wager = parseFloat(amount) || 0;
                 const payout = calculatePayout(bet.wager, bet.odds);
-                document.getElementById(payout - +id).innerText = '
-
-</html >
-                    + payout.toFixed(2);
+                const payoutEl = document.getElementById(`payout-${id}`);
+                if (payoutEl) {
+                    payoutEl.innerText = payout.toFixed(2);
+                }
             }
         }
 
@@ -2435,20 +2435,20 @@
                 return;
             }
 
-            container.innerHTML = betSlip.map(bet =>
+            container.innerHTML = betSlip.map(bet => `
                 <div class="bs-item">
                     <div class="bs-item-head">
-                        <span class="bs-item-team">+bet.team+</span>
-                        <button class="bs-remove" onclick="removeFromBetSlip(+bet.id+)">?</button>
+                        <span class="bs-item-team">${bet.team}</span>
+                        <button class="bs-remove" onclick="removeFromBetSlip(${bet.id})">×</button>
                     </div>
-                    <div class="bs-item-type">+bet.type+ <span style="float:right" class="bs-item-odds">+(bet.odds > 0 ? '+' : '')+bet.odds+</span></div>
+                    <div class="bs-item-type">${bet.type} <span style="float:right" class="bs-item-odds">${bet.odds > 0 ? '+' : ''}${bet.odds}</span></div>
                     <div class="bs-wager-row">
                         <span style="font-size:12px;color:var(--muted)">Wager: $</span>
-                        <input type="number" class="bs-wager-input" placeholder="0.00" onchange="updateWager(+bet.id+, this.value)" onkeyup="updateWager(+bet.id+, this.value)">
+                        <input type="number" class="bs-wager-input" placeholder="0.00" value="${bet.wager || ''}" onchange="updateWager(${bet.id}, this.value)" onkeyup="updateWager(${bet.id}, this.value)">
                     </div>
-                    <div class="bs-to-win">To Win: <span id="payout-+bet.id+">.00</span></div>
+                    <div class="bs-to-win">To Win: $<span id="payout-${bet.id}">${(calculatePayout(bet.wager || 0, bet.odds) - (bet.wager || 0)).toFixed(2)}</span></div>
                 </div>
-            ).join('');
+            `).join('');
         }
 
         function placeBets() {
