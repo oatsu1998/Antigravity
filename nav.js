@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Inject CSS
     const style = document.createElement('style');
-    style.textContent = 
+    style.textContent = `
         .global-nav {
             background: #000;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -45,22 +45,22 @@ document.addEventListener('DOMContentLoaded', function() {
             height: 2px;
             background: #f59e0b;
         }
-    ;
+    `;
     document.head.appendChild(style);
 
     // Determine current page for active state
     const currentPath = window.location.pathname;
-    const isLineTracker = currentPath.toLowerCase().includes('line tracker');
+    const isLineTracker = currentPath.toLowerCase().includes('line-tracker');
 
     // Inject HTML
     const nav = document.createElement('nav');
     nav.className = 'global-nav';
-    nav.innerHTML = \
+    nav.innerHTML = `
         <div class="global-nav-brand">DESTINY NETWORK</div>
         <div class="global-nav-links">
-            <a href="index.html" class="global-nav-link \">Command Center</a>
-            <a href="Line Tracker.html" class="global-nav-link \">Line Tracker</a>
+            <a href="index.html" class="global-nav-link ${!isLineTracker ? 'active' : ''}">Command Center</a>
+            <a href="line-tracker.html" class="global-nav-link ${isLineTracker ? 'active' : ''}">Line Tracker</a>
         </div>
-    \;
+    `;
     document.body.insertBefore(nav, document.body.firstChild);
 });
