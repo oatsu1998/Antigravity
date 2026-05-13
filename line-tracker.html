@@ -977,18 +977,15 @@
             var el = document.getElementById('gameList');
             var allGames = sortGames();
 
-            // Live only
-            var liveGames = allGames.filter(function(g) { return g.game_status === 'live'; });
-
-            if (!liveGames.length) {
+            if (!allGames.length) {
                 el.innerHTML = '<div style="padding:24px 14px; font-family:var(--font-mono); font-size:10px; color:var(--muted); text-align:center; line-height:1.8;">'
-                    + '<div style="font-size:18px; margin-bottom:8px;">&#9679;</div>NO LIVE GAMES<br>Check back soon</div>';
+                    + '<div style="font-size:18px; margin-bottom:8px;">&#9679;</div>NO GAMES FOUND</div>';
                 return;
             }
 
             // Sort: pinned first, then respect drag order
-            var pinned = liveGames.filter(function(g) { return pinnedGames.has(g.game_id); });
-            var unpinned = liveGames.filter(function(g) { return !pinnedGames.has(g.game_id); });
+            var pinned = allGames.filter(function(g) { return pinnedGames.has(g.game_id); });
+            var unpinned = allGames.filter(function(g) { return !pinnedGames.has(g.game_id); });
 
             // Apply drag order within each group
             function applyOrder(arr) {
@@ -1007,13 +1004,17 @@
             var html = '';
             ordered.forEach(function(g) {
                 var isPinned = pinnedGames.has(g.game_id);
-                var hs = parseInt(g.home_score || 0), as = parseInt(g.away_score || 0);
+                var isLiveNow = g.game_status === 'live';
                 var isHalftime = g.espn_status === 'Halftime';
-                var stxt = isHalftime ? 'HALFTIME' : ('&#9679; Q' + g.period + ' ' + g.clock);
+                var done = g.game_status === 'completed';
+                var stxt = '';
+                if (done) stxt = (g.espn_detail && g.espn_detail.toUpperCase().includes('OT') ? g.espn_detail.toUpperCase() : 'FINAL');
+                else if (isLiveNow) stxt = isHalftime ? 'HALFTIME' : ('&#9679; ' + (g.period ? 'Q'+g.period : '') + ' ' + g.clock);
+                else stxt = fmtTime(g.commence_time) || 'SCHEDULED';
+                
                 var act = selectedGame === g.game_id;
                 var leagueBadge = g.sport_key ? g.sport_key.replace('basketball_','').replace('americanfootball_','').toUpperCase() : '';
-
-                html += '<div class="game-item is-live' + (act ? ' active' : '') + (isPinned ? ' pinned-card' : '') + '"'
+                html += '<div class="game-item' + (isLiveNow ? ' is-live' : '') + (act ? ' active' : '') + (isPinned ? ' pinned-card' : '') + '"'
                     + ' id="gi-' + g.game_id + '"'
                     + ' draggable="true"'
                     + ' ondragstart="_onDragStart(event, \'' + g.game_id + '\')"'
@@ -1026,7 +1027,7 @@
                     // Top row: status + actions
                     + '<div class="gi-top-row">'
                     + '<div style="display:flex; align-items:center; gap:8px;">'
-                    + '<span class="gi-status live">' + stxt + '</span>'
+                    + '<span class="gi-status ' + (isLiveNow ? 'live' : '') + '" style="' + (isLiveNow ? '' : 'color:var(--muted);') + '">' + stxt + '</span>'
                     + (leagueBadge ? '<span style="font-family:var(--font-mono);font-size:8px;color:var(--muted);letter-spacing:1px;">' + leagueBadge + '</span>' : '')
                     + '</div>'
                     + '<div class="gi-actions" onclick="event.stopPropagation()">'
