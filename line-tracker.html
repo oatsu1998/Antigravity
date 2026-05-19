@@ -693,6 +693,165 @@
             min-width: 42px;
         }
 
+        /* LINE VALUE MATRIX STYLING */
+        .line-matrix-strip {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg2);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px 8px;
+            font-family: var(--font-mono);
+        }
+
+        .matrix-title {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .matrix-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .matrix-row {
+            display: grid;
+            grid-template-columns: 110px 1fr 1fr 1fr 120px;
+            align-items: center;
+            padding: 6px 12px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+
+        /* Set color and styling for the Closing Odds row explicitly */
+        .matrix-row.closing {
+            background: rgba(217, 119, 6, 0.08);
+            border: 1px solid rgba(217, 119, 6, 0.4);
+            box-shadow: 0 0 8px rgba(217, 119, 6, 0.05);
+        }
+
+        .matrix-row.closing .matrix-label {
+            color: #F59E0B;
+            font-weight: 700;
+        }
+
+        .matrix-row.closing .matrix-cell {
+            color: #F59E0B;
+            font-weight: 600;
+        }
+
+        /* Opening Odds styling */
+        .matrix-row.opening {
+            opacity: 0.85;
+        }
+
+        .matrix-row.opening .matrix-label {
+            color: var(--muted);
+        }
+
+        /* Live line styling */
+        .matrix-row.live {
+            background: rgba(45, 142, 255, 0.06);
+            border: 1px solid rgba(45, 142, 255, 0.2);
+        }
+
+        .matrix-row.live .matrix-label {
+            color: #2D8EFF;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .matrix-row.live .matrix-dot {
+            width: 5px;
+            height: 5px;
+            background: #2D8EFF;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 6px #2D8EFF;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Graded line styling */
+        .matrix-row.graded {
+            background: rgba(16, 185, 129, 0.04);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .matrix-row.graded .matrix-label {
+            color: #10B981;
+            font-weight: 700;
+        }
+
+        .matrix-label {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .matrix-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-family: var(--font-mono);
+        }
+
+        .matrix-cell-title {
+            font-size: 8px;
+            color: var(--dim);
+            text-transform: uppercase;
+        }
+
+        .matrix-cell-val {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .clv-badge {
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+        }
+
+        .clv-badge.pos {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10B981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .clv-badge.neg {
+            background: rgba(239, 68, 68, 0.15);
+            color: #EF4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .clv-badge.neu {
+            background: rgba(107, 114, 128, 0.15);
+            color: var(--muted);
+            border: 1px solid rgba(107, 114, 128, 0.3);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.6; }
+        }
+
         /* Hide TradingView attribution logo */
         #chartBox a,
         #chartBox .tv-lightweight-charts-logo {
@@ -762,6 +921,14 @@
                 </div>
             </div>
 
+            <!-- Line Value Matrix Strip -->
+            <div class="line-matrix-strip" id="lineMatrixSection" style="display:none;">
+                <div class="matrix-title">LINE VALUE MATRIX (CLV TRACKING)</div>
+                <div class="matrix-grid" id="lineMatrixGrid">
+                    <!-- Dynamic Rows (Opening, Closing, Live, Graded) will render here -->
+                </div>
+            </div>
+
             <div class="odds-strip">
                 <div class="strip-inner" id="oddsStrip">
                     <div class="strip-head">
@@ -801,7 +968,43 @@
         ];
 
         var TZ = 'America/Chicago';
+ 
+        var ltLinesDb = JSON.parse(localStorage.getItem('lt_games_lines') || '{}');
 
+        function saveLinesDb() {
+            // Garbage collection: delete games older than 7 days
+            const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            for (let id in ltLinesDb) {
+                const cTime = ltLinesDb[id].commence_time;
+                if (cTime) {
+                    const parsedTime = new Date(cTime.replace(' ', 'T')).getTime();
+                    if (!isNaN(parsedTime) && parsedTime < sevenDaysAgo) {
+                        delete ltLinesDb[id];
+                    }
+                }
+            }
+            localStorage.setItem('lt_games_lines', JSON.stringify(ltLinesDb));
+        }
+
+        function getProfit(odds) {
+            if (odds === null || odds === undefined || isNaN(odds) || odds === '') return 100;
+            const o = parseFloat(odds);
+            if (o >= 100) return o;
+            if (o < 0) return 10000 / Math.abs(o);
+            return 100;
+        }
+
+        function calculateClv(liveOdds, closeOdds) {
+            if (liveOdds === null || liveOdds === undefined || isNaN(liveOdds) || liveOdds === '' ||
+                closeOdds === null || closeOdds === undefined || isNaN(closeOdds) || closeOdds === '') {
+                return null;
+            }
+            const pLive = getProfit(liveOdds);
+            const pClose = getProfit(closeOdds);
+            if (pClose === 0) return 0;
+            return ((pLive - pClose) / pClose) * 100;
+        }
+ 
         var games = {}, selectedGame = null, lwChart = null, lwAwayMl = null, lwHomeMl = null, lwAwaySpr = null, lwHomeSpr = null, lwTotSeries = null, lwAwayScore = null, lwHomeScore = null;
         let refreshCountdown = 60;
 
@@ -839,6 +1042,7 @@
                     };
                 }
                 const g = games[game.id];
+                g.sport_key = game.sport_key;
 
                 const scoreMatch = scoresData.find(s => s.id === game.id);
                 let aScore = '0', hScore = '0', gStatus = 'pre_game';
@@ -937,7 +1141,91 @@
                 if (g.snapshots.length === 0 || nowTime - g.snapshots[g.snapshots.length - 1].time > 10) {
                     g.snapshots.push(snap);
                 }
+
+                // Calculate best odds of the current snapshot
+                let bestAwayML = null, bestHomeML = null;
+                let bestAwaySprPoint = null, bestAwaySprPrice = null;
+                let bestHomeSprPoint = null, bestHomeSprPrice = null;
+                let bestTotalPoint = null;
+
+                Object.values(snap.books).forEach(bdata => {
+                    if (!bdata) return;
+                    // ML
+                    if (bdata.h2h_away !== null && !isNaN(bdata.h2h_away)) {
+                        if (bestAwayML === null || bdata.h2h_away > bestAwayML) bestAwayML = bdata.h2h_away;
+                    }
+                    if (bdata.h2h_home !== null && !isNaN(bdata.h2h_home)) {
+                        if (bestHomeML === null || bdata.h2h_home > bestHomeML) bestHomeML = bdata.h2h_home;
+                    }
+                    // Spread
+                    if (bdata.spread_away_point !== null && !isNaN(bdata.spread_away_point)) {
+                        bestAwaySprPoint = bdata.spread_away_point;
+                        bestAwaySprPrice = bdata.spread_away;
+                    }
+                    if (bdata.spread_home_point !== null && !isNaN(bdata.spread_home_point)) {
+                        bestHomeSprPoint = bdata.spread_home_point;
+                        bestHomeSprPrice = bdata.spread_home;
+                    }
+                    // Totals
+                    if (bdata.total_point !== null && !isNaN(bdata.total_point)) {
+                        bestTotalPoint = bdata.total_point;
+                    }
+                });
+
+                // Get or initialize persistent record
+                if (!ltLinesDb[game.id]) {
+                    ltLinesDb[game.id] = {
+                        game_id: game.id,
+                        commence_time: game.commence_time,
+                        away_team: game.away_team,
+                        home_team: game.home_team,
+                        opening: null,
+                        closing: null,
+                        live: null,
+                        graded: null
+                    };
+                }
+                const db = ltLinesDb[game.id];
+                db.commence_time = game.commence_time; // keep fresh
+
+                const currentLine = {
+                    away_ml: bestAwayML,
+                    home_ml: bestHomeML,
+                    away_spr: bestAwaySprPoint !== null ? { point: bestAwaySprPoint, price: bestAwaySprPrice } : null,
+                    home_spr: bestHomeSprPoint !== null ? { point: bestHomeSprPoint, price: bestHomeSprPrice } : null,
+                    total_line: bestTotalPoint,
+                    timestamp: nowTime
+                };
+
+                // 1. Opening Line: Set once if not yet defined
+                if (!db.opening && (bestAwayML !== null || bestAwaySprPoint !== null)) {
+                    db.opening = currentLine;
+                }
+
+                // 2. Live Line: Always update with the latest best odds
+                if (bestAwayML !== null || bestAwaySprPoint !== null) {
+                    db.live = currentLine;
+                }
+
+                // 3. Closing Line: Only update while game is pre_game. Once it is live or completed, it is locked.
+                if (g.game_status === 'pre_game') {
+                    if (bestAwayML !== null || bestAwaySprPoint !== null) {
+                        db.closing = currentLine;
+                    }
+                } else {
+                    // Fallback to opening if kickoff was missed
+                    if (!db.closing) {
+                        db.closing = db.opening || currentLine;
+                    }
+                }
+
+                // 4. Graded Line: Lock at completion
+                if (g.game_status === 'completed' && !db.graded) {
+                    db.graded = currentLine;
+                }
             });
+
+            saveLinesDb();
         }
 
         function sortGames() {
@@ -1013,7 +1301,16 @@
                 else stxt = fmtTime(g.commence_time) || 'SCHEDULED';
                 
                 var act = selectedGame === g.game_id;
-                var leagueBadge = g.sport_key ? g.sport_key.replace('basketball_','').replace('americanfootball_','').toUpperCase() : '';
+                var leagueBadge = '';
+                if (g.sport_key) {
+                    if (g.sport_key.includes('nba')) leagueBadge = 'NBA';
+                    else if (g.sport_key.includes('nhl')) leagueBadge = 'NHL';
+                    else if (g.sport_key.includes('mlb')) leagueBadge = 'MLB';
+                    else if (g.sport_key.includes('wnba')) leagueBadge = 'WNBA';
+                    else if (g.sport_key.includes('ncaa')) leagueBadge = 'NCAA';
+                    else if (g.sport_key.includes('mls')) leagueBadge = 'MLS';
+                    else leagueBadge = g.sport_key.split('_').pop().toUpperCase();
+                }
                 html += '<div class="game-item' + (isLiveNow ? ' is-live' : '') + (act ? ' active' : '') + (isPinned ? ' pinned-card' : '') + '"'
                     + ' id="gi-' + g.game_id + '"'
                     + ' draggable="true"'
@@ -1115,9 +1412,175 @@
             populateBookSel();
             renderChart();
             renderStrip();
+            renderLineMatrix();
         }
 
-        function updateAll() { renderHeader(); renderChart(); }
+        function fmtOdds(val) {
+            if (val === null || val === undefined || isNaN(val) || val === '') return '--';
+            const v = parseFloat(val);
+            return (v > 0 ? '+' : '') + v;
+        }
+
+        function fmtSpread(spr) {
+            if (!spr || spr.point === undefined || spr.point === null) return '--';
+            const pt = parseFloat(spr.point);
+            const pr = spr.price !== null && spr.price !== undefined ? parseFloat(spr.price) : null;
+            const ptStr = (pt > 0 ? '+' : '') + pt;
+            const prStr = pr !== null ? ` (${fmtOdds(pr)})` : '';
+            return ptStr + prStr;
+        }
+
+        function fmtTotal(tot) {
+            if (tot === null || tot === undefined || isNaN(tot) || tot === '') return '--';
+            return parseFloat(tot).toFixed(1);
+        }
+
+        function clvColor(clv) {
+            if (clv === null || clv === undefined || isNaN(clv)) return 'var(--muted)';
+            if (clv > 0) return '#10B981'; // Green
+            if (clv < 0) return '#EF4444'; // Red
+            return 'var(--text)';
+        }
+
+        function renderLineMatrix() {
+            var el = document.getElementById('lineMatrixGrid');
+            var section = document.getElementById('lineMatrixSection');
+            if (!el || !section) return;
+
+            var db = ltLinesDb[selectedGame];
+            var g = games[selectedGame];
+            if (!db || !g) {
+                section.style.display = 'none';
+                return;
+            }
+            section.style.display = 'flex';
+
+            var awayAbbr = lastName(g.away_team);
+            var homeAbbr = lastName(g.home_team);
+
+            var rowsHtml = '';
+
+            // 1. Opening Line Row
+            if (db.opening) {
+                rowsHtml += `
+                <div class="matrix-row opening">
+                    <div class="matrix-label">OPENING LINE</div>
+                    <div class="matrix-cell">
+                        <span class="matrix-cell-title">${awayAbbr} ML</span>
+                        <span class="matrix-cell-val">${fmtOdds(db.opening.away_ml)}</span>
+                    </div>
+                    <div class="matrix-cell">
+                        <span class="matrix-cell-title">${homeAbbr} ML</span>
+                        <span class="matrix-cell-val">${fmtOdds(db.opening.home_ml)}</span>
+                    </div>
+                    <div class="matrix-cell">
+                        <span class="matrix-cell-title">SPREAD / TOTAL</span>
+                        <span class="matrix-cell-val">${fmtSpread(db.opening.away_spr)} / O ${fmtTotal(db.opening.total_line)}</span>
+                    </div>
+                    <div class="matrix-cell" style="text-align:right; justify-content:center;">
+                        <span class="clv-badge neu">0.0% CLV</span>
+                    </div>
+                </div>`;
+            }
+
+            // 2. Closing Odds Row (glowing amber/gold)
+            if (db.closing) {
+                rowsHtml += `
+                <div class="matrix-row closing">
+                    <div class="matrix-label">CLOSING ODDS</div>
+                    <div class="matrix-cell">
+                        <span class="matrix-cell-title">${awayAbbr} ML</span>
+                        <span class="matrix-cell-val">${fmtOdds(db.closing.away_ml)}</span>
+                    </div>
+                    <div class="matrix-cell">
+                        <span class="matrix-cell-title">${homeAbbr} ML</span>
+                        <span class="matrix-cell-val">${fmtOdds(db.closing.home_ml)}</span>
+                    </div>
+                    <div class="matrix-cell">
+                        <span class="matrix-cell-title">SPREAD / TOTAL</span>
+                        <span class="matrix-cell-val">${fmtSpread(db.closing.away_spr)} / O ${fmtTotal(db.closing.total_line)}</span>
+                    </div>
+                    <div class="matrix-cell" style="text-align:right; justify-content:center;">
+                        <span class="clv-badge neu" style="color:#F59E0B; border-color:rgba(217,119,6,0.3);">LOCK</span>
+                    </div>
+                </div>`;
+            }
+
+            // 3. Live Line Row
+            if (db.live) {
+                var awayClv = calculateClv(db.live.away_ml, db.closing ? db.closing.away_ml : null);
+                var homeClv = calculateClv(db.live.home_ml, db.closing ? db.closing.home_ml : null);
+
+                var awayClvStyle = awayClv !== null ? `style="color:${clvColor(awayClv)}; font-weight:bold;"` : '';
+                var homeClvStyle = homeClv !== null ? `style="color:${clvColor(homeClv)}; font-weight:bold;"` : '';
+
+                // Best overall CLV for display in badge
+                var bestClv = awayClv;
+                if (homeClv !== null && (bestClv === null || Math.abs(homeClv) > Math.abs(awayClv))) {
+                    bestClv = homeClv;
+                }
+
+                var badgeClass = 'neu';
+                var badgeText = '0.0% CLV';
+                if (bestClv !== null) {
+                    if (bestClv > 0) {
+                        badgeClass = 'pos';
+                        badgeText = `▲ +${bestClv.toFixed(1)}% CLV`;
+                    } else if (bestClv < 0) {
+                        badgeClass = 'neg';
+                        badgeText = `▼ ${bestClv.toFixed(1)}% CLV`;
+                    }
+                }
+
+                rowsHtml += `
+                <div class="matrix-row live">
+                    <div class="matrix-label"><span class="matrix-dot"></span>LIVE LINE</div>
+                    <div class="matrix-cell">
+                        <span class="matrix-cell-title">${awayAbbr} ML</span>
+                        <span class="matrix-cell-val" ${awayClvStyle}>${fmtOdds(db.live.away_ml)}</span>
+                    </div>
+                    <div class="matrix-cell">
+                        <span class="matrix-cell-title">${homeAbbr} ML</span>
+                        <span class="matrix-cell-val" ${homeClvStyle}>${fmtOdds(db.live.home_ml)}</span>
+                    </div>
+                    <div class="matrix-cell">
+                        <span class="matrix-cell-title">SPREAD / TOTAL</span>
+                        <span class="matrix-cell-val">${fmtSpread(db.live.away_spr)} / O ${fmtTotal(db.live.total_line)}</span>
+                    </div>
+                    <div class="matrix-cell" style="text-align:right; justify-content:center;">
+                        <span class="clv-badge ${badgeClass}">${badgeText}</span>
+                    </div>
+                </div>`;
+            }
+
+            // 4. Graded Line Row
+            if (db.graded || (g.game_status === 'completed' && db.live)) {
+                var finalLine = db.graded || db.live;
+                rowsHtml += `
+                <div class="matrix-row graded">
+                    <div class="matrix-label">GRADED LINE</div>
+                    <div class="matrix-cell">
+                        <span class="matrix-cell-title">${awayAbbr} ML</span>
+                        <span class="matrix-cell-val" style="color:#10B981;">${fmtOdds(finalLine.away_ml)}</span>
+                    </div>
+                    <div class="matrix-cell">
+                        <span class="matrix-cell-title">${homeAbbr} ML</span>
+                        <span class="matrix-cell-val" style="color:#10B981;">${fmtOdds(finalLine.home_ml)}</span>
+                    </div>
+                    <div class="matrix-cell">
+                        <span class="matrix-cell-title">SPREAD / TOTAL</span>
+                        <span class="matrix-cell-val" style="color:#10B981;">${fmtSpread(finalLine.away_spr)} / O ${fmtTotal(finalLine.total_line)}</span>
+                    </div>
+                    <div class="matrix-cell" style="text-align:right; justify-content:center;">
+                        <span class="clv-badge pos" style="background:rgba(16,185,129,0.25); border-color:#10B981; color:#10B981;">&#10004; GRADED</span>
+                    </div>
+                </div>`;
+            }
+
+            el.innerHTML = rowsHtml;
+        }
+
+        function updateAll() { renderHeader(); renderChart(); renderLineMatrix(); }
 
         function renderHeader() {
             var g = games[selectedGame]; if (!g) return;
@@ -1135,8 +1598,14 @@
             var numPeriods = Math.max(awayLS.length, homeLS.length);
             var periods = numPeriods > 0 ? Array.from({length: numPeriods}, function(_, i) { return i; }) : [];
             var isBaseball = g.espn_sport === 'baseball';
+            var isHockey = g.espn_sport === 'hockey';
             var getQLabel = function(i) {
                 if (isBaseball) return (i + 1);                       // 1 2 3 … 9 10 …
+                if (isHockey) {
+                    if (i < 3) return (i + 1);                        // 1 2 3
+                    var ot = i - 2;
+                    return ot === 1 ? 'OT' : (ot + 'OT');
+                }
                 if (i < 4) return (i + 1);                            // 1 2 3 4
                 var ot = i - 3;                                        // 1-indexed OT number
                 return ot === 1 ? 'OT' : (ot + 'OT');                 // OT 2OT 3OT …
@@ -1146,11 +1615,24 @@
             var periodLabel = '';
             if (live && g.period) {
                 var pn = parseInt(g.period);
-                if (pn === 1) periodLabel = isHalftime ? 'HT' : '1st';
-                else if (pn === 2) periodLabel = isHalftime ? 'HT' : '2nd';
-                else if (pn === 3) periodLabel = '3rd';
-                else if (pn === 4) periodLabel = '4th';
-                else periodLabel = 'OT' + (pn > 5 ? (pn - 4) : '');
+                if (isHockey) {
+                    if (pn === 1) periodLabel = '1st';
+                    else if (pn === 2) periodLabel = '2nd';
+                    else if (pn === 3) periodLabel = '3rd';
+                    else periodLabel = 'OT' + (pn > 4 ? (pn - 3) : '');
+                } else if (isBaseball) {
+                    var suffix = 'th';
+                    if (pn === 1) suffix = 'st';
+                    else if (pn === 2) suffix = 'nd';
+                    else if (pn === 3) suffix = 'rd';
+                    periodLabel = pn + suffix;
+                } else {
+                    if (pn === 1) periodLabel = isHalftime ? 'HT' : '1st';
+                    else if (pn === 2) periodLabel = isHalftime ? 'HT' : '2nd';
+                    else if (pn === 3) periodLabel = '3rd';
+                    else if (pn === 4) periodLabel = '4th';
+                    else periodLabel = 'OT' + (pn > 5 ? (pn - 4) : '');
+                }
             }
             var clockStr = (live && !isHalftime && g.clock) ? (g.clock + ' &ndash; ' + periodLabel) : (isHalftime ? 'HALFTIME' : stxt);
 
@@ -1399,8 +1881,12 @@
                 document.getElementById('legHomeOdds').innerHTML = `<div class="legend-line" style="background:${market === 'tot' ? '#8B5CF6' : '#F6AD55'};"></div>` + (market === 'tot' ? 'TOTAL' : (market === 'spr' ? 'HOME SPR' : 'HOME ML'));
             }
 
-            lwAwayMl.setMarkers(markers.away);
-            lwHomeMl.setMarkers(markers.home);
+            if (lwAwayMl && typeof lwAwayMl.setMarkers === 'function') {
+                lwAwayMl.setMarkers(markers.away);
+            }
+            if (lwHomeMl && typeof lwHomeMl.setMarkers === 'function') {
+                lwHomeMl.setMarkers(markers.home);
+            }
 
             lwChart.timeScale().fitContent();
 
@@ -1585,9 +2071,6 @@
             btn.disabled = true; btn.innerHTML = '&#8634; LOADING...';
 
             try {
-                const scoresRes = await fetch(`https://api.the-odds-api.com/v4/sports/${SPORT}/scores/?apiKey=${API_KEY}&daysFrom=1`);
-                const oddsRes = await fetch(`https://api.the-odds-api.com/v4/sports/${SPORT}/odds/?apiKey=${API_KEY}&regions=us&markets=h2h,spreads,totals&oddsFormat=american`);
-
                 // Fetch ESPN scoreboards across all major leagues in parallel
                 const today = new Date();
                 const dateStr = today.getFullYear().toString() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
@@ -1610,12 +2093,35 @@
                     return (r.events || []).map(e => { e._sport = sport; return e; });
                 });
 
-                if (!scoresRes.ok || !oddsRes.ok) throw new Error("API Request Failed");
+                // Fetch scores and odds for all sports in parallel
+                const SPORTS = [
+                    "basketball_nba",
+                    "icehockey_nhl",
+                    "baseball_mlb",
+                    "basketball_wnba",
+                    "basketball_ncaa_mens",
+                    "soccer_usa_mls"
+                ];
 
-                const scoresData = await scoresRes.json();
-                const oddsData = await oddsRes.json();
+                const oddsFetches = SPORTS.map(sport =>
+                    fetch(`https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${API_KEY}&regions=us&markets=h2h,spreads,totals&oddsFormat=american`)
+                        .then(r => r.ok ? r.json() : [])
+                        .catch(() => [])
+                );
 
-                processApiData(scoresData, oddsData, allEspnEvents);
+                const scoresFetches = SPORTS.map(sport =>
+                    fetch(`https://api.the-odds-api.com/v4/sports/${sport}/scores/?apiKey=${API_KEY}&daysFrom=1`)
+                        .then(r => r.ok ? r.json() : [])
+                        .catch(() => [])
+                );
+
+                const oddsResults = await Promise.all(oddsFetches);
+                const scoresResults = await Promise.all(scoresFetches);
+
+                const allOddsData = oddsResults.flat();
+                const allScoresData = scoresResults.flat();
+
+                processApiData(allScoresData, allOddsData, allEspnEvents);
 
                 document.getElementById('ts').textContent = new Date().toLocaleTimeString('en-US', { timeZone: TZ });
                 renderSidebar();
@@ -1640,11 +2146,13 @@
 
         async function fetchHistory() {
             if (!selectedGame || !games[selectedGame]) return;
+            var g = games[selectedGame];
+            var sportKey = g.sport_key || SPORT;
             var btn = document.getElementById('historyBtn');
             btn.disabled = true; btn.innerHTML = 'LOADING...';
             try {
                 const pastTime = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString().split('.')[0] + 'Z';
-                const histRes = await fetch(`https://api.the-odds-api.com/v4/historical/sports/${SPORT}/odds?apiKey=${API_KEY}&regions=us&markets=h2h,spreads,totals&oddsFormat=american&date=${pastTime}`);
+                const histRes = await fetch(`https://api.the-odds-api.com/v4/historical/sports/${sportKey}/odds?apiKey=${API_KEY}&regions=us&markets=h2h,spreads,totals&oddsFormat=american&date=${pastTime}`);
                 if (!histRes.ok) throw new Error("History API Failed");
                 const histData = await histRes.json();
                 if (histData.data) {
