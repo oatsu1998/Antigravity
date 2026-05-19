@@ -519,6 +519,202 @@
             margin-bottom: 0;
         }
 
+        /* PREMIUM ESPN LIVE BASEBALL GAME CARD */
+        .espn-game-card {
+            background: linear-gradient(135deg, rgba(20, 30, 45, 0.95), rgba(10, 15, 25, 0.98));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            font-family: var(--font-mono), monospace;
+        }
+        .egc-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 16px;
+        }
+        .egc-player-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        .egc-player-img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0,0,0,0.2);
+            object-fit: cover;
+        }
+        .egc-player-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .egc-player-role {
+            font-size: 8px;
+            color: var(--muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .egc-player-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--fg);
+        }
+        .egc-player-stats {
+            font-size: 10px;
+            color: var(--accent2);
+        }
+        .egc-vs-badge {
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            font-size: 9px;
+            color: var(--muted);
+            font-weight: 700;
+            margin: 0 12px;
+        }
+        .egc-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr 1.1fr;
+            gap: 12px;
+        }
+        @media (max-width: 768px) {
+            .egc-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .egc-panel-situation {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .egc-counts {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        .egc-count-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 10px;
+            color: var(--muted);
+        }
+        .egc-dots {
+            display: flex;
+            gap: 4px;
+        }
+        .egc-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            background: transparent;
+        }
+        .egc-dot.active {
+            background: #E53E3E;
+            border-color: #E53E3E;
+            box-shadow: 0 0 6px #E53E3E;
+        }
+        .egc-dot.ball.active {
+            background: #4A90E2;
+            border-color: #4A90E2;
+            box-shadow: 0 0 6px #4A90E2;
+        }
+        .egc-diamond {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 8px auto;
+        }
+        .egc-base {
+            position: absolute;
+            width: 13px;
+            height: 13px;
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.02);
+            transform: rotate(45deg);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .egc-base.occupied {
+            background: var(--blue);
+            border-color: var(--blue);
+            box-shadow: 0 0 10px var(--blue);
+        }
+        .egc-base.first { right: 6px; top: 33px; }
+        .egc-base.second { left: 33px; top: 6px; }
+        .egc-base.third { left: 6px; top: 33px; }
+        .egc-base.home {
+            left: 33px;
+            bottom: 6px;
+            border: 1.5px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .egc-panel-heatmap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.03);
+            position: relative;
+        }
+        .egc-heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 24px);
+            grid-template-rows: repeat(3, 24px);
+            gap: 2px;
+        }
+        .egc-heat-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: 700;
+            color: #fff;
+            border-radius: 2px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+        }
+        .egc-heat-cell.hot { background: rgba(229, 62, 62, 0.85); border: 1px solid rgba(229, 62, 62, 0.3); }
+        .egc-heat-cell.neutral { background: rgba(74, 144, 226, 0.65); border: 1px solid rgba(74, 144, 226, 0.3); }
+        .egc-heat-cell.cold { background: rgba(45, 142, 255, 0.85); border: 1px solid rgba(45, 142, 255, 0.3); }
+
+        .egc-panel-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.03);
+            font-size: 10px;
+            justify-content: center;
+        }
+        .egc-info-title {
+            font-size: 8px;
+            color: var(--muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .egc-info-text {
+            color: var(--fg);
+            line-height: 1.4;
+        }
+
         .sp-section-title {
             font-size: 10px;
             color: var(--muted);
@@ -2094,6 +2290,227 @@
             const plays = data.plays || [];
 
             let html = '';
+
+            // Athlete lookup helper
+            const findAthlete = (id) => {
+                if (!id || !data.rosters) return null;
+                for (const r of data.rosters) {
+                    if (r.roster) {
+                        const entry = r.roster.find(item => item.athlete && item.athlete.id == id);
+                        if (entry) return entry.athlete;
+                    }
+                }
+                if (data.boxscore && data.boxscore.players) {
+                    for (const tp of data.boxscore.players) {
+                        if (tp.statistics) {
+                            for (const stat of tp.statistics) {
+                                if (stat.athletes) {
+                                    const entry = stat.athletes.find(a => a.athlete && a.athlete.id == id);
+                                    if (entry) return entry.athlete;
+                                }
+                            }
+                        }
+                    }
+                }
+                return null;
+            };
+
+            // Batter Stats helper
+            const getBatterStatsString = (athleteId) => {
+                if (!athleteId || !data.boxscore || !data.boxscore.players) return '';
+                for (const tp of data.boxscore.players) {
+                    if (tp.statistics) {
+                        for (const st of tp.statistics) {
+                            const ath = st.athletes?.find(a => a.athlete?.id == athleteId);
+                            if (ath && ath.stats && st.labels) {
+                                const statsMap = {};
+                                st.labels.forEach((lbl, idx) => {
+                                    statsMap[lbl] = ath.stats[idx];
+                                });
+                                const parts = [];
+                                if (statsMap['H-AB']) parts.push(statsMap['H-AB']);
+                                if (statsMap['RBI'] && parseInt(statsMap['RBI']) > 0) {
+                                    parts.push(statsMap['RBI'] + ' RBI');
+                                }
+                                if (statsMap['BB'] && parseInt(statsMap['BB']) > 0) {
+                                    parts.push(statsMap['BB'] + ' BB');
+                                }
+                                if (statsMap['HR'] && parseInt(statsMap['HR']) > 0) {
+                                    parts.push(statsMap['HR'] + ' HR');
+                                }
+                                return parts.join(', ');
+                            }
+                        }
+                    }
+                }
+                return '';
+            };
+
+            // Pitcher Stats helper
+            const getPitcherStatsString = (athleteId) => {
+                if (!athleteId || !data.boxscore || !data.boxscore.players) return '';
+                for (const tp of data.boxscore.players) {
+                    if (tp.statistics) {
+                        for (const st of tp.statistics) {
+                            const ath = st.athletes?.find(a => a.athlete?.id == athleteId);
+                            if (ath && ath.stats && st.labels) {
+                                const statsMap = {};
+                                st.labels.forEach((lbl, idx) => {
+                                    statsMap[lbl] = ath.stats[idx];
+                                });
+                                const parts = [];
+                                if (statsMap['IP']) parts.push(statsMap['IP'] + ' IP');
+                                if (statsMap['K']) parts.push(statsMap['K'] + ' K');
+                                if (statsMap['ER']) parts.push(statsMap['ER'] + ' ER');
+                                if (statsMap['PC']) parts.push(statsMap['PC'] + ' Pitches');
+                                return parts.join(', ');
+                            }
+                        }
+                    }
+                }
+                return '';
+            };
+
+            // Render Baseball Live Matchup Card
+            if (data.situation && currentOpenGame?.sport === 'baseball') {
+                const sit = data.situation;
+                
+                // Get Batter Athlete & Stats
+                const batId = sit.batter?.playerId;
+                const batAth = findAthlete(batId);
+                const batName = batAth ? batAth.displayName : 'UNKNOWN BATTER';
+                const batHeadshot = batAth?.headshot?.href || 'https://a.espncdn.com/i/headshots/placeholder.png';
+                const batStats = getBatterStatsString(batId) || '0-0';
+
+                // Get Pitcher Athlete & Stats
+                const pitId = sit.pitcher?.playerId;
+                const pitAth = findAthlete(pitId);
+                const pitName = pitAth ? pitAth.displayName : 'UNKNOWN PITCHER';
+                const pitHeadshot = pitAth?.headshot?.href || 'https://a.espncdn.com/i/headshots/placeholder.png';
+                const pitStats = getPitcherStatsString(pitId) || '0.0 IP';
+
+                // Matchup Notes / Plays Fallback
+                const latestPlayText = plays[plays.length - 1]?.text;
+                const matchNote = sit.situationNotes?.[0]?.text || latestPlayText || 'No matchup logs available for this at-bat.';
+
+                // Count Indicators
+                const balls = parseInt(sit.balls || 0);
+                const strikes = parseInt(sit.strikes || 0);
+                const outs = parseInt(sit.outs || 0);
+
+                // Bases occupied
+                const on1 = !!sit.onFirst;
+                const on2 = !!sit.onSecond;
+                const on3 = !!sit.onThird;
+
+                // Runner names for detailed base label
+                const run1 = findAthlete(sit.onFirst?.playerId)?.displayName || (sit.onFirst ? 'Runner' : 'Base empty');
+                const run2 = findAthlete(sit.onSecond?.playerId)?.displayName || (sit.onSecond ? 'Runner' : 'Base empty');
+                const run3 = findAthlete(sit.onThird?.playerId)?.displayName || (sit.onThird ? 'Runner' : 'Base empty');
+
+                // Render Heatmap Zones
+                let heatmapCells = '';
+                const zones = batAth?.hotZones?.[0]?.zones || [];
+                if (zones.length >= 9) {
+                    zones.slice(0, 9).forEach(z => {
+                        const val = z.battingAvg ? z.battingAvg.toFixed(3).substring(1) : '.000';
+                        let cls = 'neutral';
+                        if (z.battingAvg >= 0.300) cls = 'hot';
+                        else if (z.battingAvg < 0.230) cls = 'cold';
+                        heatmapCells += `<div class="egc-heat-cell ${cls}">${val}</div>`;
+                    });
+                } else {
+                    const dummy = ['.000', '.000', '.000', '.000', '.000', '.000', '.000', '.000', '.000'];
+                    dummy.forEach(val => {
+                        heatmapCells += `<div class="egc-heat-cell neutral">${val}</div>`;
+                    });
+                }
+
+                const batterSvg = `
+                <svg viewBox="0 0 64 128" style="width:40px; height:80px; opacity:0.15; fill:#ffffff; margin-right:8px;">
+                    <path d="M30 15c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm18 45c-1-12-11-20-22-20h-6c-1.7 0-3 1.3-3 3s1.3 3 3 3h4c6 0 11 4 12 10l-12 16-8-8c-1.2-1.2-3-1.2-4.2 0s-1.2 3 0 4.2l12 12c1.2 1.2 3 1.2 4.2 0l16-24c1.8-2.7 1.8-6.2.2-8.2zm-28 6l-6 16c-.6 1.6.3 3.3 2 3.9 1.6.6 3.3-.3 3.9-2l6-16c.6-1.6-.3-3.3-2-3.9-1.6-.6-3.3.3-3.9 2zm18 10l-4 28c-.2 1.7 1 3.2 2.7 3.4 1.7.2 3.2-1 3.4-2.7l4-28c.2-1.7-1-3.2-2.7-3.4-1.7-.2-3.2 1-3.4 2.7z"/>
+                </svg>
+                `;
+
+                html += `
+                <div class="espn-game-card">
+                    <div class="egc-header">
+                        <div class="egc-player-card">
+                            <img src="${batHeadshot}" class="egc-player-img" onerror="this.src='https://a.espncdn.com/i/headshots/placeholder.png'">
+                            <div class="egc-player-info">
+                                <span class="egc-player-role">NOW AT BAT</span>
+                                <span class="egc-player-name">${batName}</span>
+                                <span class="egc-player-stats">${batStats}</span>
+                            </div>
+                        </div>
+                        <div class="egc-vs-badge">VS</div>
+                        <div class="egc-player-card" style="justify-content: flex-end; text-align: right;">
+                            <div class="egc-player-info" style="align-items: flex-end;">
+                                <span class="egc-player-role">PITCHING</span>
+                                <span class="egc-player-name">${pitName}</span>
+                                <span class="egc-player-stats">${pitStats}</span>
+                            </div>
+                            <img src="${pitHeadshot}" class="egc-player-img" onerror="this.src='https://a.espncdn.com/i/headshots/placeholder.png'">
+                        </div>
+                    </div>
+
+                    <div class="egc-grid">
+                        <div class="egc-panel-situation">
+                            <div class="egc-counts">
+                                <div class="egc-count-row">
+                                    <span>BALLS</span>
+                                    <div class="egc-dots">
+                                        <div class="egc-dot ball ${balls >= 1 ? 'active' : ''}"></div>
+                                        <div class="egc-dot ball ${balls >= 2 ? 'active' : ''}"></div>
+                                        <div class="egc-dot ball ${balls >= 3 ? 'active' : ''}"></div>
+                                        <div class="egc-dot ball ${balls >= 4 ? 'active' : ''}"></div>
+                                    </div>
+                                </div>
+                                <div class="egc-count-row">
+                                    <span>STRIKES</span>
+                                    <div class="egc-dots">
+                                        <div class="egc-dot ${strikes >= 1 ? 'active' : ''}"></div>
+                                        <div class="egc-dot ${strikes >= 2 ? 'active' : ''}"></div>
+                                        <div class="egc-dot ${strikes >= 3 ? 'active' : ''}"></div>
+                                    </div>
+                                </div>
+                                <div class="egc-count-row">
+                                    <span>OUTS</span>
+                                    <div class="egc-dots">
+                                        <div class="egc-dot ${outs >= 1 ? 'active' : ''}"></div>
+                                        <div class="egc-dot ${outs >= 2 ? 'active' : ''}"></div>
+                                        <div class="egc-dot ${outs >= 3 ? 'active' : ''}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="egc-diamond">
+                                <div class="egc-base second ${on2 ? 'occupied' : ''}" title="2nd Base"></div>
+                                <div class="egc-base third ${on3 ? 'occupied' : ''}" title="3rd Base"></div>
+                                <div class="egc-base first ${on1 ? 'occupied' : ''}" title="1st Base"></div>
+                                <div class="egc-base home" title="Home Plate"></div>
+                            </div>
+
+                            <div style="font-size: 8px; color: var(--muted); margin-top: 8px; text-align: center; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ON BASE: 1B: ${run1.split(' ').pop()} · 2B: ${run2.split(' ').pop()} · 3B: ${run3.split(' ').pop()}
+                            </div>
+                        </div>
+
+                        <div class="egc-panel-heatmap">
+                            ${batterSvg}
+                            <div class="egc-heatmap-grid">
+                                ${heatmapCells}
+                            </div>
+                        </div>
+
+                        <div class="egc-panel-info">
+                            <span class="egc-info-title">MATCHUP INSIGHT</span>
+                            <div class="egc-info-text">${matchNote}</div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
 
             // ── Quarter-by-quarter linescore ──────────────────────────────
             const headerComp = data.header?.competitions?.[0];
