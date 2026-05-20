@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentPath = window.location.pathname;
     const isLineTracker = currentPath.toLowerCase().includes('line-tracker');
     const isProps = currentPath.toLowerCase().includes('props');
+    const isMyBets = currentPath.toLowerCase().includes('my-bets');
 
     // Inject HTML
     const nav = document.createElement('nav');
@@ -59,9 +60,10 @@ document.addEventListener('DOMContentLoaded', function() {
     nav.innerHTML = `
         <div class="global-nav-brand">DESTINY NETWORK</div>
         <div class="global-nav-links">
-            <a href="index.html" class="global-nav-link ${(!isLineTracker && !isProps) ? 'active' : ''}">Command Center</a>
+            <a href="index.html" class="global-nav-link ${(!isLineTracker && !isProps && !isMyBets) ? 'active' : ''}">Command Center</a>
             <a href="line-tracker.html" class="global-nav-link ${isLineTracker ? 'active' : ''}">Line Tracker</a>
             <a href="props.html" class="global-nav-link ${isProps ? 'active' : ''}">Props</a>
+            <a href="my-bets.html" class="global-nav-link ${isMyBets ? 'active' : ''}">My Bets</a>
         </div>
     `;
     document.body.insertBefore(nav, document.body.firstChild);
