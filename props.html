@@ -1087,8 +1087,10 @@
 
                     const outcomes = m.outcomes || [];
                     outcomes.forEach(out => {
-                        const playerName = out.name;
-                        const type = out.description.toUpperCase(); // OVER or UNDER
+                        // In The Odds API player props, out.description is the athlete name (e.g. "Josh Hart")
+                        // and out.name is the selection choice ("Over" or "Under")
+                        const playerName = out.description || out.name;
+                        const type = (out.description ? out.name : "OVER").toUpperCase(); 
                         const lineVal = out.point; // e.g. 26.5
                         const price = out.price; // American format (e.g. -115)
 
