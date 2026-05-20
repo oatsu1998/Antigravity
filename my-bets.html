@@ -969,9 +969,73 @@
                 };
             });
 
+            const liveUserWagers = [
+                {
+                    id: 'ticket-964789649',
+                    target: 'Total — UNDER 224.5',
+                    matchup: 'Cleveland Cavaliers @ New York Knicks',
+                    stake: 25.00,
+                    placedOdds: '-115',
+                    currentOdds: '-115',
+                    sportsbook: 'FanDuel',
+                    status: 'PENDING',
+                    history: ['-110', '-112', '-115'],
+                    type: 'GAME'
+                },
+                {
+                    id: 'ticket-964789216',
+                    target: 'Point Spread — CAVS +2.0',
+                    matchup: 'Cleveland Cavaliers @ New York Knicks',
+                    stake: 25.00,
+                    placedOdds: '-115',
+                    currentOdds: '-115',
+                    sportsbook: 'DraftKings',
+                    status: 'PENDING',
+                    history: ['-110', '-115'],
+                    type: 'GAME'
+                },
+                {
+                    id: 'ticket-964780661',
+                    target: 'Point Spread — KNICKS +9.5',
+                    matchup: 'Cleveland Cavaliers @ New York Knicks',
+                    stake: 25.00,
+                    placedOdds: '-115',
+                    currentOdds: '-115',
+                    sportsbook: 'BetMGM',
+                    status: 'PENDING',
+                    history: ['-120', '-118', '-115'],
+                    type: 'GAME'
+                },
+                {
+                    id: 'ticket-964780376',
+                    target: 'Point Spread — KNICKS +9.5',
+                    matchup: 'Cleveland Cavaliers @ New York Knicks',
+                    stake: 50.00,
+                    placedOdds: '-115',
+                    currentOdds: '-115',
+                    sportsbook: 'FanDuel',
+                    status: 'PENDING',
+                    history: ['-120', '-118', '-115'],
+                    type: 'GAME'
+                },
+                {
+                    id: 'ticket-964779088',
+                    target: 'Point Spread — KNICKS +8.0',
+                    matchup: 'Cleveland Cavaliers @ New York Knicks',
+                    stake: 25.00,
+                    placedOdds: '-115',
+                    currentOdds: '-115',
+                    sportsbook: 'DraftKings',
+                    status: 'PENDING',
+                    history: ['-110', '-112', '-115'],
+                    type: 'GAME'
+                }
+            ];
+
             // Merge and keep custom/seeded wagers if total list size is empty
             if (wagers.length === 0 && syncedPropWagers.length === 0) {
                 wagers = [
+                    ...liveUserWagers,
                     {
                         id: 'seed-brunson-pts',
                         target: 'Jalen Brunson — OVER 27.5 Points',
@@ -997,18 +1061,6 @@
                         type: 'PROP'
                     },
                     {
-                        id: 'seed-cavs-spread',
-                        target: 'Cleveland Cavaliers +3.5 Spread',
-                        matchup: 'Cleveland Cavaliers @ New York Knicks',
-                        stake: 200.00,
-                        placedOdds: '-110',
-                        currentOdds: '+120',
-                        sportsbook: 'BetMGM',
-                        status: 'PENDING',
-                        history: ['-110', '-115', '-105', '+100', '+110', '+120'],
-                        type: 'GAME'
-                    },
-                    {
                         id: 'seed-okc-ml',
                         target: 'Oklahoma City Thunder Moneyline',
                         matchup: 'San Antonio Spurs @ Oklahoma City Thunder',
@@ -1025,12 +1077,26 @@
             } else {
                 // Combine stored wagers and synced props (avoiding duplicates)
                 const combined = [...wagers];
+                
+                // Prioritize user's actual live tickets at the very front of the ledger!
+                liveUserWagers.forEach(uw => {
+                    const existingIdx = combined.findIndex(c => c.id === uw.id);
+                    if (existingIdx !== -1) {
+                        // Keep current real-time simulated fluctuations but preserve details
+                        combined[existingIdx].stake = uw.stake;
+                        combined[existingIdx].target = uw.target;
+                    } else {
+                        combined.unshift(uw);
+                    }
+                });
+
                 syncedPropWagers.forEach(sp => {
                     if (!combined.some(c => c.id === sp.id)) {
                         combined.push(sp);
                     }
                 });
                 wagers = combined;
+                localStorage.setItem('destiny_game_wagers', JSON.stringify(wagers));
             }
         }
 
