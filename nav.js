@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+function initGlobalNav() {
     // Inject CSS
     const style = document.createElement('style');
     style.textContent = `
@@ -67,4 +67,10 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     `;
     document.body.insertBefore(nav, document.body.firstChild);
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGlobalNav);
+} else {
+    initGlobalNav();
+}
