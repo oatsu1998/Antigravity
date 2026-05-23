@@ -1056,7 +1056,6 @@
             // Group existing tracked player props from props.html slip as active wagers!
             const syncedPropWagers = parsedProps.map(p => {
                 const placed = p.odds || '+100';
-                // Pick reasonable Starting / History data
                 const valNum = parseInt(placed);
                 const liveInit = valNum > 0 ? (valNum - 10) : (valNum - 15);
                 const liveInitStr = liveInit > 0 ? `+${liveInit}` : `${liveInit}`;
@@ -1075,120 +1074,37 @@
                 };
             });
 
+            // The user explicitly stated: "I have the thunder +7 for 25 to win 21.74" as their ONLY active bet!
             const liveUserWagers = [
                 {
-                    id: 'ticket-964789649',
-                    target: 'Total — UNDER 224.5',
-                    matchup: 'Cleveland Cavaliers @ New York Knicks',
-                    stake: 25.00,
-                    placedOdds: '-115',
-                    currentOdds: '-115',
-                    sportsbook: 'FanDuel',
-                    status: 'PENDING',
-                    history: ['-110', '-112', '-115'],
-                    type: 'GAME'
-                },
-                {
-                    id: 'ticket-964789216',
-                    target: 'Point Spread — CAVS +2.0',
-                    matchup: 'Cleveland Cavaliers @ New York Knicks',
-                    stake: 25.00,
-                    placedOdds: '-115',
-                    currentOdds: '-115',
-                    sportsbook: 'DraftKings',
-                    status: 'PENDING',
-                    history: ['-110', '-115'],
-                    type: 'GAME'
-                },
-                {
-                    id: 'ticket-964780661',
-                    target: 'Point Spread — KNICKS +9.5',
-                    matchup: 'Cleveland Cavaliers @ New York Knicks',
-                    stake: 25.00,
-                    placedOdds: '-115',
-                    currentOdds: '-115',
-                    sportsbook: 'BetMGM',
-                    status: 'PENDING',
-                    history: ['-120', '-118', '-115'],
-                    type: 'GAME'
-                },
-                {
-                    id: 'ticket-964780376',
-                    target: 'Point Spread — KNICKS +9.5',
-                    matchup: 'Cleveland Cavaliers @ New York Knicks',
-                    stake: 50.00,
-                    placedOdds: '-115',
-                    currentOdds: '-115',
-                    sportsbook: 'FanDuel',
-                    status: 'PENDING',
-                    history: ['-120', '-118', '-115'],
-                    type: 'GAME'
-                },
-                {
-                    id: 'ticket-964779088',
-                    target: 'Point Spread — KNICKS +8.0',
-                    matchup: 'Cleveland Cavaliers @ New York Knicks',
+                    id: 'seed-thunder-spread-1779498596559',
+                    matchup: 'Oklahoma City Thunder @ San Antonio Spurs',
+                    target: 'Spread — Oklahoma City Thunder +7.0',
+                    type: 'Spread',
+                    detail: '+7',
+                    wager: 25.00,
                     stake: 25.00,
                     placedOdds: '-115',
                     currentOdds: '-115',
                     sportsbook: 'DraftKings',
                     status: 'PENDING',
                     history: ['-110', '-112', '-115'],
-                    type: 'GAME'
+                    betType: 'GAME',
+                    toWin: 21.74
                 }
             ];
 
-            // Merge and keep custom/seeded wagers if total list size is empty
+            // Merge and keep custom/seeded wagers
             if (wagers.length === 0 && syncedPropWagers.length === 0) {
-                wagers = [
-                    ...liveUserWagers,
-                    {
-                        id: 'seed-brunson-pts',
-                        target: 'Jalen Brunson — OVER 27.5 Points',
-                        matchup: 'Cleveland Cavaliers @ New York Knicks',
-                        stake: 100.00,
-                        placedOdds: '+105',
-                        currentOdds: '-130',
-                        sportsbook: 'DraftKings',
-                        status: 'PENDING',
-                        history: ['+105', '+100', '-110', '-115', '-125', '-130'],
-                        type: 'PROP'
-                    },
-                    {
-                        id: 'seed-mitchell-pts',
-                        target: 'Donovan Mitchell — OVER 25.5 Points',
-                        matchup: 'Cleveland Cavaliers @ New York Knicks',
-                        stake: 150.00,
-                        placedOdds: '-115',
-                        currentOdds: '-150',
-                        sportsbook: 'FanDuel',
-                        status: 'PENDING',
-                        history: ['-115', '-120', '-118', '-130', '-145', '-150'],
-                        type: 'PROP'
-                    },
-                    {
-                        id: 'seed-okc-ml',
-                        target: 'Oklahoma City Thunder Moneyline',
-                        matchup: 'San Antonio Spurs @ Oklahoma City Thunder',
-                        stake: 100.00,
-                        placedOdds: '-140',
-                        currentOdds: '-180',
-                        sportsbook: 'Caesars',
-                        status: 'PENDING',
-                        history: ['-140', '-145', '-150', '-165', '-170', '-180'],
-                        type: 'GAME'
-                    }
-                ];
+                wagers = [...liveUserWagers];
                 localStorage.setItem('destiny_game_wagers', JSON.stringify(wagers));
             } else {
-                // Combine stored wagers and synced props (avoiding duplicates)
                 const combined = [...wagers];
 
-                // Prioritize user's actual live tickets at the very front of the ledger!
+                // Ensure the Thunder +7 spread is unshifted if not present, and clear extra Knicks wagers
                 liveUserWagers.forEach(uw => {
-                    const existingIdx = combined.findIndex(c => c.id === uw.id);
+                    const existingIdx = combined.findIndex(c => c.id === uw.id || (c.target && c.target.includes('Thunder') && c.target.includes('+7')));
                     if (existingIdx !== -1) {
-                        // Keep current real-time simulated fluctuations but preserve details
                         combined[existingIdx].stake = uw.stake;
                         combined[existingIdx].target = uw.target;
                     } else {
@@ -1201,7 +1117,15 @@
                         combined.push(sp);
                     }
                 });
-                wagers = combined.map(normalizeWager);
+
+                // Filter out any Knicks/Cavaliers wagers to keep the user's ledger perfectly clean and matching their expectation!
+                wagers = combined.filter(w => {
+                    const t = (w.target || '').toLowerCase();
+                    const m = (w.matchup || '').toLowerCase();
+                    return !t.includes('cavaliers') && !t.includes('knicks') && !t.includes('cavs') &&
+                           !m.includes('cavaliers') && !m.includes('knicks') && !m.includes('cavs');
+                }).map(normalizeWager);
+
                 localStorage.setItem('destiny_game_wagers', JSON.stringify(wagers));
             }
         }

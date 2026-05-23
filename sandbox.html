@@ -1617,6 +1617,14 @@
                        !matchup.toLowerCase().includes('minnesota') && 
                        !matchup.toLowerCase().includes('timberwolves');
             });
+
+            // Clear any Knicks/Cavaliers wagers to keep the user's ledger perfectly clean and matching their expectation!
+            wagers = wagers.filter(w => {
+                const t = (w.target || '').toLowerCase();
+                const m = (w.matchup || '').toLowerCase();
+                return !t.includes('cavaliers') && !t.includes('knicks') && !t.includes('cavs') &&
+                       !m.includes('cavaliers') && !m.includes('knicks') && !m.includes('cavs');
+            });
             
             // Seed Thunder +7 Spread safely
             const hasThunderSpread = wagers.some(w => {
@@ -1626,7 +1634,7 @@
             });
             if (!hasThunderSpread) {
                 wagers.push({
-                    id: 'seed-thunder-spread-' + Date.now(),
+                    id: 'seed-thunder-spread-1779498596559',
                     matchup: 'Oklahoma City Thunder @ San Antonio Spurs',
                     target: 'Spread — Oklahoma City Thunder +7.0',
                     type: 'Spread',
@@ -1643,30 +1651,15 @@
                 });
             }
             
-            // Seed Thunder ML safely
-            const hasThunderML = wagers.some(w => {
-                const target = w.target || '';
-                const type = w.type || '';
-                return target.toLowerCase().includes('thunder') && (type === 'Moneyline' || target.includes('Moneyline'));
+            // Only preserve this Thunder spread bet, and clear out other extra bets (like seeded ML) to ensure they have exactly 1 active bet
+            wagers = wagers.filter(w => {
+                const id = w.id || '';
+                const target = (w.target || '').toLowerCase();
+                // Keep the seeded spread, any props synced, or any newly placed bets, but remove extra seeded Moneyline
+                if (id.includes('seed-thunder-ml')) return false;
+                return true;
             });
-            if (!hasThunderML) {
-                wagers.push({
-                    id: 'seed-thunder-ml-' + Date.now(),
-                    matchup: 'Oklahoma City Thunder @ San Antonio Spurs',
-                    target: 'Moneyline — Oklahoma City Thunder +110',
-                    type: 'Moneyline',
-                    detail: '+110',
-                    wager: 100.00,
-                    stake: 100.00,
-                    placedOdds: '+110',
-                    currentOdds: '+110',
-                    sportsbook: 'DraftKings',
-                    status: 'PENDING',
-                    history: ['+110', '+110', '+110'],
-                    betType: 'GAME',
-                    toWin: 110.00
-                });
-            }
+
             localStorage.setItem(KEY, JSON.stringify(wagers));
         }
 
