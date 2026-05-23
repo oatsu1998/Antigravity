@@ -1412,11 +1412,21 @@
             if (espnPinned.has(id)) { espnPinned.delete(id); btn.classList.remove('active'); btn.title = 'Pin'; }
             else { espnPinned.add(id); btn.classList.add('active'); btn.title = 'Unpin'; }
             saveEspnPins();
-            const card = document.getElementById(`card-${id}`);
-            if (card) card.classList.toggle('pinned', espnPinned.has(id));
-            // Re-sort the grid this card lives in
-            const grid = card?.closest('.games-grid');
-            if (grid) _resortGrid(grid);
+            
+            // Toggle pinned class on all card instances across panels!
+            const cards = document.querySelectorAll(`[id$="-${id}"]`);
+            cards.forEach(card => {
+                if (card.id.startsWith('card-')) {
+                    card.classList.toggle('pinned', espnPinned.has(id));
+                    const pinBtn = card.querySelector('.pin-btn');
+                    if (pinBtn) {
+                        pinBtn.classList.toggle('active', espnPinned.has(id));
+                        pinBtn.title = espnPinned.has(id) ? 'Unpin' : 'Pin';
+                    }
+                    const grid = card.closest('.games-grid');
+                    if (grid) _resortGrid(grid);
+                }
+            });
         }
 
         function _resortGrid(grid) {
@@ -1426,29 +1436,29 @@
             [...pinned, ...rest].forEach(c => grid.appendChild(c));
         }
 
-        function _onEspnDragStart(e, id) {
-            _espnDragSrc = id;
+        function _onEspnDragStart(e, id, panelType) {
+            _espnDragSrc = { id, panelType };
             e.dataTransfer.effectAllowed = 'move';
-            document.getElementById(`card-${id}`)?.classList.add('dragging');
+            document.getElementById(`card-${panelType}-${id}`)?.classList.add('dragging');
         }
-        function _onEspnDragEnd(id) {
-            document.getElementById(`card-${id}`)?.classList.remove('dragging');
+        function _onEspnDragEnd(id, panelType) {
+            document.getElementById(`card-${panelType}-${id}`)?.classList.remove('dragging');
             document.querySelectorAll('.game-card.drag-over').forEach(c => c.classList.remove('drag-over'));
             _espnDragSrc = null;
         }
-        function _onEspnDragOver(e, id) {
+        function _onEspnDragOver(e, id, panelType) {
             e.preventDefault();
-            if (_espnDragSrc && _espnDragSrc !== id) {
+            if (_espnDragSrc && (_espnDragSrc.id !== id || _espnDragSrc.panelType !== panelType)) {
                 document.querySelectorAll('.game-card.drag-over').forEach(c => c.classList.remove('drag-over'));
-                document.getElementById(`card-${id}`)?.classList.add('drag-over');
+                document.getElementById(`card-${panelType}-${id}`)?.classList.add('drag-over');
             }
         }
-        function _onEspnDrop(e, id, tabKey) {
+        function _onEspnDrop(e, id, tabKey, panelType) {
             e.preventDefault();
-            document.getElementById(`card-${id}`)?.classList.remove('drag-over');
-            if (!_espnDragSrc || _espnDragSrc === id) return;
-            const src = document.getElementById(`card-${_espnDragSrc}`);
-            const tgt = document.getElementById(`card-${id}`);
+            document.getElementById(`card-${panelType}-${id}`)?.classList.remove('drag-over');
+            if (!_espnDragSrc || _espnDragSrc.id === id || _espnDragSrc.panelType !== panelType) return;
+            const src = document.getElementById(`card-${panelType}-${_espnDragSrc.id}`);
+            const tgt = document.getElementById(`card-${panelType}-${id}`);
             if (!src || !tgt || src.parentElement !== tgt.parentElement) return;
             const grid = src.parentElement;
             const cards = Array.from(grid.querySelectorAll('.game-card'));
@@ -1459,7 +1469,7 @@
             saveEspnOrder(tabKey, newOrder);
         }
 
-        function renderCard(event, lg) {
+        function renderCard(event, lg, panelType) {
             const comp = event.competitions?.[0];
             if (!comp) return '';
             const competitors = comp.competitors || [];
@@ -1975,13 +1985,13 @@
             const hideFooter = bettingWidgetHtml !== '' && (isLALvsHOU || isORLvsDET || isCLEvsTOR);
 
             return `
-    <div class="game-card ${status.isLive ? 'live' : ''} ${espnPinned.has(event.id) ? 'pinned' : ''}" id="card-${event.id}" data-eid="${event.id}"
+    <div class="game-card ${status.isLive ? 'live' : ''} ${espnPinned.has(event.id) ? 'pinned' : ''}" id="card-${panelType}-${event.id}" data-eid="${event.id}"
          draggable="true"
-         ondragstart="_onEspnDragStart(event,'${event.id}')"
-         ondragend="_onEspnDragEnd('${event.id}')"
-         ondragover="_onEspnDragOver(event,'${event.id}')"
-         ondrop="_onEspnDrop(event,'${event.id}','${lg.id}')"
-         onclick="toggleGameDetails('${event.id}', '${lg.sport}', '${lg.league}')">
+         ondragstart="_onEspnDragStart(event,'${event.id}','${panelType}')"
+         ondragend="_onEspnDragEnd('${event.id}','${panelType}')"
+         ondragover="_onEspnDragOver(event,'${event.id}','${panelType}')"
+         ondrop="_onEspnDrop(event,'${event.id}','${lg.id}','${panelType}')"
+         onclick="toggleGameDetails('${event.id}', '${lg.sport}', '${lg.league}', '${panelType}')">
       <div class="card-top-bar">
         <span class="drag-handle" onclick="event.stopPropagation()" title="Drag to reorder">⠿</span>
         <div class="game-status" style="margin:0; display:flex; align-items:center; gap:6px;">
@@ -2018,7 +2028,7 @@
         <span class="game-info">${[venue, broadcast].filter(Boolean).join(' · ')}</span>
         ${oddsStr ? `<span class="game-odds">${oddsStr}</span>` : ''}
       </div>
-      <div class="card-details" id="details-${event.id}" onclick="event.stopPropagation()"></div>
+      <div class="card-details" id="details-${panelType}-${event.id}" onclick="event.stopPropagation()"></div>
     </div>
   `;
         }
@@ -2055,7 +2065,7 @@
                     if (ia >= 0 && ib >= 0) return ia - ib;
                     return new Date(a.date || 0) - new Date(b.date || 0);
                 });
-                html += `<div class="games-grid">${sortedEvents.map(e => renderCard(e, lg)).join('')}</div>`;
+                html += `<div class="games-grid">${sortedEvents.map(e => renderCard(e, lg, lg.id)).join('')}</div>`;
             }
 
             return html;
@@ -2085,7 +2095,7 @@
     `;
             }
 
-            return `<div class="games-grid">${allLiveEvents.map(item => renderCard(item.event, item.lg)).join('')}</div>`;
+            return `<div class="games-grid">${allLiveEvents.map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>`;
         }
 
         function buildTabs() {
@@ -2234,7 +2244,7 @@
             }
 
             if (currentOpenGame) {
-                const card = document.getElementById(`card-${currentOpenGame.eventId}`);
+                const card = document.getElementById(`card-${currentOpenGame.panelType}-${currentOpenGame.eventId}`);
                 if (card) {
                     card.classList.add('expanded');
                     refreshGameDetails();
@@ -2246,30 +2256,30 @@
 
         let currentOpenGame = null;
 
-        async function toggleGameDetails(eventId, sport, league) {
-            const card = document.getElementById(`card-${eventId}`);
+        async function toggleGameDetails(eventId, sport, league, panelType) {
+            const card = document.getElementById(`card-${panelType}-${eventId}`);
 
-            if (currentOpenGame && currentOpenGame.eventId === eventId) {
+            if (currentOpenGame && currentOpenGame.eventId === eventId && currentOpenGame.panelType === panelType) {
                 card.classList.remove('expanded');
                 currentOpenGame = null;
                 return;
             }
 
             if (currentOpenGame) {
-                const oldCard = document.getElementById(`card-${currentOpenGame.eventId}`);
+                const oldCard = document.getElementById(`card-${currentOpenGame.panelType}-${currentOpenGame.eventId}`);
                 if (oldCard) oldCard.classList.remove('expanded');
             }
 
-            currentOpenGame = { eventId, sport, league };
+            currentOpenGame = { eventId, sport, league, panelType };
             card.classList.add('expanded');
-            const detailsEl = document.getElementById(`details-${eventId}`);
+            const detailsEl = document.getElementById(`details-${panelType}-${eventId}`);
             detailsEl.innerHTML = '<div class="loading" style="padding:20px 0;">LOADING DEEP DATA...</div>';
             await refreshGameDetails();
         }
 
         async function refreshGameDetails() {
             if (!currentOpenGame) return;
-            const { eventId, sport, league } = currentOpenGame;
+            const { eventId, sport, league, panelType } = currentOpenGame;
             const url = `https://site.api.espn.com/apis/site/v2/sports/${sport}/${league}/summary?event=${eventId}`;
             try {
                 const res = await fetch(url);
@@ -2277,13 +2287,14 @@
                 const data = await res.json();
                 renderSidePanel(data);
             } catch (e) {
-                document.getElementById('spContent').innerHTML = `<div class="error-msg">Failed to load details: ${e.message}</div>`;
+                const detailsEl = document.getElementById(`details-${panelType}-${eventId}`);
+                if (detailsEl) detailsEl.innerHTML = `<div class="error-msg">Failed to load details: ${e.message}</div>`;
             }
         }
 
         function renderSidePanel(data) {
             if (!currentOpenGame) return;
-            const detailsEl = document.getElementById(`details-${currentOpenGame.eventId}`);
+            const detailsEl = document.getElementById(`details-${currentOpenGame.panelType}-${currentOpenGame.eventId}`);
             if (!detailsEl) return;
 
             const box = data.boxscore;
