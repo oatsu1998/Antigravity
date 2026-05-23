@@ -959,6 +959,24 @@
         let chartInstance = null;
         let activeFilter = 'ALL';
 
+        // Normalize wagers to ensure cross-page compatibility and prevent errors
+        function normalizeWager(w) {
+            const stakeVal = parseFloat(w.stake !== undefined ? w.stake : (w.wager !== undefined ? w.wager : 0));
+            const payoutOdds = w.placedOdds || w.detail || '+100';
+            return {
+                id: w.id || ('wager-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)),
+                target: w.target || 'Unknown Selection',
+                matchup: w.matchup || 'Unknown Matchup',
+                stake: stakeVal,
+                placedOdds: payoutOdds,
+                currentOdds: w.currentOdds || payoutOdds,
+                sportsbook: w.sportsbook || 'FanDuel',
+                status: w.status || 'PENDING',
+                history: Array.isArray(w.history) ? w.history : [payoutOdds],
+                type: w.type || 'GAME'
+            };
+        }
+
         // Implied probability calculation based on American odds
         function getImpliedProbability(americanOdds) {
             const odds = parseInt(americanOdds);
@@ -1029,7 +1047,7 @@
 
             if (savedWagers) {
                 try {
-                    wagers = JSON.parse(savedWagers);
+                    wagers = JSON.parse(savedWagers).map(normalizeWager);
                 } catch (e) {
                     console.error("Failed to parse local stored wagers:", e);
                 }
@@ -1183,7 +1201,7 @@
                         combined.push(sp);
                     }
                 });
-                wagers = combined;
+                wagers = combined.map(normalizeWager);
                 localStorage.setItem('destiny_game_wagers', JSON.stringify(wagers));
             }
         }

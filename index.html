@@ -1231,6 +1231,103 @@
             opacity: 0.9;
         }
 
+        /* Bet Slip Tabbed Layout */
+        .bs-tabs {
+            display: flex;
+            background: var(--surface2);
+            border-bottom: 1px solid var(--border);
+            padding: 2px 20px;
+            gap: 10px;
+        }
+
+        .bs-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            font-family: var(--font-head);
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            cursor: pointer;
+            letter-spacing: 1.5px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .bs-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .bs-tab:hover {
+            color: var(--text);
+        }
+
+        .bs-active-wager-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border2);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .bs-active-wager-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+
+        .bs-active-wager-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bs-active-wager-matchup {
+            font-size: 9px;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .bs-active-wager-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .badge.pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .badge.won {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--win);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge.lost {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
         .bs-toggle {
             position: fixed;
             bottom: 24px;
@@ -3076,16 +3173,159 @@
             <div class="bs-title">BET SLIP</div>
             <div class="bs-bankroll">Bankroll: $<span id="bankroll-amount">10000.00</span></div>
         </div>
+        <div class="bs-tabs">
+            <div class="bs-tab active" id="bs-tab-slip" onclick="switchBsTab('slip')">SLIP (<span id="bs-slip-count">0</span>)</div>
+            <div class="bs-tab" id="bs-tab-active" onclick="switchBsTab('active')">ACTIVE (<span id="bs-active-count">0</span>)</div>
+        </div>
         <div id="bs-items" class="bs-items">
             <div style="color:var(--muted); font-size:12px; text-align:center;">Your bet slip is empty.</div>
         </div>
-        <div class="bs-footer">
+        <div id="bs-active-bets" class="bs-items" style="display:none; gap:12px;">
+            <div style="color:var(--muted); font-size:12px; text-align:center;">You have no active wagers.</div>
+        </div>
+        <div class="bs-footer" id="bs-footer-slip">
             <button class="bs-place-btn" onclick="placeBets()">PLACE BETS</button>
         </div>
     </div>
     <script>
         let bankroll = 10000.00;
         let betSlip = [];
+        let activeBsTab = 'slip';
+
+        // Conversion helper from American odds to decimal multiplier (stake multiplier)
+        function americanToDecimal(americanOdds) {
+            const val = parseInt(americanOdds);
+            if (isNaN(val)) return 1.0;
+            if (val > 0) {
+                return 1.0 + (val / 100);
+            } else {
+                return 1.0 + (100 / Math.abs(val));
+            }
+        }
+
+        // Normalize wagers to ensure cross-page compatibility and prevent errors
+        function normalizeWager(w) {
+            const stakeVal = parseFloat(w.stake !== undefined ? w.stake : (w.wager !== undefined ? w.wager : 0));
+            const payoutOdds = w.placedOdds || w.detail || '+100';
+            return {
+                id: w.id || ('wager-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)),
+                target: w.target || 'Unknown Selection',
+                matchup: w.matchup || 'Unknown Matchup',
+                stake: stakeVal,
+                placedOdds: payoutOdds,
+                currentOdds: w.currentOdds || payoutOdds,
+                sportsbook: w.sportsbook || 'FanDuel',
+                status: w.status || 'PENDING',
+                history: Array.isArray(w.history) ? w.history : [payoutOdds],
+                type: w.type || 'GAME'
+            };
+        }
+
+        function switchBsTab(tab) {
+            activeBsTab = tab;
+            const slipTab = document.getElementById('bs-tab-slip');
+            const activeTab = document.getElementById('bs-tab-active');
+            const slipContainer = document.getElementById('bs-items');
+            const activeContainer = document.getElementById('bs-active-bets');
+            const slipFooter = document.getElementById('bs-footer-slip');
+
+            if (tab === 'slip') {
+                slipTab.classList.add('active');
+                activeTab.classList.remove('active');
+                slipContainer.style.display = 'flex';
+                activeContainer.style.display = 'none';
+                slipFooter.style.display = 'block';
+            } else {
+                slipTab.classList.remove('active');
+                activeTab.classList.add('active');
+                slipContainer.style.display = 'none';
+                activeContainer.style.display = 'flex';
+                slipFooter.style.display = 'none'; // hide place bet button for active wagers
+                renderActiveBetsInPanel();
+            }
+        }
+
+        function updateActiveBetsCountGlobal() {
+            const saved = localStorage.getItem('destiny_game_wagers');
+            let wagers = [];
+            if (saved) {
+                try { wagers = JSON.parse(saved); } catch(e) { wagers = []; }
+            }
+            // Filter out Timberwolves wagers
+            wagers = wagers.filter(w => {
+                const target = w.target || '';
+                const matchup = w.matchup || '';
+                return !target.toLowerCase().includes('timberwolves') && 
+                       !matchup.toLowerCase().includes('minnesota') && 
+                       !matchup.toLowerCase().includes('timberwolves');
+            });
+            const activeCountEl = document.getElementById('bs-active-count');
+            if (activeCountEl) activeCountEl.innerText = wagers.length;
+        }
+
+        function renderActiveBetsInPanel() {
+            const container = document.getElementById('bs-active-bets');
+            const saved = localStorage.getItem('destiny_game_wagers');
+            let wagers = [];
+            if (saved) {
+                try { 
+                    wagers = JSON.parse(saved).map(normalizeWager); 
+                } catch(e) { 
+                    wagers = []; 
+                }
+            }
+
+            // Filter out Timberwolves wagers
+            wagers = wagers.filter(w => {
+                const target = w.target || '';
+                const matchup = w.matchup || '';
+                return !target.toLowerCase().includes('timberwolves') && 
+                       !matchup.toLowerCase().includes('minnesota') && 
+                       !matchup.toLowerCase().includes('timberwolves');
+            });
+
+            const activeCountEl = document.getElementById('bs-active-count');
+            if (activeCountEl) activeCountEl.innerText = wagers.length;
+
+            if (wagers.length === 0) {
+                container.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding-top:20px;">You have no active wagers.</div>';
+                return;
+            }
+
+            container.innerHTML = wagers.map(w => {
+                const isProp = w.type === 'PROP';
+                const cleanTarget = w.target;
+                const isPending = w.status === 'PENDING';
+                
+                return `
+                    <div class="bs-active-wager-card">
+                        <div class="bs-active-wager-header">
+                            <span class="bs-active-wager-title" style="word-break: break-word; max-width: 75%;">${cleanTarget}</span>
+                            <span class="badge ${w.status.toLowerCase()}" style="font-size:8px; padding:2px 6px;">${w.status}</span>
+                        </div>
+                        <div class="bs-active-wager-matchup">${w.matchup}</div>
+                        <div class="bs-active-wager-row">
+                            <span style="color:var(--muted)">Bookmaker:</span>
+                            <span style="color:#fff; font-weight:600; text-transform:uppercase;">${w.sportsbook}</span>
+                        </div>
+                        <div class="bs-active-wager-row">
+                            <span style="color:var(--muted)">Placed Odds:</span>
+                            <span style="color:var(--accent2); font-weight:600;">${w.placedOdds}</span>
+                        </div>
+                        <div class="bs-active-wager-row">
+                            <span style="color:var(--muted)">Stake / Payout:</span>
+                            <span style="color:#fff; font-weight:600;">$${w.stake.toFixed(2)} → $${(w.stake * americanToDecimal(w.placedOdds)).toFixed(2)}</span>
+                        </div>
+                        ${isPending ? `
+                        <div class="bs-active-wager-row" style="margin-top: 8px; border-top:1px dashed var(--border2); padding-top:6px;">
+                            <span style="color:var(--muted)">Live Odds:</span>
+                            <span style="color:#fff; font-weight:bold;">${w.currentOdds}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
 
         // Initialize: clear past wagers & reset bankroll
         localStorage.removeItem('wagers');
@@ -3182,6 +3422,9 @@
         function renderBetSlip() {
             const container = document.getElementById('bs-items');
             document.getElementById('bs-count').innerText = betSlip.length;
+            const slipCountEl = document.getElementById('bs-slip-count');
+            if (slipCountEl) slipCountEl.innerText = betSlip.length;
+
             if (betSlip.length === 0) {
                 container.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center;">Your bet slip is empty.</div>';
                 return;
@@ -3238,13 +3481,25 @@
                     matchupName = 'OKC @ SAS';
                 }
 
+                const cleanOddsStr = (bet.odds > 0 ? '+' : '') + bet.odds;
+                const cleanType = bet.type.split(' ')[0];
+                const cleanDetail = bet.type.includes('(') ? bet.type.match(/\(([^)]+)\)/)?.[1] || '' : cleanOddsStr;
+                const displayTarget = `${cleanType} — ${bet.team} ${cleanDetail}`;
+
                 wagers.push({
                     id: 'placed-' + bet.id + '-' + Date.now(),
                     matchup: matchupName,
-                    target: bet.team,
-                    type: bet.type.split(' ')[0],
-                    detail: bet.type.includes('(') ? bet.type.match(/\(([^)]+)\)/)?.[1] || '' : (bet.odds > 0 ? '+' : '') + bet.odds,
+                    target: displayTarget,
+                    type: cleanType,
+                    detail: cleanDetail,
                     wager: bet.wager,
+                    stake: bet.wager,
+                    placedOdds: cleanOddsStr,
+                    currentOdds: cleanOddsStr,
+                    sportsbook: 'FanDuel',
+                    status: 'PENDING',
+                    history: [cleanOddsStr, cleanOddsStr, cleanOddsStr],
+                    betType: 'GAME',
                     toWin: calculatePayout(bet.wager, bet.odds) - bet.wager
                 });
             });
@@ -3254,6 +3509,10 @@
             betSlip = [];
             renderBetSlip();
             updateAllCardBetsCounts();
+            updateActiveBetsCountGlobal();
+            if (activeBsTab === 'active') {
+                renderActiveBetsInPanel();
+            }
             alert('Bets placed successfully!');
         }
 
@@ -3281,16 +3540,23 @@
             const hasThunderSpread = wagers.some(w => {
                 const target = w.target || '';
                 const detail = w.detail || '';
-                return target.toLowerCase().includes('thunder') && detail.includes('+7');
+                return target.toLowerCase().includes('thunder') && (detail.includes('+7') || target.includes('+7'));
             });
             if (!hasThunderSpread) {
                 wagers.push({
                     id: 'seed-thunder-spread-' + Date.now(),
                     matchup: 'Oklahoma City Thunder @ San Antonio Spurs',
-                    target: 'Oklahoma City Thunder',
+                    target: 'Spread — Oklahoma City Thunder +7.0',
                     type: 'Spread',
                     detail: '+7',
                     wager: 25.00,
+                    stake: 25.00,
+                    placedOdds: '-115',
+                    currentOdds: '-115',
+                    sportsbook: 'DraftKings',
+                    status: 'PENDING',
+                    history: ['-110', '-112', '-115'],
+                    betType: 'GAME',
                     toWin: 21.74
                 });
             }
@@ -3299,16 +3565,23 @@
             const hasThunderML = wagers.some(w => {
                 const target = w.target || '';
                 const type = w.type || '';
-                return target.toLowerCase().includes('thunder') && type === 'Moneyline';
+                return target.toLowerCase().includes('thunder') && (type === 'Moneyline' || target.includes('Moneyline'));
             });
             if (!hasThunderML) {
                 wagers.push({
                     id: 'seed-thunder-ml-' + Date.now(),
                     matchup: 'Oklahoma City Thunder @ San Antonio Spurs',
-                    target: 'Oklahoma City Thunder',
+                    target: 'Moneyline — Oklahoma City Thunder +110',
                     type: 'Moneyline',
                     detail: '+110',
                     wager: 100.00,
+                    stake: 100.00,
+                    placedOdds: '+110',
+                    currentOdds: '+110',
+                    sportsbook: 'DraftKings',
+                    status: 'PENDING',
+                    history: ['+110', '+110', '+110'],
+                    betType: 'GAME',
                     toWin: 110.00
                 });
             }
@@ -3328,6 +3601,9 @@
                 return parsed.filter(w => {
                     const m = (w.matchup || '').toLowerCase();
                     const t = (w.target || '').toLowerCase();
+                    if (t.includes('timberwolves') || m.includes('minnesota') || m.includes('timberwolves')) {
+                        return false;
+                    }
                     const matchAwayText = (aAbbr && (m.includes(aAbbr) || t.includes(aAbbr))) || (aName && (m.includes(aName) || t.includes(aName)));
                     const matchHomeText = (hAbbr && (m.includes(hAbbr) || t.includes(hAbbr))) || (hName && (m.includes(hName) || t.includes(hName)));
                     return matchAwayText && matchHomeText;
@@ -3459,6 +3735,10 @@
             
             renderWagersInModal();
             updateAllCardBetsCounts();
+            updateActiveBetsCountGlobal();
+            if (activeBsTab === 'active') {
+                renderActiveBetsInPanel();
+            }
         }
 
         function deleteWagerFromModal(id) {
@@ -3470,12 +3750,17 @@
             
             renderWagersInModal();
             updateAllCardBetsCounts();
+            updateActiveBetsCountGlobal();
+            if (activeBsTab === 'active') {
+                renderActiveBetsInPanel();
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             seedWagersIfEmpty();
             updateBankrollDisplay();
             renderBetSlip();
+            updateActiveBetsCountGlobal();
             setTimeout(updateAllCardBetsCounts, 1200); // Allow scoreboard to load before counting wagers
         });
     </script>

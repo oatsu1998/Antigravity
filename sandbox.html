@@ -1622,16 +1622,23 @@
             const hasThunderSpread = wagers.some(w => {
                 const target = w.target || '';
                 const detail = w.detail || '';
-                return target.toLowerCase().includes('thunder') && detail.includes('+7');
+                return target.toLowerCase().includes('thunder') && (detail.includes('+7') || target.includes('+7'));
             });
             if (!hasThunderSpread) {
                 wagers.push({
                     id: 'seed-thunder-spread-' + Date.now(),
                     matchup: 'Oklahoma City Thunder @ San Antonio Spurs',
-                    target: 'Oklahoma City Thunder',
+                    target: 'Spread — Oklahoma City Thunder +7.0',
                     type: 'Spread',
                     detail: '+7',
                     wager: 25.00,
+                    stake: 25.00,
+                    placedOdds: '-115',
+                    currentOdds: '-115',
+                    sportsbook: 'DraftKings',
+                    status: 'PENDING',
+                    history: ['-110', '-112', '-115'],
+                    betType: 'GAME',
                     toWin: 21.74
                 });
             }
@@ -1640,16 +1647,23 @@
             const hasThunderML = wagers.some(w => {
                 const target = w.target || '';
                 const type = w.type || '';
-                return target.toLowerCase().includes('thunder') && type === 'Moneyline';
+                return target.toLowerCase().includes('thunder') && (type === 'Moneyline' || target.includes('Moneyline'));
             });
             if (!hasThunderML) {
                 wagers.push({
                     id: 'seed-thunder-ml-' + Date.now(),
                     matchup: 'Oklahoma City Thunder @ San Antonio Spurs',
-                    target: 'Oklahoma City Thunder',
+                    target: 'Moneyline — Oklahoma City Thunder +110',
                     type: 'Moneyline',
                     detail: '+110',
                     wager: 100.00,
+                    stake: 100.00,
+                    placedOdds: '+110',
+                    currentOdds: '+110',
+                    sportsbook: 'DraftKings',
+                    status: 'PENDING',
+                    history: ['+110', '+110', '+110'],
+                    betType: 'GAME',
                     toWin: 110.00
                 });
             }
