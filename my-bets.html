@@ -46,7 +46,8 @@
         .page-container {
             max-width: 1500px;
             margin: 0 auto;
-            padding: 72px 28px 24px 28px; /* Offset for sticky global nav bar */
+            padding: 72px 28px 24px 28px;
+            /* Offset for sticky global nav bar */
         }
 
         /* HEADER */
@@ -104,9 +105,17 @@
             background: var(--accent);
         }
 
-        .metric-card.roi::before { background: var(--win); }
-        .metric-card.profit::before { background: var(--win); }
-        .metric-card.pending::before { background: var(--accent2); }
+        .metric-card.roi::before {
+            background: var(--win);
+        }
+
+        .metric-card.profit::before {
+            background: var(--win);
+        }
+
+        .metric-card.pending::before {
+            background: var(--accent2);
+        }
 
         .metric-label {
             font-size: 10px;
@@ -129,8 +138,13 @@
             margin-top: 4px;
         }
 
-        .text-win { color: var(--win) !important; }
-        .text-lost { color: var(--lost) !important; }
+        .text-win {
+            color: var(--win) !important;
+        }
+
+        .text-lost {
+            color: var(--lost) !important;
+        }
 
         /* DASHBOARD LAYOUT */
         .dashboard-grid {
@@ -197,7 +211,7 @@
         .filter-tab.active {
             background: var(--surface2);
             color: var(--accent);
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .wager-list {
@@ -267,16 +281,30 @@
             letter-spacing: 0.5px;
         }
 
-        .badge.pending { background: rgba(107, 114, 128, 0.15); color: var(--muted); border: 1px solid rgba(107, 114, 128, 0.3); }
-        .badge.won { background: rgba(16, 185, 129, 0.15); color: var(--win); border: 1px solid rgba(16, 185, 129, 0.3); }
-        .badge.lost { background: rgba(239, 68, 68, 0.15); color: var(--lost); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge.pending {
+            background: rgba(107, 114, 128, 0.15);
+            color: var(--muted);
+            border: 1px solid rgba(107, 114, 128, 0.3);
+        }
+
+        .badge.won {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--win);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge.lost {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--lost);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
 
         .wager-card-body {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
             font-size: 11px;
-            border-top: 1px solid rgba(255,255,255,0.03);
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
             padding-top: 10px;
         }
 
@@ -401,9 +429,20 @@
         }
 
         @keyframes pulse {
-            0% { transform: scale(0.9); opacity: 0.6; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.9); opacity: 0.6; }
+            0% {
+                transform: scale(0.9);
+                opacity: 0.6;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.9);
+                opacity: 0.6;
+            }
         }
 
         /* DYNAMIC TRADING CHART */
@@ -456,15 +495,22 @@
 
         .analytics-table td {
             padding: 6px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.02);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
         }
 
         .analytics-table tr:last-child td {
             border: none;
         }
 
-        .table-label { color: var(--muted); }
-        .table-val { text-align: right; font-weight: 700; color: #fff; }
+        .table-label {
+            color: var(--muted);
+        }
+
+        .table-val {
+            text-align: right;
+            font-weight: 700;
+            color: #fff;
+        }
 
         /* CASHOUT TERMINAL BUTTONS */
         .cashout-box {
@@ -538,7 +584,7 @@
         .add-wager-toggle:hover {
             color: var(--accent);
             border-color: var(--accent);
-            background: rgba(245,158,11,0.02);
+            background: rgba(245, 158, 11, 0.02);
         }
 
         /* WAGER CREATION DRAWER */
@@ -553,8 +599,15 @@
         }
 
         @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .drawer-grid {
@@ -582,7 +635,8 @@
             font-weight: 700;
         }
 
-        .form-group input, .form-group select {
+        .form-group input,
+        .form-group select {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 4px;
@@ -594,7 +648,8 @@
             transition: border-color 0.2s;
         }
 
-        .form-group input:focus, .form-group select:focus {
+        .form-group input:focus,
+        .form-group select:focus {
             border-color: var(--accent);
         }
 
@@ -620,7 +675,7 @@
 
         /* PRICE ALERTS & ALIVE LOG FLASH */
         .live-log-box {
-            background: rgba(0,0,0,0.3);
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 12px;
@@ -633,27 +688,47 @@
 
         .live-log-item {
             padding: 2px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.01);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.01);
             display: flex;
             justify-content: space-between;
         }
 
-        .live-log-item.up { color: var(--win); }
-        .live-log-item.down { color: var(--live); }
+        .live-log-item.up {
+            color: var(--win);
+        }
+
+        .live-log-item.down {
+            color: var(--live);
+        }
 
         /* PRICE FLASH CLASSES */
         @keyframes greenFlash {
-            0% { background: rgba(16, 185, 129, 0.1); }
-            100% { background: transparent; }
+            0% {
+                background: rgba(16, 185, 129, 0.1);
+            }
+
+            100% {
+                background: transparent;
+            }
         }
 
         @keyframes redFlash {
-            0% { background: rgba(239, 68, 68, 0.1); }
-            100% { background: transparent; }
+            0% {
+                background: rgba(239, 68, 68, 0.1);
+            }
+
+            100% {
+                background: transparent;
+            }
         }
 
-        .flash-green { animation: greenFlash 1s ease-out; }
-        .flash-red { animation: redFlash 1s ease-out; }
+        .flash-green {
+            animation: greenFlash 1s ease-out;
+        }
+
+        .flash-red {
+            animation: redFlash 1s ease-out;
+        }
     </style>
 </head>
 
@@ -666,7 +741,7 @@
                 <h1>Active Bet Portfolio</h1>
                 <p>Live Real-Time Market Valuation & Closing Line Value (CLV) Index</p>
             </div>
-            
+
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div class="live-ticker">
                     <span class="ticker-dot"></span>
@@ -701,7 +776,7 @@
 
         <!-- MAIN TRADING INTERFACE -->
         <div class="dashboard-grid">
-            
+
             <!-- LEFT SCREEN: ACTIVE POSITIONS -->
             <div class="position-manager">
                 <div class="manager-header">
@@ -720,22 +795,25 @@
                 <!-- ADD POSITION TRIGGERS -->
                 <button class="add-wager-toggle" onclick="toggleWagerDrawer()">
                     <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
                     </svg>
                     <span>Create Custom Wager Position</span>
                 </button>
 
                 <!-- ADD WAGER DRAWER -->
                 <form class="wager-drawer" id="wagerDrawer" onsubmit="handleCreateWager(event)">
-                    <div class="manager-title" style="font-size:12px; margin-bottom:12px; color:var(--accent);">Add Position Specs</div>
+                    <div class="manager-title" style="font-size:12px; margin-bottom:12px; color:var(--accent);">Add
+                        Position Specs</div>
                     <div class="drawer-grid">
                         <div class="form-group full">
                             <label>Wager Target (Event or Player)</label>
-                            <input type="text" id="formTarget" placeholder="e.g. Donovan Mitchell Over 25.5 Pts" required>
+                            <input type="text" id="formTarget" placeholder="e.g. Donovan Mitchell Over 25.5 Pts"
+                                required>
                         </div>
                         <div class="form-group full">
                             <label>Matchup Event</label>
-                            <input type="text" id="formMatchup" placeholder="e.g. Cleveland Cavaliers @ New York Knicks" required>
+                            <input type="text" id="formMatchup" placeholder="e.g. Cleveland Cavaliers @ New York Knicks"
+                                required>
                         </div>
                         <div class="form-group">
                             <label>Stake ($)</label>
@@ -769,19 +847,21 @@
                 <!-- Renders dynamically when card is active. Default empty: -->
                 <div class="terminal-empty" id="terminalEmptyState">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                     <h3>Select Active Position</h3>
-                    <p>Click on any live wager card in your ledger to expand the analytical trading terminal, tracking market trajectories and hedging options.</p>
+                    <p>Click on any live wager card in your ledger to expand the analytical trading terminal, tracking
+                        market trajectories and hedging options.</p>
                 </div>
 
                 <div class="terminal-active" id="terminalActiveState" style="display:none;">
-                    
+
                     <div class="terminal-header">
                         <div class="terminal-title">
                             <h2 id="termTarget">Donovan Mitchell — OVER 25.5 Pts</h2>
-                            <div class="terminal-subtitle" id="termMatchup">Cleveland Cavaliers @ New York Knicks · DRAFTKINGS</div>
+                            <div class="terminal-subtitle" id="termMatchup">Cleveland Cavaliers @ New York Knicks ·
+                                DRAFTKINGS</div>
                         </div>
                         <div class="live-ticker" id="termStatusBadge">
                             <span class="ticker-dot"></span>
@@ -820,17 +900,21 @@
                         </div>
 
                         <!-- Cashout Panel -->
-                        <div class="sub-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+                        <div class="sub-panel"
+                            style="display: flex; flex-direction: column; justify-content: space-between;">
                             <div class="sub-panel-title">Cashout / Position Settle</div>
                             <div class="cashout-box">
-                                <div style="font-size:10px; color:var(--muted); text-transform:uppercase;">Fair Value Cashout Offer</div>
+                                <div style="font-size:10px; color:var(--muted); text-transform:uppercase;">Fair Value
+                                    Cashout Offer</div>
                                 <div class="cashout-badge" id="cashoutVal">$135.40</div>
-                                <div style="font-size:9px; color:var(--muted); margin-bottom:6px;" id="cashoutProfit">Net Profit: +$35.40 (ROI: +35.4%)</div>
-                                
+                                <div style="font-size:9px; color:var(--muted); margin-bottom:6px;" id="cashoutProfit">
+                                    Net Profit: +$35.40 (ROI: +35.4%)</div>
+
                                 <button class="cashout-btn" id="cashoutButton" onclick="executeCashout()">
-                                    <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" 
-                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    <svg style="width:16px; height:16px;" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     <span>Cashout & Settle</span>
                                 </button>
@@ -840,15 +924,19 @@
 
                     <!-- Arbitrage Hedge Strategy Advice -->
                     <div class="sub-panel" style="margin-bottom: 20px;">
-                        <div class="sub-panel-title" style="color:var(--accent2); display:flex; align-items:center; gap:6px;">
+                        <div class="sub-panel-title"
+                            style="color:var(--accent2); display:flex; align-items:center; gap:6px;">
                             <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <span>Traders Hedge Advisory</span>
                         </div>
                         <div style="font-size:11px; line-height:1.6; color:#d1d5db;" id="hedgeAdvice">
-                            Excellent Closing Line Value! You have locked in a +15.4% math edge. Current live line is priced heavily on the other side. Holding is recommended for maximum value, but placing a $65.20 hedge wager on the live opposing side (+130) locks in a guaranteed $18.40 profit regardless of outcome!
+                            Excellent Closing Line Value! You have locked in a +15.4% math edge. Current live line is
+                            priced heavily on the other side. Holding is recommended for maximum value, but placing a
+                            $65.20 hedge wager on the live opposing side (+130) locks in a guaranteed $18.40 profit
+                            regardless of outcome!
                         </div>
                     </div>
 
@@ -899,7 +987,7 @@
             const probPlaced = getImpliedProbability(placedOdds);
             const probCurrent = getImpliedProbability(currentOdds);
             if (probPlaced === 0) return 0;
-            
+
             // Edge represented by implied probability ratio
             const edge = (probCurrent / probPlaced) - 1;
             return edge;
@@ -917,7 +1005,7 @@
             // Vig cut is usually 3-5% for bookmaker cashout calculations
             const vigCut = 0.04;
             const cashVal = stake * (1 + clv) * (1 - vigCut);
-            
+
             // Return at least 10% of stake or cap it at max win payout minus 5%
             const maxPayout = stake * americanToDecimal(placedOdds);
             const minCash = stake * 0.1;
@@ -954,7 +1042,7 @@
                 const valNum = parseInt(placed);
                 const liveInit = valNum > 0 ? (valNum - 10) : (valNum - 15);
                 const liveInitStr = liveInit > 0 ? `+${liveInit}` : `${liveInit}`;
-                
+
                 return {
                     id: p.id,
                     target: `${p.player} — ${p.choice} ${p.line} ${p.stat}`,
@@ -1077,7 +1165,7 @@
             } else {
                 // Combine stored wagers and synced props (avoiding duplicates)
                 const combined = [...wagers];
-                
+
                 // Prioritize user's actual live tickets at the very front of the ledger!
                 liveUserWagers.forEach(uw => {
                     const existingIdx = combined.findIndex(c => c.id === uw.id);
@@ -1183,10 +1271,10 @@
             let pendingCount = 0;
             let wins = 0;
             let losses = 0;
-            
+
             wagers.forEach(w => {
                 totalStakes += w.stake;
-                
+
                 if (w.status === 'PENDING') {
                     pendingCount++;
                     const liveCash = calculateCashoutValue(w.stake, w.placedOdds, w.currentOdds, w.status);
@@ -1206,7 +1294,7 @@
 
             // Render to DOM
             document.getElementById('totalStakes').textContent = `$${totalStakes.toFixed(2)}`;
-            
+
             const profitEl = document.getElementById('overallProfit');
             profitEl.textContent = `${netProfit >= 0 ? '+' : ''}$${netProfit.toFixed(2)}`;
             if (netProfit >= 0) {
@@ -1230,7 +1318,7 @@
         // Select Wager to render detailed Traders Terminal & Chart
         function selectWager(id) {
             selectedWagerId = id;
-            
+
             // Toggle Ledger Class styling
             document.querySelectorAll('.wager-card').forEach(c => c.classList.remove('selected'));
             const selectedCard = document.getElementById(`wager-card-${id}`);
@@ -1251,13 +1339,13 @@
             badgeEl.innerHTML = `<span class="ticker-dot" style="background:${w.status === 'PENDING' ? 'var(--live)' : (w.status === 'WON' ? 'var(--win)' : 'var(--lost)')};"></span> ${w.status}`;
 
             document.getElementById('valPlacedOdds').textContent = w.placedOdds;
-            
+
             const liveOddsValEl = document.getElementById('valLiveOdds');
             liveOddsValEl.textContent = w.currentOdds;
 
             const clv = calculateCLV(w.placedOdds, w.currentOdds);
             const clvPercent = (clv * 100).toFixed(1);
-            
+
             const clvEl = document.getElementById('valCLV');
             clvEl.textContent = `${clv >= 0 ? '+' : ''}${clvPercent}%`;
             clvEl.className = clv >= 0 ? 'table-val text-win' : 'table-val text-lost';
@@ -1276,7 +1364,7 @@
             const netGain = cashValue - w.stake;
             const netRoi = (netGain / w.stake) * 100;
             const cashProfitEl = document.getElementById('cashoutProfit');
-            
+
             if (w.status === 'PENDING') {
                 cashProfitEl.innerHTML = `Net Value Shift: <strong class="${netGain >= 0 ? 'text-win' : 'text-lost'}">${netGain >= 0 ? '+' : ''}$${netGain.toFixed(2)}</strong> (${netRoi >= 0 ? '+' : ''}${netRoi.toFixed(1)}% ROI)`;
             } else {
@@ -1320,7 +1408,7 @@
         // Draw Chart.js Line Chart
         function drawTradingChart(wObj) {
             const ctx = document.getElementById('tradingChart').getContext('2d');
-            
+
             // Clean old chart instances
             if (chartInstance) {
                 chartInstance.destroy();
@@ -1385,7 +1473,7 @@
                         },
                         tooltip: {
                             callbacks: {
-                                label: function(context) {
+                                label: function (context) {
                                     return `Probability: ${context.raw}%`;
                                 }
                             },
@@ -1414,7 +1502,7 @@
                             ticks: {
                                 color: '#6b7280',
                                 font: { size: 9, family: 'JetBrains Mono' },
-                                callback: function(value) {
+                                callback: function (value) {
                                     return value + '%';
                                 }
                             }
@@ -1475,17 +1563,17 @@
             if (!w || w.status !== 'PENDING') return;
 
             const cashValue = calculateCashoutValue(w.stake, w.placedOdds, w.currentOdds, w.status);
-            
+
             if (confirm(`Confirm Cashout position for $${cashValue.toFixed(2)}? This closes the trading block immediately.`)) {
                 // Settle as WON/CLOSED and record profit
                 w.status = 'WON'; // Standardize to settled
                 w.stake = cashValue; // Update final returned stake
-                
+
                 // Keep history stable and lock current odds
                 w.history.push(w.currentOdds);
-                
+
                 localStorage.setItem('destiny_game_wagers', JSON.stringify(wagers));
-                
+
                 renderWagersLedger();
                 selectWager(w.id);
 
@@ -1501,12 +1589,12 @@
 
             const div = document.createElement('div');
             div.className = `live-log-item ${type}`;
-            
+
             const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             div.innerHTML = `<span>[${timeStr}] ${msg}</span>`;
-            
+
             container.insertBefore(div, container.firstChild);
-            
+
             // Limit log child count
             if (container.children.length > 5) {
                 container.removeChild(container.lastChild);
@@ -1523,17 +1611,17 @@
                 if (pendings.length === 0) return;
 
                 const targetWager = pendings[Math.floor(Math.random() * pendings.length)];
-                
+
                 // Fluctuate American Odds (e.g. shift by -10 or +10 points)
                 const currentOddsNum = parseInt(targetWager.currentOdds);
                 const shift = Math.random() > 0.52 ? 10 : -10; // Slight positive bias for fun trading
                 let newOddsNum = currentOddsNum + shift;
-                
+
                 // Avoid zero cross problems
                 if (newOddsNum === 0) newOddsNum = shift > 0 ? 10 : -10;
 
                 const newOddsStr = newOddsNum > 0 ? `+${newOddsNum}` : `${newOddsNum}`;
-                
+
                 // Save old odds for comparison flash
                 const oldOddsNum = currentOddsNum;
                 targetWager.currentOdds = newOddsStr;
@@ -1576,7 +1664,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             seedInitialWagers();
             renderWagersLedger();
-            
+
             // Auto-select first active wager on start
             if (wagers.length > 0) {
                 selectWager(wagers[0].id);

@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destiny — Experimental Sandbox Lab</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0c0f;
+            --surface: #111418;
+            --surface2: #181c22;
+            --surface3: #222933;
+            --border: rgba(255, 255, 255, 0.07);
+            --border2: rgba(255, 255, 255, 0.13);
+            --text: #e8eaed;
+            --muted: #6b7280;
+            --accent: #f59e0b; /* Golden Yellow */
+            --accent2: #06b6d4; /* Cyberpunk Cyan */
+            --green: #10b981; /* Green */
+            --red: #ef4444; /* Red */
+            --font-head: 'Barlow Condensed', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-mono);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Nav Spacer - since nav.js adds a sticky header of 48px */
+        .nav-spacer {
+            height: 48px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 28px;
+            border-bottom: 1px solid var(--border2);
+            background: var(--surface);
+        }
+
+        .logo {
+            font-family: var(--font-head);
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: var(--accent2);
+            text-transform: uppercase;
+        }
+
+        .logo span {
+            color: var(--text);
+            opacity: 0.4;
+            font-weight: 400;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #clock {
+            font-size: 12px;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+
+        .bankroll-container {
+            background: rgba(6, 182, 212, 0.08);
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.05);
+        }
+
+        .bankroll-label {
+            color: var(--accent2);
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+
+        .bankroll-amount {
+            color: #fff;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Main Sandbox Container */
+        .sandbox-container {
+            max-width: 1650px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 24px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            flex: 1;
+        }
+
+        /* Top Hero Alert Banner */
+        .labs-hero {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08), rgba(24, 28, 34, 0.8));
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 6px;
+            padding: 20px 24px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .labs-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent2);
+        }
+
+        .labs-hero-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .labs-hero-tag {
+            font-size: 9px;
+            color: var(--accent2);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .labs-hero-title {
+            font-family: var(--font-head);
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #fff;
+        }
+
+        .labs-hero-desc {
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.4;
+            max-width: 800px;
+        }
+
+        /* Responsive Sandbox Grid Layout */
+        .sandbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1100px) {
+            .sandbox-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Card panels */
+        .sandbox-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+
+        .sandbox-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 48px;
+            height: 48px;
+            background: radial-gradient(circle at top right, rgba(6, 182, 212, 0.05), transparent 70%);
+            pointer-events: none;
+        }
+
+        .card-header-labs {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        .card-tag {
+            font-size: 8px;
+            color: var(--accent2);
+            letter-spacing: 2px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .card-title-labs {
+            font-family: var(--font-head);
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        /* PROTOTYPE A: Odds Simulator Styles */
+        .teams-selector {
+            display: grid;
+            grid-template-columns: 1fr 40px 1fr;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .select-team-box {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .select-team-lbl {
+            font-size: 8px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .select-team-dropdown {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-family: var(--font-head);
+            font-size: 18px;
+            font-weight: 700;
+            outline: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            width: 100%;
+        }
+
+        .select-team-dropdown option {
+            background: var(--surface3);
+            color: var(--text);
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+
+        .vs-text {
+            font-family: var(--font-head);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 16px;
+        }
+
+        .slider-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .slider-lbl-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .slider-lbl-val {
+            color: var(--accent2);
+            font-weight: bold;
+        }
+
+        .sandbox-range-input {
+            width: 100%;
+            height: 4px;
+            background: var(--border2);
+            border-radius: 2px;
+            outline: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .sandbox-range-input::-webkit-slider-thumb {
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent2);
+            box-shadow: 0 0 6px var(--accent2);
+            transition: transform 0.1s;
+        }
+
+        .sandbox-range-input::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .calculated-odds-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px dashed var(--border);
+            padding: 12px;
+            border-radius: 4px;
+        }
+
+        .odd-output-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            background: var(--surface2);
+            border-radius: 3px;
+            border: 1px solid var(--border);
+        }
+
+        .odd-output-lbl {
+            font-size: 8px;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .odd-output-val {
+            font-family: var(--font-head);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .simulate-console {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            height: 100px;
+            padding: 10px;
+            font-family: var(--font-mono);
+            font-size: 9px;
+            color: #38bdf8;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sim-play-row {
+            animation: slideInPlay 0.2s ease-out;
+        }
+
+        @keyframes slideInPlay {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* PROTOTYPE B: Bankroll & Calculator Styles */
+        .faucet-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .faucet-btn {
+            background: rgba(6, 182, 212, 0.08);
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            color: var(--accent2);
+            padding: 12px;
+            border-radius: 4px;
+            font-family: var(--font-head);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .faucet-btn:hover {
+            background: var(--accent2);
+            color: #000;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+        }
+
+        .faucet-btn.reset-btn {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: var(--red);
+        }
+
+        .faucet-btn.reset-btn:hover {
+            background: var(--red);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .interest-calculator-form {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .calc-input-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .calc-input-lbl {
+            font-size: 9px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .calc-number-input {
+            background: var(--surface3);
+            border: 1px solid var(--border);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 6px 10px;
+            border-radius: 3px;
+            width: 80px;
+            text-align: right;
+            outline: none;
+        }
+
+        .calc-number-input:focus {
+            border-color: var(--accent2);
+        }
+
+        .calc-chart-container {
+            height: 140px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 10px;
+            position: relative;
+        }
+
+        .projection-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .projection-line {
+            stroke: var(--accent2);
+            stroke-width: 2;
+            fill: none;
+            filter: drop-shadow(0 0 4px rgba(6, 182, 212, 0.25));
+        }
+
+        .projection-points {
+            fill: var(--accent2);
+        }
+
+        .calc-summary-lbl {
+            font-size: 9px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .calc-summary-val {
+            font-family: var(--font-head);
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        /* PROTOTYPE C: Visual Shader Playground */
+        .playground-desc {
+            font-size: 10px;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        .shader-canvas-wrapper {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            height: 240px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .shader-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .canvas-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .canvas-tool-btn {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-family: var(--font-head);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 8px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .canvas-tool-btn:hover, .canvas-tool-btn.active {
+            border-color: var(--accent2);
+            color: #fff;
+            background: rgba(6, 182, 212, 0.05);
+        }
+
+        .canvas-feedback {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            padding: 4px 8px;
+            font-size: 8px;
+            color: var(--accent2);
+            pointer-events: none;
+        }
+
+        /* Big simulation primary execution button */
+        .primary-action-btn {
+            width: 100%;
+            background: var(--accent2);
+            border: none;
+            color: #000;
+            font-family: var(--font-head);
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.15);
+        }
+
+        .primary-action-btn:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Top global nav injected dynamically by nav.js -->
+    <div class="nav-spacer"></div>
+
+    <header>
+        <div class="logo">DESTINY<span> // EXPERIMENTAL LABS</span></div>
+        <div class="header-right">
+            <div id="clock">19:32:10 EST</div>
+            <div class="bankroll-container">
+                <span class="bankroll-label">Bankroll</span>
+                <span class="bankroll-amount">$<span id="bankroll-amount-val">10000.00</span></span>
+            </div>
+        </div>
+    </header>
+
+    <main class="sandbox-container">
+        <!-- Labs Intro Hero -->
+        <section class="labs-hero">
+            <div class="labs-hero-info">
+                <span class="labs-hero-tag">🧪 ACTIVE RESEARCH PROTOCOL</span>
+                <h1 class="labs-hero-title">Welcome to the Destiny Sandbox</h1>
+                <p class="labs-hero-desc">
+                    This is your experimental playground for staging new features, testing sportsbook calculations, compounding bankroll simulations, and playground shaders. Adjust settings inside any module to prototype mathematical models, visual graphics, or inject custom bankroll test wagers.
+                </p>
+            </div>
+            <div style="font-size: 32px;">🛠️</div>
+        </section>
+
+        <!-- Sandbox Feature Modules -->
+        <section class="sandbox-grid">
+            <!-- Module A: Sports AI Odds Generator -->
+            <div class="sandbox-card">
+                <div class="card-header-labs">
+                    <div>
+                        <span class="card-tag">PROTOTYPE MODELING</span>
+                        <h2 class="card-title-labs">AI Sports Odds Simulator</h2>
+                    </div>
+                    <div style="font-size: 18px;">🏈</div>
+                </div>
+
+                <div class="teams-selector">
+                    <div class="select-team-box">
+                        <span class="select-team-lbl">Team A (Home)</span>
+                        <select class="select-team-dropdown" id="team-a-sel" onchange="runOddsEngine()">
+                            <option value="Vegas Golden Knights" selected>Vegas GK</option>
+                            <option value="Colorado Avalanche">Colorado Avs</option>
+                            <option value="Boston Bruins">Boston Bruins</option>
+                            <option value="New York Yankees">NY Yankees</option>
+                        </select>
+                    </div>
+                    <span class="vs-text">VS</span>
+                    <div class="select-team-box">
+                        <span class="select-team-lbl">Team B (Away)</span>
+                        <select class="select-team-dropdown" id="team-b-sel" onchange="runOddsEngine()">
+                            <option value="Vegas Golden Knights">Vegas GK</option>
+                            <option value="Colorado Avalanche" selected>Colorado Avs</option>
+                            <option value="Boston Bruins">Boston Bruins</option>
+                            <option value="New York Yankees">NY Yankees</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Sliders -->
+                <div class="slider-group">
+                    <div class="slider-row">
+                        <div class="slider-lbl-row">
+                            <span>Team A Power Rating</span>
+                            <span class="slider-lbl-val" id="power-a-val">75</span>
+                        </div>
+                        <input type="range" class="sandbox-range-input" id="power-a" min="10" max="100" value="75" oninput="updateSliders(); runOddsEngine();">
+                    </div>
+                    <div class="slider-row">
+                        <div class="slider-lbl-row">
+                            <span>Team B Power Rating</span>
+                            <span class="slider-lbl-val" id="power-b-val">70</span>
+                        </div>
+                        <input type="range" class="sandbox-range-input" id="power-b" min="10" max="100" value="70" oninput="updateSliders(); runOddsEngine();">
+                    </div>
+                    <div class="slider-row">
+                        <div class="slider-lbl-row">
+                            <span>Home Advantage Bias</span>
+                            <span class="slider-lbl-val" id="home-bias-val">10</span>
+                        </div>
+                        <input type="range" class="sandbox-range-input" id="home-bias" min="0" max="30" value="10" oninput="updateSliders(); runOddsEngine();">
+                    </div>
+                </div>
+
+                <!-- Calculated Odds Box -->
+                <div class="calculated-odds-grid">
+                    <div class="odd-output-box">
+                        <span class="odd-output-lbl">Moneyline A</span>
+                        <span class="odd-output-val" id="odds-a">-135</span>
+                    </div>
+                    <div class="odd-output-box">
+                        <span class="odd-output-lbl">Spread Line</span>
+                        <span class="odd-output-val" id="odds-spread">-1.5 (+115)</span>
+                    </div>
+                    <div class="odd-output-box">
+                        <span class="odd-output-lbl">Over / Under</span>
+                        <span class="odd-output-val" id="odds-total">O/U 6.5</span>
+                    </div>
+                </div>
+
+                <!-- Live Simulation Console -->
+                <div class="simulate-console" id="sim-console">
+                    <div>[SYSTEM]: Ready to run match prediction simulator...</div>
+                </div>
+
+                <button class="primary-action-btn" onclick="simulateGameMatch()">Simulate Game Match</button>
+            </div>
+
+            <!-- Module B: Faucet & Compound Growth projection -->
+            <div class="sandbox-card">
+                <div class="card-header-labs">
+                    <div>
+                        <span class="card-tag">BANKROLL MATH & PERSISTENCE</span>
+                        <h2 class="card-title-labs">Test Faucet & Growth Graph</h2>
+                    </div>
+                    <div style="font-size: 18px;">💵</div>
+                </div>
+
+                <!-- Faucet Buttons -->
+                <div class="faucet-row">
+                    <button class="faucet-btn" onclick="addFaucetFunds()">+ $1,000 Faucet</button>
+                    <button class="faucet-btn reset-btn" onclick="resetBankroll()">Reset $10,000</button>
+                </div>
+
+                <!-- Growth Formula Staging -->
+                <div class="interest-calculator-form">
+                    <div class="calc-input-row">
+                        <span class="calc-input-lbl">Initial Staged Wager ($)</span>
+                        <input type="number" class="calc-number-input" id="calc-principal" value="250" step="50" min="10" oninput="runProjection()">
+                    </div>
+                    <div class="calc-input-row">
+                        <span class="calc-input-lbl">Avg ROI per Day (%)</span>
+                        <input type="number" class="calc-number-input" id="calc-roi" value="8" step="0.5" min="0" oninput="runProjection()">
+                    </div>
+                    <div class="calc-input-row">
+                        <span class="calc-input-lbl">Target Timeframe (Days)</span>
+                        <input type="number" class="calc-number-input" id="calc-days" value="15" step="1" min="2" max="60" oninput="runProjection()">
+                    </div>
+                </div>
+
+                <!-- Compounding line chart projection -->
+                <div class="calc-chart-container">
+                    <svg class="projection-svg" id="proj-svg">
+                        <!-- Chart paths will be generated dynamically -->
+                        <path class="projection-line" d=""></path>
+                    </svg>
+                </div>
+
+                <div class="calc-input-row">
+                    <span class="calc-summary-lbl">Projected Compounded Value:</span>
+                    <span class="calc-summary-val" id="calc-projected-val">$793.04</span>
+                </div>
+            </div>
+
+            <!-- Module C: Custom Canvas Animation Playground -->
+            <div class="sandbox-card" style="grid-column: 1 / -1;">
+                <div class="card-header-labs">
+                    <div>
+                        <span class="card-tag">AESTHETICS & INTERACTIVE SHADER</span>
+                        <h2 class="card-title-labs">Interactive Cyberpunk Particle Playground</h2>
+                    </div>
+                    <div style="font-size: 18px;">🎨</div>
+                </div>
+
+                <p class="playground-desc">
+                    Test micro-animations, render performance, and visual graphics. Click inside the viewport box below to inject explosive particles, simulate bet confirmation wave ripples, and toggle visual modes.
+                </p>
+
+                <!-- Canvas Workspace -->
+                <div class="shader-canvas-wrapper" id="canvas-wrapper">
+                    <canvas class="shader-canvas" id="interactive-canvas"></canvas>
+                    <div class="canvas-feedback" id="canvas-feedback-lbl">Particles Count: 75</div>
+                </div>
+
+                <div class="canvas-controls">
+                    <button class="canvas-tool-btn active" id="mode-cyan-btn" onclick="setCanvasColor('#06b6d4')">Neon Cyan</button>
+                    <button class="canvas-tool-btn" id="mode-gold-btn" onclick="setCanvasColor('#f59e0b')">Neon Gold</button>
+                    <button class="canvas-tool-btn" onclick="triggerBetAnimation()">Simulate "Bet Confirmation" Glow</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Bankroll state
+        let bankroll = 10000.00;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initClock();
+            loadBankroll();
+            runOddsEngine();
+            runProjection();
+            initCanvasPlayground();
+        });
+
+        // Sync bankroll
+        function loadBankroll() {
+            const saved = localStorage.getItem('bankroll');
+            if (saved !== null) {
+                bankroll = parseFloat(saved);
+            } else {
+                bankroll = 10000.00;
+                localStorage.setItem('bankroll', bankroll);
+            }
+            updateBankrollUI();
+        }
+
+        function updateBankrollUI() {
+            const el = document.getElementById('bankroll-amount-val');
+            if (el) el.innerText = bankroll.toFixed(2);
+        }
+
+        function addFaucetFunds() {
+            bankroll += 1000.00;
+            localStorage.setItem('bankroll', bankroll);
+            updateBankrollUI();
+            
+            // Trigger quick ripple in bankroll box
+            const box = document.querySelector('.bankroll-container');
+            box.style.transform = 'scale(1.08)';
+            box.style.borderColor = 'var(--green)';
+            setTimeout(() => {
+                box.style.transform = 'scale(1)';
+                box.style.borderColor = '';
+            }, 300);
+        }
+
+        function resetBankroll() {
+            bankroll = 10000.00;
+            localStorage.setItem('bankroll', bankroll);
+            updateBankrollUI();
+            
+            const box = document.querySelector('.bankroll-container');
+            box.style.transform = 'scale(0.95)';
+            box.style.borderColor = 'var(--red)';
+            setTimeout(() => {
+                box.style.transform = 'scale(1)';
+                box.style.borderColor = '';
+            }, 300);
+        }
+
+        // Clock display
+        function initClock() {
+            const clockEl = document.getElementById('clock');
+            const updateClock = () => {
+                const now = new Date();
+                let hrs = now.getHours();
+                const mins = String(now.getMinutes()).padStart(2, '0');
+                const secs = String(now.getSeconds()).padStart(2, '0');
+                const ampm = hrs >= 12 ? 'PM' : 'AM';
+                hrs = hrs % 12;
+                hrs = hrs ? hrs : 12;
+                clockEl.textContent = `${String(hrs).padStart(2, '0')}:${mins}:${secs} ${ampm} EST`;
+            };
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        // PROTOTYPE A: Odds Simulator calculations
+        function updateSliders() {
+            document.getElementById('power-a-val').innerText = document.getElementById('power-a').value;
+            document.getElementById('power-b-val').innerText = document.getElementById('power-b').value;
+            document.getElementById('home-bias-val').innerText = document.getElementById('home-bias').value;
+        }
+
+        function runOddsEngine() {
+            const powerA = parseInt(document.getElementById('power-a').value);
+            const powerB = parseInt(document.getElementById('power-b').value);
+            const homeBias = parseInt(document.getElementById('home-bias').value);
+
+            // Compute relative ratio
+            const scoreA = powerA + homeBias;
+            const scoreB = powerB;
+
+            const diff = scoreA - scoreB;
+            
+            // Calculate moneyline
+            let mlA, mlB;
+            if (diff > 0) {
+                mlA = -100 - (diff * 8);
+                mlB = +100 + (diff * 7);
+            } else if (diff < 0) {
+                mlA = +100 + (Math.abs(diff) * 7);
+                mlB = -100 - (Math.abs(diff) * 8);
+            } else {
+                mlA = -110;
+                mlB = -110;
+            }
+
+            mlA = Math.round(mlA);
+            mlB = Math.round(mlB);
+
+            // Format moneyline string
+            const mlStrA = mlA > 0 ? `+${mlA}` : `${mlA}`;
+            const mlStrB = mlB > 0 ? `+${mlB}` : `${mlB}`;
+
+            document.getElementById('odds-a').innerText = mlStrA;
+
+            // Spread Odds
+            let spreadLine = 0.5 + (Math.abs(diff) / 10);
+            spreadLine = Math.round(spreadLine * 2) / 2; // round to nearest 0.5
+            
+            const spreadSign = diff >= 0 ? '-' : '+';
+            const spreadPrice = diff >= 0 ? '+115' : '-115';
+            
+            document.getElementById('odds-spread').innerText = `${spreadSign}${spreadLine} (${spreadPrice})`;
+
+            // Total Over/Under Line
+            let totalLine = 4.5 + ((powerA + powerB) / 30);
+            totalLine = Math.round(totalLine * 2) / 2;
+            
+            document.getElementById('odds-total').innerText = `O/U ${totalLine.toFixed(1)}`;
+        }
+
+        let isSimulating = false;
+        function simulateGameMatch() {
+            if (isSimulating) return;
+            isSimulating = true;
+
+            const teamA = document.getElementById('team-a-sel').value;
+            const teamB = document.getElementById('team-b-sel').value;
+            const consoleEl = document.getElementById('sim-console');
+
+            if (teamA === teamB) {
+                alert("Please select two different teams to simulate a matchup.");
+                isSimulating = false;
+                return;
+            }
+
+            consoleEl.innerHTML = '';
+            addConsolePlay("[SYSTEM]: Initiating Matchup Generator Protocol...");
+            
+            const powerA = parseInt(document.getElementById('power-a').value) + parseInt(document.getElementById('home-bias').value);
+            const powerB = parseInt(document.getElementById('power-b').value);
+
+            let scoreA = 0;
+            let scoreB = 0;
+
+            const plays = [
+                () => { addConsolePlay(`[Q1 - 12:45]: Game Kickoff! ${teamA} takes possession.`); },
+                () => {
+                    const goal = Math.random() * 100 < powerA;
+                    if (goal) {
+                        scoreA++;
+                        addConsolePlay(`[Q1 - 04:12]: SCORE! ${teamA} scores a brilliant goal! [${scoreA}-${scoreB}]`);
+                    } else {
+                        addConsolePlay(`[Q1 - 02:22]: Penalty on ${teamB} for holding. Defense holds strong.`);
+                    }
+                },
+                () => { addConsolePlay(`[Q2 - 10:15]: Second period starts. Intense physical battle.`); },
+                () => {
+                    const goal = Math.random() * 100 < powerB;
+                    if (goal) {
+                        scoreB++;
+                        addConsolePlay(`[Q2 - 03:40]: GOAL! ${teamB} replies with a strike! [${scoreA}-${scoreB}]`);
+                    } else {
+                        addConsolePlay(`[Q2 - 01:05]: ${teamA} shots deflected off the crossbar.`);
+                    }
+                },
+                () => { addConsolePlay(`[Q3 - 09:20]: Play resumes. Momentum shifting constantly.`); },
+                () => {
+                    // Final push
+                    if (powerA > powerB + 5) {
+                        scoreA += Math.random() > 0.4 ? 1 : 0;
+                    } else if (powerB > powerA + 5) {
+                        scoreB += Math.random() > 0.4 ? 1 : 0;
+                    } else {
+                        if (Math.random() > 0.5) scoreA++; else scoreB++;
+                    }
+                    addConsolePlay(`[Q3 - 01:10]: CLUTCH! Goal scored in final moments! [${scoreA}-${scoreB}]`);
+                },
+                () => {
+                    let totalVal = scoreA + scoreB;
+                    let resultStr = `[FINAL]: Game settled! ${scoreA > scoreB ? teamA : teamB} Wins! Score: ${scoreA}-${scoreB}`;
+                    if (scoreA === scoreB) {
+                        scoreA += Math.random() > 0.5 ? 1 : 0;
+                        scoreB = scoreA === scoreB ? scoreB + 1 : scoreB;
+                        resultStr = `[OVERTIME]: Final Score: ${scoreA}-${scoreB}. ${scoreA > scoreB ? teamA : teamB} wins in OT!`;
+                    }
+                    addConsolePlay(resultStr, true);
+                    isSimulating = false;
+                }
+            ];
+
+            let playIdx = 0;
+            const runNextPlay = () => {
+                if (playIdx < plays.length) {
+                    plays[playIdx]();
+                    playIdx++;
+                    setTimeout(runNextPlay, 1000);
+                }
+            };
+            runNextPlay();
+        }
+
+        function addConsolePlay(text, isImportant = false) {
+            const consoleEl = document.getElementById('sim-console');
+            const row = document.createElement('div');
+            row.className = 'sim-play-row';
+            if (isImportant) {
+                row.style.color = 'var(--green)';
+                row.style.fontWeight = 'bold';
+            }
+            row.innerText = text;
+            consoleEl.appendChild(row);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        // PROTOTYPE B: Compound interest calculation & SVG render
+        function runProjection() {
+            const principal = parseFloat(document.getElementById('calc-principal').value) || 0;
+            const roi = (parseFloat(document.getElementById('calc-roi').value) || 0) / 100;
+            const days = parseInt(document.getElementById('calc-days').value) || 2;
+
+            let current = principal;
+            const dataPoints = [principal];
+            for (let i = 1; i <= days; i++) {
+                current = current * (1 + roi);
+                dataPoints.push(current);
+            }
+
+            document.getElementById('calc-projected-val').innerText = `$${current.toFixed(2)}`;
+
+            // Draw SVG projection chart
+            const svg = document.getElementById('proj-svg');
+            const pathLine = svg.querySelector('.projection-line');
+            
+            // Clear existing circles
+            const circles = svg.querySelectorAll('circle');
+            circles.forEach(c => c.remove());
+
+            const w = svg.clientWidth || 360;
+            const h = 140;
+            const padding = 15;
+
+            const minVal = principal;
+            const maxVal = current;
+
+            const chartW = w - padding * 2;
+            const chartH = h - padding * 2;
+            const step = chartW / (dataPoints.length - 1);
+
+            const points = dataPoints.map((val, index) => {
+                const x = padding + index * step;
+                const y = padding + (chartH - ((val - minVal) / (maxVal - minVal) * chartH));
+                return { x, y, val };
+            });
+
+            // Set path line
+            const lineD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+            pathLine.setAttribute('d', lineD);
+
+            // Add circle points for key intervals
+            points.forEach((p, i) => {
+                if (i === 0 || i === points.length - 1 || i === Math.floor(points.length / 2)) {
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', p.x);
+                    circle.setAttribute('cy', p.y);
+                    circle.setAttribute('r', '4');
+                    circle.setAttribute('class', 'projection-points');
+                    
+                    // Quick title tooltip
+                    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                    title.textContent = `Day ${i}: $${p.val.toFixed(2)}`;
+                    circle.appendChild(title);
+
+                    svg.appendChild(circle);
+                }
+            });
+        }
+
+        // PROTOTYPE C: Interactive Particle Shader Playground
+        let canvas, ctx, particles = [];
+        let primaryThemeColor = '#06b6d4'; // Cyan
+        let betPulseRadius = 0;
+        let isBetPulseActive = false;
+
+        function initCanvasPlayground() {
+            canvas = document.getElementById('interactive-canvas');
+            ctx = canvas.getContext('2d');
+            const wrapper = document.getElementById('canvas-wrapper');
+
+            // Resize canvas to match container size
+            const resize = () => {
+                canvas.width = wrapper.clientWidth;
+                canvas.height = 240;
+            };
+            resize();
+            window.addEventListener('resize', resize);
+
+            // Initialize sample particles
+            particles = [];
+            for (let i = 0; i < 75; i++) {
+                particles.push(createParticle());
+            }
+
+            // Click listener
+            wrapper.addEventListener('mousedown', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                // Spawn 10 explosive particles
+                for (let i = 0; i < 15; i++) {
+                    particles.push(createParticle(x, y, true));
+                }
+
+                // Flash feedback
+                document.getElementById('canvas-feedback-lbl').innerText = `Particles: ${particles.length} | Click Registered!`;
+                
+                // Keep particle pool constrained
+                if (particles.length > 200) {
+                    particles.splice(0, particles.length - 150);
+                }
+            });
+
+            // Start Canvas animation tick loop
+            requestAnimationFrame(canvasTick);
+        }
+
+        function createParticle(x = null, y = null, isSpark = false) {
+            const cW = canvas.width || 400;
+            const cH = canvas.height || 240;
+
+            return {
+                x: x !== null ? x : Math.random() * cW,
+                y: y !== null ? y : Math.random() * cH,
+                vx: isSpark ? (Math.random() - 0.5) * 6 : (Math.random() - 0.5) * 1.5,
+                vy: isSpark ? (Math.random() - 0.5) * 6 : (Math.random() - 0.5) * 1.5,
+                size: isSpark ? Math.random() * 3 + 1 : Math.random() * 4 + 2,
+                life: isSpark ? 1.0 : null,
+                decay: isSpark ? Math.random() * 0.04 + 0.01 : null
+            };
+        }
+
+        function setCanvasColor(color) {
+            primaryThemeColor = color;
+            document.querySelectorAll('.canvas-tool-btn').forEach(btn => {
+                if (btn.id.includes('cyan') && color.includes('06b6d4')) btn.classList.add('active');
+                else if (btn.id.includes('gold') && color.includes('f59e0b')) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+        }
+
+        function triggerBetAnimation() {
+            betPulseRadius = 1;
+            isBetPulseActive = true;
+            document.getElementById('canvas-feedback-lbl').innerText = `Staging Confirmation Pulse!`;
+        }
+
+        function canvasTick() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Draw connecting web lines for background ambient particles
+            ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+            ctx.lineWidth = 0.8;
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 80) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // 2. Render & update particles
+            particles.forEach((p, idx) => {
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // Wall bounds check for ambient particles
+                if (p.life === null) {
+                    if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                }
+
+                // Render particle
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                
+                if (p.life !== null) {
+                    // Explosion spark - decays over time
+                    ctx.fillStyle = `rgba(${hexToRgb(primaryThemeColor)}, ${p.life})`;
+                    p.life -= p.decay;
+                    if (p.life <= 0) {
+                        particles.splice(idx, 1);
+                    }
+                } else {
+                    // Regular ambient dot
+                    ctx.fillStyle = primaryThemeColor;
+                }
+                ctx.fill();
+            });
+
+            // 3. Draw bet confirmation glowing ripple pulse
+            if (isBetPulseActive) {
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, canvas.height / 2, betPulseRadius, 0, Math.PI * 2);
+                const opacity = Math.max(0, 1 - (betPulseRadius / 150));
+                ctx.strokeStyle = `rgba(${hexToRgb(primaryThemeColor)}, ${opacity})`;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                betPulseRadius += 3;
+                if (betPulseRadius > 150) {
+                    isBetPulseActive = false;
+                }
+            }
+
+            requestAnimationFrame(canvasTick);
+        }
+
+        // Helper to convert hex to rgb triplet
+        function hexToRgb(hex) {
+            let c;
+            if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+                c = hex.substring(1).split('');
+                if (c.length == 3) {
+                    c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+                }
+                c = '0x' + c.join('');
+                return [(c >> 16) & 255, (c >> 8) & 255, c & 255].join(',');
+            }
+            return '6,182,212';
+        }
+    </script>
+    <script src="nav.js"></script>
+</body>
+
+</html>

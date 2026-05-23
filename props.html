@@ -177,7 +177,7 @@
             border: 1px solid var(--border);
             border-radius: 10px;
             padding: 18px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             transition: transform 0.2s, border-color 0.2s;
             position: relative;
             overflow: hidden;
@@ -229,7 +229,7 @@
             color: var(--text);
             font-weight: 700;
             margin-bottom: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
             padding-bottom: 4px;
         }
 
@@ -293,6 +293,7 @@
             color: var(--muted);
             text-transform: uppercase;
         }
+
         .odds-btn.best-odds .odds-label {
             color: rgba(16, 185, 129, 0.7);
         }
@@ -303,7 +304,7 @@
             border: 1px solid var(--border2);
             border-radius: 10px;
             padding: 22px;
-            box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
         }
 
         .tracker-header {
@@ -396,7 +397,7 @@
 
         .badge-btn.pending {
             border: 1px solid var(--border2);
-            background: rgba(255,255,255,0.03);
+            background: rgba(255, 255, 255, 0.03);
             color: var(--muted);
         }
 
@@ -474,7 +475,8 @@
             letter-spacing: 1px;
         }
 
-        .form-group input, .form-group select {
+        .form-group input,
+        .form-group select {
             background: var(--surface2);
             border: 1px solid var(--border);
             color: var(--text);
@@ -486,7 +488,8 @@
             width: 100%;
         }
 
-        .form-group input:focus, .form-group select:focus {
+        .form-group input:focus,
+        .form-group select:focus {
             border-color: var(--accent);
         }
 
@@ -592,19 +595,27 @@
                 <button class="league-btn active" onclick="switchLeagueTab('ALL', this)">ALL LEAGUES</button>
                 <button class="league-btn" onclick="switchLeagueTab('NBA', this)">NBA</button>
                 <button class="league-btn" onclick="switchLeagueTab('WNBA', this)">WNBA</button>
-                
-                <div style="display: flex; align-items: center; gap: 8px; margin-left: 16px; border-left: 1px solid var(--border); padding-left: 16px;">
-                    <span style="font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Select Game:</span>
-                    <select id="apiGameSelect" onchange="handleGameSelectChange()" style="background: var(--surface2); border: 1px solid var(--border2); color: var(--text); font-family: var(--font-mono); font-size: 11px; padding: 6px 12px; border-radius: 4px; outline: none; cursor: pointer; max-width: 250px;">
+
+                <div
+                    style="display: flex; align-items: center; gap: 8px; margin-left: 16px; border-left: 1px solid var(--border); padding-left: 16px;">
+                    <span
+                        style="font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Select
+                        Game:</span>
+                    <select id="apiGameSelect" onchange="handleGameSelectChange()"
+                        style="background: var(--surface2); border: 1px solid var(--border2); color: var(--text); font-family: var(--font-mono); font-size: 11px; padding: 6px 12px; border-radius: 4px; outline: none; cursor: pointer; max-width: 250px;">
                         <option value="default_mock">-- Live NBA Events (Mock) --</option>
                     </select>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 16px;">
-                <div id="apiStatusBadge" style="font-size: 9px; font-weight: 700; display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 4px; background: rgba(255,255,255,0.03); border: 1px solid var(--border2); color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s;">
-                    <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--muted);"></span> OFFLINE FALLBACK
+                <div id="apiStatusBadge"
+                    style="font-size: 9px; font-weight: 700; display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 4px; background: rgba(255,255,255,0.03); border: 1px solid var(--border2); color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s;">
+                    <span
+                        style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--muted);"></span>
+                    OFFLINE FALLBACK
                 </div>
-                <input type="text" id="playerSearch" class="search-input" placeholder="Search players by name..." oninput="handleSearch()">
+                <input type="text" id="playerSearch" class="search-input" placeholder="Search players by name..."
+                    oninput="handleSearch()">
             </div>
         </div>
 
@@ -956,7 +967,7 @@
                 liveEventsList = events;
 
                 selectEl.innerHTML = '';
-                
+
                 // Always add a fallback option at the top
                 const optMock = document.createElement('option');
                 optMock.value = 'default_mock';
@@ -1022,7 +1033,7 @@
         // 3. Fetch Player Props for the selected Game ID
         async function fetchPlayerPropsForEvent(eventId, homeTeam, awayTeam) {
             const statusEl = document.getElementById('apiStatusBadge');
-            
+
             statusEl.innerHTML = `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 1s infinite;"></span> LOADING PROPS...`;
             statusEl.style.color = 'var(--accent)';
             statusEl.style.borderColor = 'rgba(245, 158, 11, 0.4)';
@@ -1031,15 +1042,15 @@
             try {
                 const markets = 'player_points,player_rebounds,player_assists,player_threes';
                 const url = `https://api.the-odds-api.com/v4/sports/${SPORT}/events/${eventId}/odds?apiKey=${API_KEY}&regions=us&markets=${markets}&oddsFormat=american`;
-                
+
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`Props API returned ${res.status}`);
-                
+
                 const data = await res.json();
-                
+
                 // Parse outcomes to UI standard player profiles
                 const mappedPlayers = parseOddsApiProps(data, homeTeam, awayTeam);
-                
+
                 if (mappedPlayers.length === 0) {
                     alert(`Odds are loaded, but no Player Prop books (Points/Rebounds/Assists/Threes) are released for this event yet! Fallback profiles are active.`);
                     statusEl.innerHTML = `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--pending);"></span> LIVE ACTIVE (NO PROPS)`;
@@ -1070,7 +1081,7 @@
         function parseOddsApiProps(data, homeTeam, awayTeam) {
             const playersMap = {};
             const bookmakers = data.bookmakers || [];
-            
+
             const marketKeyMapping = {
                 'player_points': 'Points',
                 'player_rebounds': 'Rebounds',
@@ -1080,7 +1091,7 @@
 
             bookmakers.forEach(bk => {
                 const bookTitle = bk.title;
-                
+
                 bk.markets.forEach(m => {
                     const statName = marketKeyMapping[m.key];
                     if (!statName) return;
@@ -1090,7 +1101,7 @@
                         // In The Odds API player props, out.description is the athlete name (e.g. "Josh Hart")
                         // and out.name is the selection choice ("Over" or "Under")
                         const playerName = out.description || out.name;
-                        const type = (out.description ? out.name : "OVER").toUpperCase(); 
+                        const type = (out.description ? out.name : "OVER").toUpperCase();
                         const lineVal = out.point; // e.g. 26.5
                         const price = out.price; // American format (e.g. -115)
 
@@ -1135,7 +1146,7 @@
 
             // Convert parsed collection to clean rendering array
             const result = Object.values(playersMap);
-            
+
             // Sort by Player Name
             result.sort((a, b) => a.name.localeCompare(b.name));
             return result;
@@ -1183,7 +1194,7 @@
             filtered.forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'prop-card';
-                
+
                 // Custom prop card flag
                 const isCustom = p.id.startsWith('custom-');
                 const deleteBtn = isCustom ? `<button class="delete-prop-btn" onclick="deletePropCard('${p.id}')" title="Delete custom prop card">×</button>` : '';
@@ -1191,21 +1202,21 @@
                 let rowsHtml = '';
                 for (const [statName, statDetails] of Object.entries(p.props)) {
                     const line = statDetails.line;
-                    
+
                     const bestOver = findBestOddsForProp(statDetails.books, 'over');
                     const bestUnder = findBestOddsForProp(statDetails.books, 'under');
 
                     let comparisonRows = '';
-                    
+
                     // Always query a standard list of major books if they exist in bookmaker map, 
                     // else show what was retrieved
-                    const bookmakerList = Object.keys(statDetails.books).length > 0 
+                    const bookmakerList = Object.keys(statDetails.books).length > 0
                         ? Object.keys(statDetails.books).slice(0, 3) // restrict to top 3 books for beautiful layout
                         : ["FanDuel", "DraftKings", "BetMGM"];
 
                     bookmakerList.forEach(bookName => {
                         const oddsData = statDetails.books[bookName] || { over: null, under: null };
-                        
+
                         const isBestOver = (bookName === bestOver.book && oddsData.over === bestOver.odds);
                         const isBestUnder = (bookName === bestUnder.book && oddsData.under === bestUnder.odds);
 
@@ -1260,9 +1271,9 @@
         // Add a selection to tracking list
         function addPickToSlip(playerName, matchup, statName, line, choice, odds, sportsbook) {
             // Avoid duplicates
-            const duplicate = trackedPicks.find(k => 
-                k.player === playerName && 
-                k.stat === statName && 
+            const duplicate = trackedPicks.find(k =>
+                k.player === playerName &&
+                k.stat === statName &&
                 k.choice === choice &&
                 k.status === 'PENDING'
             );
@@ -1342,7 +1353,7 @@
                 else pending++;
 
                 const row = document.createElement('tr');
-                
+
                 let badgeClass = 'pending';
                 if (p.status === 'WON') badgeClass = 'won';
                 else if (p.status === 'LOST') badgeClass = 'lost';
@@ -1394,7 +1405,7 @@
 
             // See if player card already exists
             let player = players.find(p => p.name.toLowerCase() === name.toLowerCase());
-            
+
             if (!player) {
                 player = {
                     id: 'custom-' + Date.now(),
@@ -1417,7 +1428,7 @@
             };
 
             localStorage.setItem('destiny_custom_players', JSON.stringify(players));
-            
+
             // Reset inputs & dropdown selection to fallback mode
             document.getElementById('apiGameSelect').value = 'default_mock';
             document.getElementById('customPropForm').reset();
