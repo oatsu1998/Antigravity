@@ -1564,15 +1564,15 @@
                             </div>
                             <div class="bw-row">
                                 <span class="bw-team">${awayLogo ? `<img src="${awayLogo}" style="width:28px;height:28px;object-fit:contain;" onerror="this.outerHTML='<span style=font-size:10px>${awayAbbr}</span>'">` : awayAbbr}</span>
-                                <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">${fmtOdds(awaySpread.point)}</span><span class="bw-sub">${fmtOdds(awaySpread.price)}</span></div>
-                                <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val-only">${fmtOdds(awayML.price)}</span></div>
-                                <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">O ${over.point}</span><span class="bw-sub">${fmtOdds(over.price)}</span></div>
+                                <div class="bw-cell clickable" onclick="addToBetSlip('${awayName || awayAbbr}', 'Spread', '${fmtOdds(awaySpread.point)} ${fmtOdds(awaySpread.price)}')"><span class="bw-val">${fmtOdds(awaySpread.point)}</span><span class="bw-sub">${fmtOdds(awaySpread.price)}</span></div>
+                                <div class="bw-cell clickable" onclick="addToBetSlip('${awayName || awayAbbr}', 'Moneyline', '${fmtOdds(awayML.price)}')"><span class="bw-val-only">${fmtOdds(awayML.price)}</span></div>
+                                <div class="bw-cell clickable" onclick="addToBetSlip('${awayName || awayAbbr}', 'Total', 'O ${over.point} ${fmtOdds(over.price)}')"><span class="bw-val">O ${over.point}</span><span class="bw-sub">${fmtOdds(over.price)}</span></div>
                             </div>
                             <div class="bw-row">
                                 <span class="bw-team">${homeLogo ? `<img src="${homeLogo}" style="width:28px;height:28px;object-fit:contain;" onerror="this.outerHTML='<span style=font-size:10px>${homeAbbr}</span>'">` : homeAbbr}</span>
-                                <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">${fmtOdds(homeSpread.point)}</span><span class="bw-sub">${fmtOdds(homeSpread.price)}</span></div>
-                                <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val-only">${fmtOdds(homeML.price)}</span></div>
-                                <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">U ${under.point}</span><span class="bw-sub">${fmtOdds(under.price)}</span></div>
+                                <div class="bw-cell clickable" onclick="addToBetSlip('${homeName || homeAbbr}', 'Spread', '${fmtOdds(homeSpread.point)} ${fmtOdds(homeSpread.price)}')"><span class="bw-val">${fmtOdds(homeSpread.point)}</span><span class="bw-sub">${fmtOdds(homeSpread.price)}</span></div>
+                                <div class="bw-cell clickable" onclick="addToBetSlip('${homeName || homeAbbr}', 'Moneyline', '${fmtOdds(homeML.price)}')"><span class="bw-val-only">${fmtOdds(homeML.price)}</span></div>
+                                <div class="bw-cell clickable" onclick="addToBetSlip('${homeName || homeAbbr}', 'Total', 'U ${under.point} ${fmtOdds(under.price)}')"><span class="bw-val">U ${under.point}</span><span class="bw-sub">${fmtOdds(under.price)}</span></div>
                             </div>
                         </div>
                         `;
@@ -2797,9 +2797,7 @@
     </div>
     <script>
         let bankroll = 10000.00;
-        let betSlip = [
-            { id: 1, team: 'Timberwolves', type: 'Parlay (+15 & U 224)', odds: -120, wager: 120 }
-        ];
+        let betSlip = [];
 
         // Initialize: clear past wagers & reset bankroll
         localStorage.removeItem('wagers');
@@ -2821,12 +2819,35 @@
         }
 
         function addToBetSlip(team, type, odds) {
-            if (odds === '-' || odds === undefined || odds === '') return;
-            // Parse odds (e.g. "+150" or "-110")
-            const parsedOdds = parseInt(odds.toString().replace(/[^0-9-]/g, ''));
-            if (isNaN(parsedOdds)) return;
-
-            betSlip.push({ id: Date.now(), team, type, odds: parsedOdds, wager: 0 });
+            if (odds === '-' || odds === undefined || odds === '' || odds.includes('—')) return;
+            
+            // robust parse of price and line
+            let line = '';
+            let price = '';
+            
+            const parts = odds.toString().trim().split(/\s+/);
+            if (parts.length > 1) {
+                // e.g. ["+6.5", "-110"] or ["O", "218.5", "-114"]
+                price = parts[parts.length - 1];
+                line = parts.slice(0, parts.length - 1).join(' ');
+            } else {
+                price = parts[0];
+            }
+            
+            // Clean price (odds) to integer (e.g. "+110" -> 110, "-110" -> -110)
+            const cleanedPrice = parseInt(price.replace(/[^0-9-]/g, ''));
+            if (isNaN(cleanedPrice)) return;
+            
+            // For Display Type, if there is a line, display it as "Spread (${line})" or "Total (${line})"
+            let displayType = type;
+            if (line) {
+                displayType = `${type} (${line})`;
+            }
+            
+            // If team is blank, fallback to 'Unknown Team'
+            const displayTeam = (team || '').trim() || 'Unknown Team';
+            
+            betSlip.push({ id: Date.now(), team: displayTeam, type: displayType, odds: cleanedPrice, wager: 0 });
             renderBetSlip();
             document.getElementById('bet-slip-panel').classList.add('open');
         }
