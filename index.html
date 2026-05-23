@@ -1264,6 +1264,236 @@
             cursor: pointer;
             font-size: 12px;
         }
+
+        /* DYNAMIC MY BETS STYLING */
+        .card-my-bets-btn {
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            color: var(--accent);
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .card-my-bets-btn:hover {
+            background: rgba(245, 158, 11, 0.16);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+        .card-my-bets-btn .bets-count {
+            background: var(--accent);
+            color: #000;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 1px 5px;
+            border-radius: 10px;
+            min-width: 14px;
+            text-align: center;
+        }
+
+        /* PREMIUM MY BETS MODAL Overlay & Components */
+        .my-bets-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 12, 15, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .my-bets-modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .my-bets-modal {
+            background: var(--surface);
+            border: 1px solid var(--border2);
+            border-radius: 12px;
+            width: 480px;
+            max-width: 90vw;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+            transform: translateY(20px) scale(0.97);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .my-bets-modal-overlay.open .my-bets-modal {
+            transform: translateY(0) scale(1);
+        }
+        .mb-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .mb-title {
+            font-family: var(--font-head);
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+        .mb-close-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 20px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .mb-close-btn:hover {
+            color: var(--text);
+        }
+        .mb-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .mb-empty-state {
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+            padding: 30px 10px;
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+        }
+        .mb-wager-card {
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            border-radius: 8px;
+            padding: 14px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: border-color 0.2s;
+        }
+        .mb-wager-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .mb-wager-badge {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--win);
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .mb-wager-delete-btn {
+            position: absolute;
+            bottom: 14px;
+            right: 14px;
+            background: none;
+            border: none;
+            color: var(--live);
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .mb-wager-delete-btn:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+        .mb-wager-team {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .mb-wager-details {
+            font-size: 11px;
+            color: var(--muted);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .mb-wager-row {
+            display: flex;
+            justify-content: space-between;
+        }
+        .mb-wager-label {
+            color: var(--muted);
+        }
+        .mb-wager-val {
+            color: var(--text);
+            font-weight: 500;
+        }
+        
+        .mb-quick-add-box {
+            border-top: 1px solid var(--border);
+            padding-top: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .mb-quick-add-title {
+            font-family: var(--font-head);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .mb-form-row {
+            display: flex;
+            gap: 8px;
+        }
+        .mb-select, .mb-input {
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            color: var(--text);
+            padding: 8px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            outline: none;
+        }
+        .mb-select:focus, .mb-input:focus {
+            border-color: var(--accent);
+        }
+        .mb-add-btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 8px 14px;
+            font-family: var(--font-head);
+            font-weight: 900;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: opacity 0.2s;
+        }
+        .mb-add-btn:hover {
+            opacity: 0.9;
+        }
     </style>
 </head>
 
@@ -1285,6 +1515,41 @@
     <div class="league-tabs" id="tabs"></div>
 
     <div class="main" id="main"></div>
+
+    <!-- PREMIUM MY BETS MODAL OVERLAY -->
+    <div id="my-bets-modal-overlay" class="my-bets-modal-overlay" onclick="closeMyBetsModal()">
+        <div class="my-bets-modal" onclick="event.stopPropagation()">
+            <div class="mb-header">
+                <span class="mb-title">Game Track: <span id="mb-game-title"></span></span>
+                <button class="mb-close-btn" onclick="closeMyBetsModal()">×</button>
+            </div>
+            <div class="mb-body">
+                <div id="mb-wagers-list" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- Dynamically populated wagers -->
+                </div>
+                
+                <div class="mb-quick-add-box">
+                    <span class="mb-quick-add-title">Add Track Wager</span>
+                    <form onsubmit="handleModalQuickAdd(event)" style="display:flex; flex-direction:column; gap:10px;">
+                        <div class="mb-form-row">
+                            <select id="mb-form-target" class="mb-select" style="flex: 1;"></select>
+                            <select id="mb-form-type" class="mb-select" style="width: 110px;">
+                                <option value="Spread">Spread</option>
+                                <option value="Moneyline">Moneyline</option>
+                                <option value="Total">Total</option>
+                            </select>
+                        </div>
+                        <div class="mb-form-row">
+                            <input type="text" id="mb-form-detail" class="mb-input" placeholder="Line (e.g. +7.0, -110)" style="flex: 1;" required>
+                            <input type="number" step="0.01" id="mb-form-wager" class="mb-input" placeholder="Wager $" style="width: 90px;" required>
+                            <input type="number" step="0.01" id="mb-form-towin" class="mb-input" placeholder="To Win $" style="width: 90px;" required>
+                        </div>
+                        <button type="submit" class="mb-add-btn" style="width: 100%;">Add Wager to Track</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     <script>
@@ -1982,7 +2247,27 @@
                 </div>`;
             }
 
-            const hideFooter = bettingWidgetHtml !== '' && (isLALvsHOU || isORLvsDET || isCLEvsTOR);
+            const wagersList = (() => {
+                const saved = localStorage.getItem('destiny_game_wagers');
+                if (!saved) return [];
+                try {
+                    const parsed = JSON.parse(saved);
+                    const aAbbr = (awayAbbr || '').toLowerCase();
+                    const aName = (awayName || '').toLowerCase();
+                    const hAbbr = (homeAbbr || '').toLowerCase();
+                    const hName = (homeName || '').toLowerCase();
+                    return parsed.filter(w => {
+                        const m = (w.matchup || '').toLowerCase();
+                        const t = (w.target || '').toLowerCase();
+                        const matchAwayText = (aAbbr && (m.includes(aAbbr) || t.includes(aAbbr))) || (aName && (m.includes(aName) || t.includes(aName)));
+                        const matchHomeText = (hAbbr && (m.includes(hAbbr) || t.includes(hAbbr))) || (hName && (m.includes(hName) || t.includes(hName)));
+                        return matchAwayText && matchHomeText;
+                    });
+                } catch(e) {
+                    return [];
+                }
+            })();
+            const betsCount = wagersList.length;
 
             return `
     <div class="game-card ${status.isLive ? 'live' : ''} ${espnPinned.has(event.id) ? 'pinned' : ''}" id="card-${panelType}-${event.id}" data-eid="${event.id}"
@@ -1998,6 +2283,9 @@
           <span class="${status.cls}">${status.label}</span>
           ${status.isLive ? '<span class="live-dot"></span>' : ''}
         </div>
+        <button class="card-my-bets-btn" onclick="event.stopPropagation(); openMyBetsModal('${event.id}', '${(awayAbbr || '').replace(/'/g, "\\'")}', '${(awayName || '').replace(/'/g, "\\'")}', '${(homeAbbr || '').replace(/'/g, "\\'")}', '${(homeName || '').replace(/'/g, "\\'")}')">
+          My Bets ${betsCount > 0 ? `<span class="bets-count">${betsCount}</span>` : ''}
+        </button>
         <button class="pin-btn ${espnPinned.has(event.id) ? 'active' : ''}" onclick="event.stopPropagation(); toggleEspnPin('${event.id}', this)" title="${espnPinned.has(event.id) ? 'Unpin' : 'Pin'}">★</button>
       </div>
       <div class="teams">
@@ -2821,7 +3109,16 @@
         function addToBetSlip(team, type, odds) {
             if (odds === '-' || odds === undefined || odds === '' || odds.includes('—')) return;
             
-            // robust parse of price and line
+            // Clean up team name
+            let displayTeam = (team || '').trim();
+            // If team name contains HTML (like image tags), strip them!
+            if (displayTeam.includes('<')) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = displayTeam;
+                displayTeam = tempDiv.textContent || tempDiv.innerText || 'Unknown Team';
+            }
+            displayTeam = displayTeam.trim() || 'Unknown Team';
+            
             let line = '';
             let price = '';
             
@@ -2831,21 +3128,27 @@
                 price = parts[parts.length - 1];
                 line = parts.slice(0, parts.length - 1).join(' ');
             } else {
-                price = parts[0];
+                // If single part, determine if it's a price or a line
+                const val = parts[0];
+                if (val.includes('.') || (val.startsWith('+') && parseFloat(val) < 50 && parseFloat(val) > -50)) {
+                    line = val;
+                    price = '-110'; // default price
+                } else {
+                    price = val;
+                }
             }
             
             // Clean price (odds) to integer (e.g. "+110" -> 110, "-110" -> -110)
-            const cleanedPrice = parseInt(price.replace(/[^0-9-]/g, ''));
-            if (isNaN(cleanedPrice)) return;
+            let cleanedPrice = parseInt(price.replace(/[^0-9-]/g, ''));
+            if (isNaN(cleanedPrice)) {
+                cleanedPrice = -110;
+            }
             
             // For Display Type, if there is a line, display it as "Spread (${line})" or "Total (${line})"
             let displayType = type;
             if (line) {
                 displayType = `${type} (${line})`;
             }
-            
-            // If team is blank, fallback to 'Unknown Team'
-            const displayTeam = (team || '').trim() || 'Unknown Team';
             
             betSlip.push({ id: Date.now(), team: displayTeam, type: displayType, odds: cleanedPrice, wager: 0 });
             renderBetSlip();
@@ -2909,14 +3212,271 @@
             localStorage.setItem('bankroll', bankroll);
             updateBankrollDisplay();
 
+            // Log each placed bet into destiny_game_wagers!
+            const KEY = 'destiny_game_wagers';
+            let wagers = [];
+            try { wagers = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { wagers = []; }
+            
+            betSlip.forEach(bet => {
+                let matchupName = 'Unknown Game';
+                for (const lgId in leagueData) {
+                    const events = leagueData[lgId]?.events || [];
+                    const found = events.find(ev => {
+                        const comp = ev.competitions?.[0];
+                        return comp?.competitors?.some(c => c.team?.name === bet.team || c.team?.abbreviation === bet.team || c.team?.displayName === bet.team);
+                    });
+                    if (found) {
+                        const comp = found.competitions[0];
+                        const away = comp.competitors.find(c => c.homeAway === 'away');
+                        const home = comp.competitors.find(c => c.homeAway === 'home');
+                        matchupName = `${away.team?.abbreviation || 'AWAY'} @ ${home.team?.abbreviation || 'HOME'}`;
+                        break;
+                    }
+                }
+                
+                if (matchupName === 'Unknown Game' && (bet.team.includes('Thunder') || bet.team.includes('OKC') || bet.team.includes('Spurs') || bet.team.includes('SAS'))) {
+                    matchupName = 'OKC @ SAS';
+                }
+
+                wagers.push({
+                    id: 'placed-' + bet.id + '-' + Date.now(),
+                    matchup: matchupName,
+                    target: bet.team,
+                    type: bet.type.split(' ')[0],
+                    detail: bet.type.includes('(') ? bet.type.match(/\(([^)]+)\)/)?.[1] || '' : (bet.odds > 0 ? '+' : '') + bet.odds,
+                    wager: bet.wager,
+                    toWin: calculatePayout(bet.wager, bet.odds) - bet.wager
+                });
+            });
+            
+            localStorage.setItem(KEY, JSON.stringify(wagers));
+
             betSlip = [];
             renderBetSlip();
+            updateAllCardBetsCounts();
             alert('Bets placed successfully!');
         }
 
+        // ── My Bets Modal Logic ───────────────────────────────────────────
+        let activeWagerGame = null;
+
+        function seedWagersIfEmpty() {
+            const KEY = 'destiny_game_wagers';
+            const saved = localStorage.getItem(KEY);
+            let wagers = [];
+            if (saved) {
+                try { wagers = JSON.parse(saved); } catch(e) { wagers = []; }
+            }
+            
+            // Clear Timberwolves bets safely
+            wagers = wagers.filter(w => {
+                const target = w.target || '';
+                const matchup = w.matchup || '';
+                return !target.toLowerCase().includes('timberwolves') && 
+                       !matchup.toLowerCase().includes('minnesota') && 
+                       !matchup.toLowerCase().includes('timberwolves');
+            });
+            
+            // Seed Thunder +7 Spread safely
+            const hasThunderSpread = wagers.some(w => {
+                const target = w.target || '';
+                const detail = w.detail || '';
+                return target.toLowerCase().includes('thunder') && detail.includes('+7');
+            });
+            if (!hasThunderSpread) {
+                wagers.push({
+                    id: 'seed-thunder-spread-' + Date.now(),
+                    matchup: 'Oklahoma City Thunder @ San Antonio Spurs',
+                    target: 'Oklahoma City Thunder',
+                    type: 'Spread',
+                    detail: '+7',
+                    wager: 25.00,
+                    toWin: 21.74
+                });
+            }
+            
+            // Seed Thunder ML safely
+            const hasThunderML = wagers.some(w => {
+                const target = w.target || '';
+                const type = w.type || '';
+                return target.toLowerCase().includes('thunder') && type === 'Moneyline';
+            });
+            if (!hasThunderML) {
+                wagers.push({
+                    id: 'seed-thunder-ml-' + Date.now(),
+                    matchup: 'Oklahoma City Thunder @ San Antonio Spurs',
+                    target: 'Oklahoma City Thunder',
+                    type: 'Moneyline',
+                    detail: '+110',
+                    wager: 100.00,
+                    toWin: 110.00
+                });
+            }
+            localStorage.setItem(KEY, JSON.stringify(wagers));
+        }
+
+        function getWagersForGame(awayAbbr, awayName, homeAbbr, homeName) {
+            const saved = localStorage.getItem('destiny_game_wagers');
+            if (!saved) return [];
+            try {
+                const parsed = JSON.parse(saved);
+                const aAbbr = (awayAbbr || '').toLowerCase();
+                const aName = (awayName || '').toLowerCase();
+                const hAbbr = (homeAbbr || '').toLowerCase();
+                const hName = (homeName || '').toLowerCase();
+                
+                return parsed.filter(w => {
+                    const m = (w.matchup || '').toLowerCase();
+                    const t = (w.target || '').toLowerCase();
+                    const matchAwayText = (aAbbr && (m.includes(aAbbr) || t.includes(aAbbr))) || (aName && (m.includes(aName) || t.includes(aName)));
+                    const matchHomeText = (hAbbr && (m.includes(hAbbr) || t.includes(hAbbr))) || (hName && (m.includes(hName) || t.includes(hName)));
+                    return matchAwayText && matchHomeText;
+                });
+            } catch(e) {
+                return [];
+            }
+        }
+
+        function updateAllCardBetsCounts() {
+            document.querySelectorAll('.game-card').forEach(card => {
+                const myBetsBtn = card.querySelector('.card-my-bets-btn');
+                if (!myBetsBtn) return;
+                
+                const onclickStr = myBetsBtn.getAttribute('onclick') || '';
+                const match = onclickStr.match(/openMyBetsModal\([^,]+,\s*'([^']+)',\s*'([^']+)',\s*'([^']+)',\s*'([^']+)'\)/);
+                if (match) {
+                    const [, awayAbbr, awayName, homeAbbr, homeName] = match;
+                    const wagers = getWagersForGame(awayAbbr, awayName, homeAbbr, homeName);
+                    const countEl = myBetsBtn.querySelector('.bets-count');
+                    if (wagers.length > 0) {
+                        if (countEl) {
+                            countEl.innerText = wagers.length;
+                        } else {
+                            const newCountEl = document.createElement('span');
+                            newCountEl.className = 'bets-count';
+                            newCountEl.innerText = wagers.length;
+                            myBetsBtn.appendChild(newCountEl);
+                        }
+                    } else {
+                        if (countEl) countEl.remove();
+                    }
+                }
+            });
+        }
+
+        function openMyBetsModal(gameId, awayAbbr, awayName, homeAbbr, homeName) {
+            seedWagersIfEmpty();
+            activeWagerGame = { gameId, awayAbbr, awayName, homeAbbr, homeName };
+            
+            const overlay = document.getElementById('my-bets-modal-overlay');
+            const titleEl = document.getElementById('mb-game-title');
+            
+            titleEl.innerText = `${awayAbbr} @ ${homeAbbr}`;
+            
+            const targetSelect = document.getElementById('mb-form-target');
+            targetSelect.innerHTML = `
+                <option value="${awayName}">${awayName} (${awayAbbr})</option>
+                <option value="${homeName}">${homeName} (${homeAbbr})</option>
+            `;
+            
+            renderWagersInModal();
+            overlay.classList.add('open');
+        }
+
+        function closeMyBetsModal() {
+            const overlay = document.getElementById('my-bets-modal-overlay');
+            overlay.classList.remove('open');
+            activeWagerGame = null;
+        }
+
+        function renderWagersInModal() {
+            if (!activeWagerGame) return;
+            const listEl = document.getElementById('mb-wagers-list');
+            const wagers = getWagersForGame(activeWagerGame.awayAbbr, activeWagerGame.awayName, activeWagerGame.homeAbbr, activeWagerGame.homeName);
+            
+            if (wagers.length === 0) {
+                listEl.innerHTML = '<div class="mb-empty-state">No wagers registered for this matchup. Add one below to track it live!</div>';
+                return;
+            }
+            
+            listEl.innerHTML = wagers.map(w => `
+                <div class="mb-wager-card">
+                    <span class="mb-wager-badge">Active Track</span>
+                    <span class="mb-wager-team">${w.target}</span>
+                    <div class="mb-wager-details">
+                        <div class="mb-wager-row">
+                            <span class="mb-wager-label">Bet Type:</span>
+                            <span class="mb-wager-val">${w.type} (${w.detail})</span>
+                        </div>
+                        <div class="mb-wager-row">
+                            <span class="mb-wager-label">Wager:</span>
+                            <span class="mb-wager-val">$${parseFloat(w.wager).toFixed(2)}</span>
+                        </div>
+                        <div class="mb-wager-row">
+                            <span class="mb-wager-label">To Win:</span>
+                            <span class="mb-wager-val" style="color:var(--win)">$${parseFloat(w.toWin).toFixed(2)}</span>
+                        </div>
+                    </div>
+                    <button class="mb-wager-delete-btn" onclick="deleteWagerFromModal('${w.id}')">Delete Track</button>
+                </div>
+            `).join('');
+        }
+
+        function handleModalQuickAdd(e) {
+            e.preventDefault();
+            if (!activeWagerGame) return;
+            
+            const target = document.getElementById('mb-form-target').value;
+            const type = document.getElementById('mb-form-type').value;
+            const detail = document.getElementById('mb-form-detail').value.trim() || 'ML';
+            const wager = parseFloat(document.getElementById('mb-form-wager').value) || 0;
+            const toWin = parseFloat(document.getElementById('mb-form-towin').value) || 0;
+            
+            if (wager <= 0 || toWin <= 0) {
+                alert('Please enter valid wager and to-win amounts.');
+                return;
+            }
+            
+            const KEY = 'destiny_game_wagers';
+            let wagers = [];
+            try { wagers = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { wagers = []; }
+            
+            wagers.push({
+                id: 'track-' + Date.now(),
+                matchup: `${activeWagerGame.awayName} @ ${activeWagerGame.homeName}`,
+                target: target,
+                type: type,
+                detail: detail,
+                wager: wager,
+                toWin: toWin
+            });
+            
+            localStorage.setItem(KEY, JSON.stringify(wagers));
+            
+            document.getElementById('mb-form-detail').value = '';
+            document.getElementById('mb-form-wager').value = '';
+            document.getElementById('mb-form-towin').value = '';
+            
+            renderWagersInModal();
+            updateAllCardBetsCounts();
+        }
+
+        function deleteWagerFromModal(id) {
+            const KEY = 'destiny_game_wagers';
+            let wagers = [];
+            try { wagers = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { wagers = []; }
+            wagers = wagers.filter(w => w.id !== id);
+            localStorage.setItem(KEY, JSON.stringify(wagers));
+            
+            renderWagersInModal();
+            updateAllCardBetsCounts();
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            seedWagersIfEmpty();
             updateBankrollDisplay();
             renderBetSlip();
+            setTimeout(updateAllCardBetsCounts, 1200); // Allow scoreboard to load before counting wagers
         });
     </script>
     <script src="nav.js"></script>
