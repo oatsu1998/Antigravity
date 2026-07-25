@@ -1940,13 +1940,25 @@
                                 <span>Total</span>
                             </div>
                             <div class="bw-row">
-                                <span class="bw-team">${awayLogo ? `<img src="${awayLogo}" style="width:28px;height:28px;object-fit:contain;" onerror="this.outerHTML='<span style=font-size:10px>${awayAbbr}</span>'">` : awayAbbr}</span>
+                                <span class="bw-team" style="display:flex; align-items:center; gap:8px;">
+                                    ${awayLogo ? `<img src="${awayLogo}" style="width:24px;height:24px;object-fit:contain;" onerror="this.outerHTML='<span style=font-size:10px>${awayAbbr}</span>'">` : ''}
+                                    <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
+                                        <span style="font-size:12px; font-weight:700; color:var(--text);">${awayAbbr}</span>
+                                        ${awayRecord ? `<span style="font-size:9px; color:var(--muted); font-weight:normal;">${awayRecord}</span>` : ''}
+                                    </div>
+                                </span>
                                 <div class="bw-cell clickable" onclick="addToBetSlip('${awayName || awayAbbr}', 'Spread', '${fmtOdds(awaySpread.point)} ${fmtOdds(awaySpread.price)}')"><span class="bw-val">${fmtOdds(awaySpread.point)}</span><span class="bw-sub">${fmtOdds(awaySpread.price)}</span></div>
                                 <div class="bw-cell clickable" onclick="addToBetSlip('${awayName || awayAbbr}', 'Moneyline', '${fmtOdds(awayML.price)}')"><span class="bw-val-only">${fmtOdds(awayML.price)}</span></div>
                                 <div class="bw-cell clickable" onclick="addToBetSlip('${awayName || awayAbbr}', 'Total', 'O ${over.point} ${fmtOdds(over.price)}')"><span class="bw-val">O ${over.point}</span><span class="bw-sub">${fmtOdds(over.price)}</span></div>
                             </div>
                             <div class="bw-row">
-                                <span class="bw-team">${homeLogo ? `<img src="${homeLogo}" style="width:28px;height:28px;object-fit:contain;" onerror="this.outerHTML='<span style=font-size:10px>${homeAbbr}</span>'">` : homeAbbr}</span>
+                                <span class="bw-team" style="display:flex; align-items:center; gap:8px;">
+                                    ${homeLogo ? `<img src="${homeLogo}" style="width:24px;height:24px;object-fit:contain;" onerror="this.outerHTML='<span style=font-size:10px>${homeAbbr}</span>'">` : ''}
+                                    <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
+                                        <span style="font-size:12px; font-weight:700; color:var(--text);">${homeAbbr}</span>
+                                        ${homeRecord ? `<span style="font-size:9px; color:var(--muted); font-weight:normal;">${homeRecord}</span>` : ''}
+                                    </div>
+                                </span>
                                 <div class="bw-cell clickable" onclick="addToBetSlip('${homeName || homeAbbr}', 'Spread', '${fmtOdds(homeSpread.point)} ${fmtOdds(homeSpread.price)}')"><span class="bw-val">${fmtOdds(homeSpread.point)}</span><span class="bw-sub">${fmtOdds(homeSpread.price)}</span></div>
                                 <div class="bw-cell clickable" onclick="addToBetSlip('${homeName || homeAbbr}', 'Moneyline', '${fmtOdds(homeML.price)}')"><span class="bw-val-only">${fmtOdds(homeML.price)}</span></div>
                                 <div class="bw-cell clickable" onclick="addToBetSlip('${homeName || homeAbbr}', 'Total', 'U ${under.point} ${fmtOdds(under.price)}')"><span class="bw-val">U ${under.point}</span><span class="bw-sub">${fmtOdds(under.price)}</span></div>
@@ -2380,6 +2392,7 @@
                 }
             })();
             const betsCount = wagersList.length;
+            const showScoreBlock = status.isLive || status.isFinal;
 
             return `
     <div class="game-card ${status.isLive ? 'live' : ''} ${espnPinned.has(event.id) ? 'pinned' : ''}" id="card-${panelType}-${event.id}" data-eid="${event.id}"
@@ -2400,6 +2413,7 @@
         </button>
         <button class="pin-btn ${espnPinned.has(event.id) ? 'active' : ''}" onclick="event.stopPropagation(); toggleEspnPin('${event.id}', this)" title="${espnPinned.has(event.id) ? 'Unpin' : 'Pin'}">★</button>
       </div>
+      ${showScoreBlock ? `
       <div class="teams">
         <div class="team-row">
           <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
@@ -2409,7 +2423,7 @@
               ${awayRecord ? `<span class="team-record" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${awayRecord}</span>` : ''}
             </div>
           </div>
-          <span class="team-score ${awayWin ? 'winner' : ''}">${status.isLive || status.isFinal ? awayScore : '—'}</span>
+          <span class="team-score ${awayWin ? 'winner' : ''}">${awayScore}</span>
         </div>
         <div class="vs-divider">@</div>
         <div class="team-row">
@@ -2420,9 +2434,10 @@
               ${homeRecord ? `<span class="team-record" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${homeRecord}</span>` : ''}
             </div>
           </div>
-          <span class="team-score ${homeWin ? 'winner' : ''}">${status.isLive || status.isFinal ? homeScore : '—'}</span>
+          <span class="team-score ${homeWin ? 'winner' : ''}">${homeScore}</span>
         </div>
       </div>
+      ` : ''}
       ${bettingWidgetHtml}
       <div class="game-footer" style="${bettingWidgetHtml !== '' ? 'display: none;' : ''}">
         <span class="game-info">${[venue, broadcast].filter(Boolean).join(' · ')}</span>
