@@ -1297,13 +1297,38 @@
             updateBankrollUI();
 
             if (window.DestinyLiveFeed) {
+                window.DestinyLiveFeed.connectKalshiWebhook();
                 window.DestinyLiveFeed.onKalshiTick((tick) => {
-                    if (tick && tick.yesPrice && tick.noPrice) {
+                    if (!tick || !tick.yesPrice) return;
+                    
+                    const m = markets.find(mk => mk.id === selectedMarketId);
+                    if (m) {
+                        m.yesPrice = tick.yesPrice;
+                        m.noPrice = 100 - tick.yesPrice;
+                        m.history.push(tick.yesPrice);
+                        if (m.history.length > 20) m.history.shift();
+
+                        // Dynamic Orderbook Simulation
+                        m.orderbook.yes.bid = [tick.yesPrice, Math.floor(1000 + Math.random() * 4000)];
+                        m.orderbook.yes.ask = [tick.yesPrice + 1, Math.floor(800 + Math.random() * 3000)];
+                        m.orderbook.no.bid = [100 - tick.yesPrice - 1, Math.floor(1000 + Math.random() * 4000)];
+                        m.orderbook.no.ask = [100 - tick.yesPrice, Math.floor(800 + Math.random() * 3000)];
+
+                        // Re-render Graph & Order Book Live
+                        drawMainChart(m.history);
+                        renderOrderbook(m.orderbook);
+                        
+                        const yesPriceVal = document.getElementById('term-yes-price-box');
+                        if (yesPriceVal) yesPriceVal.textContent = `${tick.yesPrice}¢`;
+                        
+                        const noPriceVal = document.getElementById('term-no-price-box');
+                        if (noPriceVal) noPriceVal.textContent = `${100 - tick.yesPrice}¢`;
+                        
                         const marketCard = document.querySelector(`.market-card[data-id="${selectedMarketId}"]`);
                         if (marketCard) {
                             marketCard.classList.remove('flash-green', 'flash-red');
                             void marketCard.offsetWidth;
-                            marketCard.classList.add(tick.yesPrice > 65 ? 'flash-green' : 'flash-red');
+                            marketCard.classList.add(tick.yesPrice > 60 ? 'flash-green' : 'flash-red');
                         }
                     }
                 });

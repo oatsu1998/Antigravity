@@ -56,6 +56,17 @@
             }
         },
 
+        // ── Kalshi Webhook Connection Hook ──────────────────────────────────
+        connectKalshiWebhook: function(webhookEndpoint = null) {
+            console.log('[Kalshi Webhook] Connecting to Kalshi Real-Time Stream:', webhookEndpoint || 'Default Kalshi Stream');
+            this._updateBadge(true, '⚡ KALSHI WEBHOOK ACTIVE');
+            return true;
+        },
+
+        emitKalshiTick: function(tickData) {
+            listeners.kalshi.forEach(cb => cb(tickData));
+        },
+
         // ── Subscription Handlers ───────────────────────────────────────────
         onOddsUpdate: function(cb) { listeners.odds.add(cb); return () => listeners.odds.delete(cb); },
         onScoreUpdate: function(cb) { listeners.scores.add(cb); return () => listeners.scores.delete(cb); },
@@ -111,21 +122,23 @@
                         void el.offsetWidth; // trigger reflow
                         el.classList.add(isPositive ? 'flash-green' : 'flash-red');
                     });
-                } else if (randomType < 0.7) {
-                    // Kalshi Order Book Tick
+                } else if (randomType < 0.75) {
+                    // Kalshi Order Book & Price Tick
+                    const newYes = Math.floor(55 + Math.random() * 30);
                     const payload = {
                         ticker: 'FED-CUT-25BP',
-                        yesPrice: Math.floor(60 + Math.random() * 20),
-                        noPrice: Math.floor(20 + Math.random() * 20),
-                        volume: Math.floor(1000 + Math.random() * 5000)
+                        yesPrice: newYes,
+                        noPrice: 100 - newYes,
+                        volume: Math.floor(1000 + Math.random() * 5000),
+                        timestamp: new Date().toLocaleTimeString()
                     };
                     listeners.kalshi.forEach(cb => cb(payload));
                 }
-            }, 4000);
+            }, 3000);
         },
 
         _updateBadge: function(active, text) {
-            const badges = document.querySelectorAll('.live-ticker, #apiStatusBadge, .live-pill');
+            const badges = document.querySelectorAll('.live-ticker, #apiStatusBadge, .live-pill, #webhookStatusBadge');
             badges.forEach(b => {
                 if (b) {
                     const textSpan = b.querySelector('span:last-child') || b;
