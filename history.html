@@ -817,32 +817,6 @@
             return parseFloat((diff + numericSpr).toFixed(1));
         }
 
-        const TEAM_LOGO_MAP = {
-            "LAD": "https://a.espncdn.com/i/teamlogos/mlb/500/lad.png",
-            "NYM": "https://a.espncdn.com/i/teamlogos/mlb/500/nym.png",
-            "KC":  "https://a.espncdn.com/i/teamlogos/mlb/500/kc.png",
-            "DET": "https://a.espncdn.com/i/teamlogos/mlb/500/det.png",
-            "ATH": "https://a.espncdn.com/i/teamlogos/mlb/500/oak.png",
-            "MIN": "https://a.espncdn.com/i/teamlogos/mlb/500/min.png",
-            "OKC": "https://a.espncdn.com/i/teamlogos/nba/500/okc.png",
-            "BOS": "https://a.espncdn.com/i/teamlogos/nba/500/bos.png",
-            "LAL": "https://a.espncdn.com/i/teamlogos/nba/500/lal.png",
-            "DEN": "https://a.espncdn.com/i/teamlogos/nba/500/den.png",
-            "GSW": "https://a.espncdn.com/i/teamlogos/nba/500/gsw.png",
-            "SAC": "https://a.espncdn.com/i/teamlogos/nba/500/sac.png"
-        };
-
-        const LOGO_IMAGE_CACHE = {};
-
-        function preloadLogoCache() {
-            Object.keys(TEAM_LOGO_MAP).forEach(teamKey => {
-                const img = new Image(24, 24);
-                img.crossOrigin = 'anonymous';
-                img.src = TEAM_LOGO_MAP[teamKey];
-                LOGO_IMAGE_CACHE[teamKey] = img;
-            });
-        }
-
         let loadedAwayLogo = null;
         let loadedHomeLogo = null;
 
@@ -850,18 +824,28 @@
             const data = GAME_HISTORY_DATA[currentMatchupKey];
             if (!data) return;
 
-            const teams = data.matchup.split('@');
-            const awayAbbr = teams[0] ? teams[0].trim().split(' ').pop().toUpperCase() : '';
-            const homeAbbr = teams[1] ? teams[1].trim().split(' ').pop().toUpperCase() : '';
+            const awayUrl = data.awayLogo || "https://a.espncdn.com/i/teamlogos/mlb/500/lad.png";
+            const homeUrl = data.homeLogo || "https://a.espncdn.com/i/teamlogos/mlb/500/nym.png";
 
-            // Match logo from cache or create fallback Image
-            loadedAwayLogo = LOGO_IMAGE_CACHE[awayAbbr] || (data.awayLogo ? (() => { const i = new Image(24,24); i.src=data.awayLogo; return i; })() : null);
-            loadedHomeLogo = LOGO_IMAGE_CACHE[homeAbbr] || (data.homeLogo ? (() => { const i = new Image(24,24); i.src=data.homeLogo; return i; })() : null);
+            const triggerRedraw = () => {
+                if (historyChart) {
+                    historyChart.update('none'); // Redraw canvas with loaded images smoothly
+                }
+            };
+
+            loadedAwayLogo = new Image(24, 24);
+            loadedAwayLogo.crossOrigin = 'anonymous';
+            loadedAwayLogo.onload = triggerRedraw;
+            loadedAwayLogo.src = awayUrl;
+
+            loadedHomeLogo = new Image(24, 24);
+            loadedHomeLogo.crossOrigin = 'anonymous';
+            loadedHomeLogo.onload = triggerRedraw;
+            loadedHomeLogo.src = homeUrl;
         }
 
         // Page Load Init
         document.addEventListener('DOMContentLoaded', () => {
-            preloadLogoCache();
             updateActiveLogos();
             renderMetrics();
             initHistoryChart();
@@ -906,6 +890,8 @@
             const teams = data.matchup.split('@');
             const awayName = teams[0] ? teams[0].trim() : 'Away';
             const homeName = teams[1] ? teams[1].trim() : 'Home';
+            const awayLogoUrl = data.awayLogo || '';
+            const homeLogoUrl = data.homeLogo || '';
 
             data.timeline.forEach(item => {
                 const isClosing = item.period === 'CLOSING';
@@ -924,8 +910,8 @@
                     </div>
                     
                     <div class="stacked-team-block">
-                        <div class="stacked-team-name">
-                            <span class="stacked-team-badge away"></span>
+                        <div class="stacked-team-name" style="display:flex; align-items:center; gap:8px;">
+                            ${awayLogoUrl ? `<img src="${awayLogoUrl}" style="width:20px; height:20px; object-fit:contain;" />` : `<span class="stacked-team-badge away"></span>`}
                             <span>${awayName}</span>
                         </div>
                         <ul class="stacked-team-list">
@@ -935,8 +921,8 @@
                     </div>
 
                     <div class="stacked-team-block">
-                        <div class="stacked-team-name">
-                            <span class="stacked-team-badge home"></span>
+                        <div class="stacked-team-name" style="display:flex; align-items:center; gap:8px;">
+                            ${homeLogoUrl ? `<img src="${homeLogoUrl}" style="width:20px; height:20px; object-fit:contain;" />` : `<span class="stacked-team-badge home"></span>`}
                             <span>${homeName}</span>
                         </div>
                         <ul class="stacked-team-list">
