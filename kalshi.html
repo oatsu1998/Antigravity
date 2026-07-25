@@ -2364,6 +2364,26 @@
             // Update portfolio calculations to reflect live prices
             renderPortfolio();
         }
+
+        // Sub-Second Kalshi WebSocket Tick Handler
+        if (window.DestinyLiveFeed) {
+            window.DestinyLiveFeed.onKalshiTick((tickData) => {
+                if (!tickData) return;
+                const activeMarket = marketsData.find(m => m.id === selectedMarketId || m.ticker === tickData.ticker);
+                if (activeMarket && tickData.yesPrice) {
+                    activeMarket.yesPrice = tickData.yesPrice;
+                    activeMarket.noPrice = 100 - tickData.yesPrice;
+                    activeMarket.history.push(tickData.yesPrice);
+                    if (activeMarket.history.length > 12) activeMarket.history.shift();
+
+                    updateTerminalPricesUI(activeMarket);
+                    drawMainChart(activeMarket.history);
+                    updateOrderBookUI(activeMarket);
+                    calculateTrade();
+                    renderMarkets();
+                }
+            });
+        }
     </script>
     <!-- Include dynamically injected global navbar -->
     <script src="nav.js"></script>

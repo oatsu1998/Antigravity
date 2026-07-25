@@ -1023,6 +1023,28 @@
                         }
                     }
                 });
+
+                window.DestinyLiveFeed.onKalshiTick((tick) => {
+                    if (tick && tick.team) {
+                        document.querySelectorAll('.game-item').forEach(item => {
+                            if (item.innerText.toUpperCase().includes(tick.team)) {
+                                item.classList.remove('flash-green', 'flash-red');
+                                void item.offsetWidth;
+                                item.classList.add(tick.direction === 'UP' ? 'flash-green' : 'flash-red');
+
+                                let kalshiPill = item.querySelector('.kalshi-lead-pill');
+                                if (!kalshiPill) {
+                                    kalshiPill = document.createElement('span');
+                                    kalshiPill.className = 'kalshi-lead-pill';
+                                    kalshiPill.style.cssText = 'font-size:9px; font-weight:bold; color:#06b6d4; background:rgba(6,182,212,0.12); padding:1px 5px; border-radius:3px; margin-left:6px;';
+                                    const metaEl = item.querySelector('.game-meta') || item;
+                                    metaEl.appendChild(kalshiPill);
+                                }
+                                kalshiPill.innerText = `⚡ ${tick.yesPrice}¢ (${tick.americanOdds})`;
+                            }
+                        });
+                    }
+                });
             }
 
             setInterval(() => {

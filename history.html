@@ -851,6 +851,25 @@
             initHistoryChart();
             renderStackedBreakdown();
             renderLogTable();
+
+            // Connect Kalshi Sub-Second Live Feed Ticker
+            if (window.DestinyLiveFeed) {
+                window.DestinyLiveFeed.onKalshiTick((tick) => {
+                    if (!tick || !tick.team) return;
+                    let tickerEl = document.getElementById('kalshiLeadTicker');
+                    if (!tickerEl) {
+                        const container = document.querySelector('.metrics-banner') || document.body;
+                        tickerEl = document.createElement('div');
+                        tickerEl.id = 'kalshiLeadTicker';
+                        tickerEl.style.cssText = 'background:rgba(6,182,212,0.08); border:1px solid rgba(6,182,212,0.25); border-radius:6px; padding:6px 14px; font-family:var(--font-mono); font-size:11px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;';
+                        container.parentNode.insertBefore(tickerEl, container);
+                    }
+                    tickerEl.innerHTML = `<span><strong style="color:#06b6d4;">⚡ KALSHI SUB-SECOND LEAD TICKER:</strong> ${tick.team} ${tick.yesPrice}¢ (${tick.americanOdds})</span> <span style="color:var(--muted); font-size:10px;">VOLUME: ${tick.volume || '2.4K'} · ${tick.timestamp}</span>`;
+                    tickerEl.classList.remove('flash-green', 'flash-red');
+                    void tickerEl.offsetWidth;
+                    tickerEl.classList.add(tick.direction === 'UP' ? 'flash-green' : 'flash-red');
+                });
+            }
         });
 
         function handleGameSelectChange(newKey) {

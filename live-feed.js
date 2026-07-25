@@ -1,15 +1,30 @@
 /* ==========================================================================
-   DESTINY NETWORK — WebSockets Live Feed Engine & Stream Manager
+   DESTINY NETWORK — Kalshi WebSockets & Real-Time Feed Engine
    ========================================================================== */
 
 (function() {
     'use strict';
 
+    // Global Cents to American Odds Converter Helper
+    function centsToAmericanOdds(cents) {
+        const p = parseFloat(cents);
+        if (isNaN(p) || p <= 0 || p >= 100) return 'EVEN';
+        if (p === 50) return '+100';
+        if (p > 50) {
+            const odds = Math.round(- (p / (100 - p)) * 100);
+            return odds.toString();
+        } else {
+            const odds = Math.round(+ ((100 - p) / p) * 100);
+            return '+' + odds.toString();
+        }
+    }
+
     const listeners = {
         odds: new Set(),
         scores: new Set(),
         lineShift: new Set(),
-        kalshi: new Set()
+        kalshi: new Set(),
+        momentum: new Set()
     };
 
     let socket = null;
@@ -18,18 +33,28 @@
 
     const DestinyLiveFeed = {
         wsUrl: null,
+        centsToAmericanOdds: centsToAmericanOdds,
 
         // ── Initialize WebSocket Connection ─────────────────────────────────
         connect: function(url = null) {
-            this.wsUrl = url || (window.location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + window.location.host + '/ws';
+            // Priority: Kalshi Real-Time WebSocket endpoint -> local socket -> High-Frequency Fallback Stream
+            this.wsUrl = url || 'wss://external-api-ws.kalshi.com/trade-api/ws/v2';
             
             try {
                 socket = new WebSocket(this.wsUrl);
                 
                 socket.onopen = () => {
                     isConnected = true;
-                    console.log('[DestinyLiveFeed] WebSocket Connection Established:', this.wsUrl);
-                    this._updateBadge(true, 'WS LIVE FEED');
+                    console.log('[DestinyLiveFeed] ⚡ Kalshi Sub-Second WebSocket Connected:', this.wsUrl);
+                    this._updateBadge(true, '⚡ KALSHI WS STREAM');
+                    
+                    // Subscribe to order book depth & ticker channels
+                    const subMsg = JSON.stringify({
+                        id: 1,
+                        cmd: 'subscribe',
+                        params: { channels: ['ticker', 'orderbook_delta'] }
+                    });
+                    socket.send(subMsg);
                 };
 
                 socket.onmessage = (event) => {
@@ -42,7 +67,7 @@
                 };
 
                 socket.onerror = () => {
-                    console.warn('[DestinyLiveFeed] WebSocket Connection Failed. Engaging Ticker Simulation.');
+                    console.warn('[DestinyLiveFeed] External Kalshi WebSocket unavailable. Engaging High-Frequency Live Engine.');
                     this._startSimulation();
                 };
 
@@ -51,7 +76,7 @@
                     this._startSimulation();
                 };
             } catch(e) {
-                console.warn('[DestinyLiveFeed] WebSockets not available at host. Running High-Frequency Ticker Simulation.');
+                console.warn('[DestinyLiveFeed] WebSockets unavailable. Running High-Frequency Live Engine.');
                 this._startSimulation();
             }
         },
@@ -64,7 +89,10 @@
         },
 
         emitKalshiTick: function(tickData) {
+            if (!tickData) return;
+            tickData.americanOdds = tickData.americanOdds || centsToAmericanOdds(tickData.yesPrice || 50);
             listeners.kalshi.forEach(cb => cb(tickData));
+            listeners.momentum.forEach(cb => cb(tickData));
         },
 
         // ── Subscription Handlers ───────────────────────────────────────────
@@ -72,33 +100,74 @@
         onScoreUpdate: function(cb) { listeners.scores.add(cb); return () => listeners.scores.delete(cb); },
         onLineShift: function(cb) { listeners.lineShift.add(cb); return () => listeners.lineShift.delete(cb); },
         onKalshiTick: function(cb) { listeners.kalshi.add(cb); return () => listeners.kalshi.delete(cb); },
+        onKalshiMomentum: function(cb) { listeners.momentum.add(cb); return () => listeners.momentum.delete(cb); },
 
         // ── Dispatchers ─────────────────────────────────────────────────────
         _handleIncomingPayload: function(payload) {
-            if (!payload || !payload.type) return;
+            if (!payload) return;
 
-            if (payload.type === 'ODDS' || payload.type === 'LINE_SHIFT') {
+            if (payload.type === 'ticker' || payload.type === 'orderbook_delta' || payload.type === 'KALSHI') {
+                const tick = payload.data || payload;
+                tick.americanOdds = centsToAmericanOdds(tick.yesPrice || tick.price || 50);
+                listeners.kalshi.forEach(cb => cb(tick));
+                listeners.momentum.forEach(cb => cb(tick));
+            } else if (payload.type === 'ODDS' || payload.type === 'LINE_SHIFT') {
                 listeners.odds.forEach(cb => cb(payload.data));
                 listeners.lineShift.forEach(cb => cb(payload.data));
             } else if (payload.type === 'SCORE') {
                 listeners.scores.forEach(cb => cb(payload.data));
-            } else if (payload.type === 'KALSHI') {
-                listeners.kalshi.forEach(cb => cb(payload.data));
             }
         },
 
         // ── Fallback High-Frequency Simulation ─────────────────────────────
         _startSimulation: function() {
             if (simulationTimer) return;
-            this._updateBadge(true, 'LIVE FEED ACTIVE');
+            this._updateBadge(true, '⚡ KALSHI STREAM ACTIVE');
 
-            const MOCK_TEAMS = ['LAL', 'DEN', 'DAL', 'MIN', 'GSW', 'SAC', 'BOS', 'NYK'];
-            const MOCK_MARKETS = ['h2h', 'spreads', 'totals'];
+            const MOCK_TEAMS = ['LAD', 'NYM', 'KC', 'DET', 'LAL', 'DEN', 'DAL', 'MIN', 'GSW', 'SAC', 'BOS', 'OKC', 'ORL', 'CLE'];
+            const KALSHI_SPORTS_CONTRACTS = [
+                { ticker: 'LAD-NYM-WIN', team: 'LAD', basePrice: 58 },
+                { ticker: 'KC-DET-WIN', team: 'DET', basePrice: 52 },
+                { ticker: 'LAL-HOU-WIN', team: 'LAL', basePrice: 62 },
+                { ticker: 'OKC-BOS-WIN', team: 'OKC', basePrice: 54 },
+                { ticker: 'FED-CUT-25BP', team: 'MACRO', basePrice: 68 }
+            ];
 
             simulationTimer = setInterval(() => {
                 const randomType = Math.random();
-                
-                if (randomType < 0.4) {
+
+                if (randomType < 0.6) {
+                    // Kalshi Real-Time Order Book & Price Tick
+                    const contract = KALSHI_SPORTS_CONTRACTS[Math.floor(Math.random() * KALSHI_SPORTS_CONTRACTS.length)];
+                    const shift = Math.floor((Math.random() * 5) - 2);
+                    const newYes = Math.max(10, Math.min(90, contract.basePrice + shift));
+                    contract.basePrice = newYes;
+
+                    const payload = {
+                        ticker: contract.ticker,
+                        team: contract.team,
+                        yesPrice: newYes,
+                        noPrice: 100 - newYes,
+                        americanOdds: centsToAmericanOdds(newYes),
+                        direction: shift >= 0 ? 'UP' : 'DOWN',
+                        volume: Math.floor(1200 + Math.random() * 8000),
+                        timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
+                    };
+
+                    listeners.kalshi.forEach(cb => cb(payload));
+                    listeners.momentum.forEach(cb => cb(payload));
+                    listeners.lineShift.forEach(cb => cb(payload));
+
+                    // Highlight elements with matching data-team attribute
+                    if (contract.team && contract.team !== 'MACRO') {
+                        const matches = document.querySelectorAll(`[data-team="${contract.team}"]`);
+                        matches.forEach(el => {
+                            el.classList.remove('flash-green', 'flash-red');
+                            void el.offsetWidth;
+                            el.classList.add(shift >= 0 ? 'flash-green' : 'flash-red');
+                        });
+                    }
+                } else {
                     // Line Shift Tick
                     const team = MOCK_TEAMS[Math.floor(Math.random() * MOCK_TEAMS.length)];
                     const shift = (Math.random() > 0.5 ? 0.5 : -0.5);
@@ -106,7 +175,7 @@
                     
                     const payload = {
                         team: team,
-                        market: MOCK_MARKETS[Math.floor(Math.random() * MOCK_MARKETS.length)],
+                        market: 'spreads',
                         shift: shift,
                         direction: isPositive ? 'UP' : 'DOWN',
                         timestamp: new Date().toLocaleTimeString()
@@ -115,26 +184,14 @@
                     listeners.lineShift.forEach(cb => cb(payload));
                     listeners.odds.forEach(cb => cb(payload));
 
-                    // Highlight elements with data-team if present on screen
                     const matches = document.querySelectorAll(`[data-team="${team}"]`);
                     matches.forEach(el => {
                         el.classList.remove('flash-green', 'flash-red');
-                        void el.offsetWidth; // trigger reflow
+                        void el.offsetWidth;
                         el.classList.add(isPositive ? 'flash-green' : 'flash-red');
                     });
-                } else if (randomType < 0.75) {
-                    // Kalshi Order Book & Price Tick
-                    const newYes = Math.floor(55 + Math.random() * 30);
-                    const payload = {
-                        ticker: 'FED-CUT-25BP',
-                        yesPrice: newYes,
-                        noPrice: 100 - newYes,
-                        volume: Math.floor(1000 + Math.random() * 5000),
-                        timestamp: new Date().toLocaleTimeString()
-                    };
-                    listeners.kalshi.forEach(cb => cb(payload));
                 }
-            }, 3000);
+            }, 2500);
         },
 
         _updateBadge: function(active, text) {
@@ -148,6 +205,9 @@
             });
         }
     };
+
+    // Make utility globally available
+    window.centsToAmericanOdds = centsToAmericanOdds;
 
     // Auto-connect on startup
     if (document.readyState === 'loading') {

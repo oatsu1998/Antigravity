@@ -1474,6 +1474,20 @@
             searchQuery = document.getElementById('playerSearch').value;
             renderPropsGrid();
         }
+
+        // Sub-Second Kalshi Stream Handler for Props
+        if (window.DestinyLiveFeed) {
+            window.DestinyLiveFeed.onKalshiTick((tick) => {
+                if (!tick || !tick.team) return;
+                document.querySelectorAll('.prop-card').forEach(card => {
+                    if (card.innerText.toUpperCase().includes(tick.team)) {
+                        card.classList.remove('flash-green', 'flash-red');
+                        void card.offsetWidth;
+                        card.classList.add(tick.direction === 'UP' ? 'flash-green' : 'flash-red');
+                    }
+                });
+            });
+        }
     </script>
 
     <!-- Global Nav script injected at bottom -->

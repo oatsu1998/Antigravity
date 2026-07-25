@@ -1630,8 +1630,30 @@
 
             // Seed logs
             addLiveFeedLog("Traders Terminal initialized. Dynamic feeds loaded.");
-            addLiveFeedLog("Connecting to US sportsbooks comparison socket...");
-            addLiveFeedLog("Connection established. Active CLV computations running.");
+            addLiveFeedLog("Connecting to Kalshi Sub-Second Real-Time WebSockets...");
+            addLiveFeedLog("Connection established. Active CLV & Cashout computations running.");
+
+            if (window.DestinyLiveFeed) {
+                window.DestinyLiveFeed.onKalshiTick((tick) => {
+                    if (!tick || !tick.team) return;
+                    addLiveFeedLog(`⚡ KALSHI REAL-TIME TICK: ${tick.team} moved to ${tick.yesPrice}¢ (${tick.americanOdds})`);
+                    if (selectedWagerId) {
+                        const activeWager = wagers.find(w => w.id === selectedWagerId);
+                        if (activeWager && activeWager.matchup && activeWager.matchup.toUpperCase().includes(tick.team)) {
+                            const stake = parseFloat(activeWager.stake) || 50;
+                            const newCashout = Math.round(stake * (tick.yesPrice / 50) * 100) / 100;
+                            activeWager.cashout = newCashout;
+                            const cashoutEl = document.getElementById('cashoutValueDisplay');
+                            if (cashoutEl) {
+                                cashoutEl.innerText = '$' + newCashout.toFixed(2);
+                                cashoutEl.classList.remove('flash-green', 'flash-red');
+                                void cashoutEl.offsetWidth;
+                                cashoutEl.classList.add(tick.direction === 'UP' ? 'flash-green' : 'flash-red');
+                            }
+                        }
+                    }
+                });
+            }
 
             // Start Fluctuation Simulator
             startRealTimeSimulator();

@@ -3770,6 +3770,53 @@
             renderBetSlip();
             updateActiveBetsCountGlobal();
             setTimeout(updateAllCardBetsCounts, 1200); // Allow scoreboard to load before counting wagers
+
+            // ⚡ Sub-Second Kalshi WebSocket Real-Time Listener
+            if (window.DestinyLiveFeed) {
+                window.DestinyLiveFeed.onKalshiTick((tick) => {
+                    if (!tick || !tick.team) return;
+                    const team = tick.team;
+                    const yesPrice = tick.yesPrice || 50;
+                    const noPrice = 100 - yesPrice;
+                    const americanOdds = tick.americanOdds || (window.centsToAmericanOdds ? window.centsToAmericanOdds(yesPrice) : 'EVEN');
+
+                    // Find game cards matching team
+                    const cards = document.querySelectorAll('.game-card');
+                    cards.forEach(card => {
+                        const cardText = card.innerText.toUpperCase();
+                        if (cardText.includes(team)) {
+                            // Update or inject Kalshi streaming badge
+                            let badge = card.querySelector('.kalshi-stream-badge');
+                            if (!badge) {
+                                const header = card.querySelector('.game-header') || card;
+                                badge = document.createElement('div');
+                                badge.className = 'kalshi-stream-badge';
+                                badge.style.cssText = 'font-size:9px; font-weight:bold; color:#06b6d4; background:rgba(6,182,212,0.12); border:1px solid rgba(6,182,212,0.3); border-radius:3px; padding:2px 6px; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:4px; margin-bottom:6px;';
+                                badge.innerHTML = '⚡ KALSHI LIVE STREAM';
+                                header.prepend(badge);
+                            }
+
+                            // Update probability bar instantly
+                            const probLeft = card.querySelector('.bw-prob-bar-left');
+                            const probRight = card.querySelector('.bw-prob-bar-right');
+                            const valLeft = card.querySelector('.bw-prob-val-left');
+                            const valRight = card.querySelector('.bw-prob-val-right');
+
+                            if (probLeft && probRight && valLeft && valRight) {
+                                probLeft.style.width = yesPrice + '%';
+                                probRight.style.width = noPrice + '%';
+                                valLeft.innerText = `${yesPrice}% ${team} (${americanOdds})`;
+                                valRight.innerText = `${noPrice}%`;
+                            }
+
+                            // Flash card container green/red based on tick direction
+                            card.classList.remove('flash-green', 'flash-red');
+                            void card.offsetWidth;
+                            card.classList.add(tick.direction === 'UP' ? 'flash-green' : 'flash-red');
+                        }
+                    });
+                });
+            }
         });
     </script>
     <script src="nav.js"></script>
