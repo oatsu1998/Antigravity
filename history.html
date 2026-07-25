@@ -530,9 +530,12 @@
             <div class="game-selector-box">
                 <span class="game-selector-label">Select Matchup:</span>
                 <select id="gameHistorySelect" class="game-select-input" onchange="handleGameSelectChange(this.value)">
-                    <option value="okc_bos">OKC Thunder @ BOS Celtics (Live Final)</option>
-                    <option value="lal_den">LAL Lakers @ DEN Nuggets (Full Timeline)</option>
-                    <option value="gsw_sac">GSW Warriors @ SAC Kings (Full Timeline)</option>
+                    <option value="lad_nym" selected>⚾ LA Dodgers @ NY Mets (Marquee Slate)</option>
+                    <option value="kc_det">⚾ KC Royals @ Detroit Tigers (Matinee)</option>
+                    <option value="ath_min">⚾ Athletics @ Minnesota Twins (Run Line Test)</option>
+                    <option value="okc_bos">🏀 OKC Thunder @ BOS Celtics (Live Final)</option>
+                    <option value="lal_den">🏀 LAL Lakers @ DEN Nuggets (Full Timeline)</option>
+                    <option value="gsw_sac">🏀 GSW Warriors @ SAC Kings (Full Timeline)</option>
                 </select>
             </div>
         </div>
@@ -645,8 +648,56 @@
 
     <!-- Timeline Data & Logic Script -->
     <script>
-        // Sample Full-Game Line History Dataset
+        // Sample Full-Game Line History Dataset (NBA & MLB Pipeline)
         const GAME_HISTORY_DATA = {
+            "lad_nym": {
+                matchup: "LA Dodgers @ NY Mets",
+                shift: "Run Line -1.5 (+115)",
+                shiftSub: "Opening -1.5 (+105) → Closing -1.5 (+120)",
+                clv: "+5.4% Edge",
+                volatility: "MED (14 Shifts)",
+                eventsCount: "12 Major Plays",
+                timeline: [
+                    { timeLabel: "Pre-Game Open", period: "PRE", awayML: "-155", homeML: "+135", awaySpr: "-1.5", homeSpr: "+1.5", total: "8.5", book: "FanDuel", play: "Opening Run Lines Released", awayScore: 0, homeScore: 0, isScoringPlay: false },
+                    { timeLabel: "🔒 Closing Lines (First Pitch)", period: "CLOSING", awayML: "-165", homeML: "+145", awaySpr: "-1.5", homeSpr: "+1.5", total: "8.5", book: "Consensus Final", play: "First Pitch Locked (6:15 PM)", awayScore: 0, homeScore: 0, isScoringPlay: false },
+                    { timeLabel: "Top 1st", period: "1st", awayML: "-180", homeML: "+155", awaySpr: "-1.5", homeSpr: "+1.5", total: "8.5", book: "DraftKings", play: "Ohtani 1-Run Single", awayScore: 1, homeScore: 0, isScoringPlay: true },
+                    { timeLabel: "Bot 2nd", period: "2nd", awayML: "-140", homeML: "+120", awaySpr: "-1.5", homeSpr: "+1.5", total: "9.0", book: "BetMGM", play: "Pete Alonso 2-Run HR", awayScore: 1, homeScore: 2, isScoringPlay: true },
+                    { timeLabel: "Top 4th", period: "4th", awayML: "-195", homeML: "+165", awaySpr: "-1.5", homeSpr: "+1.5", total: "9.5", book: "FanDuel", play: "⚡ Mookie Betts 2-Run HR", awayScore: 3, homeScore: 2, isScoringPlay: true },
+                    { timeLabel: "Mid 5th", period: "HT", awayML: "-210", homeML: "+175", awaySpr: "-1.5", homeSpr: "+1.5", total: "9.5", book: "Consensus", play: "5th Inning Stretch: 3-2 LAD", awayScore: 3, homeScore: 2, isScoringPlay: false },
+                    { timeLabel: "Top 7th", period: "7th", awayML: "-280", homeML: "+230", awaySpr: "-1.5", homeSpr: "+1.5", total: "10.0", book: "BetOnline", play: "Freddie Freeman RBI Double", awayScore: 5, homeScore: 2, isScoringPlay: true },
+                    { timeLabel: "Bot 8th", period: "8th", awayML: "-220", homeML: "+180", awaySpr: "-1.5", homeSpr: "+1.5", total: "9.5", book: "DraftKings", play: "Lindor Solo HR", awayScore: 5, homeScore: 3, isScoringPlay: true },
+                    { timeLabel: "Final (9th)", period: "FINAL", awayML: "-350", homeML: "+280", awaySpr: "-1.5", homeSpr: "+1.5", total: "9.5", book: "Consensus", play: "FINAL: LAD 5, NYM 3 (LAD Covers -1.5)", awayScore: 5, homeScore: 3, isScoringPlay: false }
+                ]
+            },
+            "kc_det": {
+                matchup: "KC Royals @ Detroit Tigers",
+                shift: "Total O/U +1.0 Runs",
+                shiftSub: "Opening 7.5 → Closing 8.5",
+                clv: "+3.8% Edge",
+                volatility: "LOW (8 Shifts)",
+                eventsCount: "8 Major Plays",
+                timeline: [
+                    { timeLabel: "Pre-Game Open", period: "PRE", awayML: "+110", homeML: "-130", awaySpr: "+1.5", homeSpr: "-1.5", total: "7.5", book: "DraftKings", play: "Opening Lines Released", awayScore: 0, homeScore: 0, isScoringPlay: false },
+                    { timeLabel: "🔒 Closing Lines (First Pitch)", period: "CLOSING", awayML: "+105", homeML: "-125", awaySpr: "+1.5", homeSpr: "-1.5", total: "8.0", book: "Consensus Final", play: "First Pitch Locked (12:10 PM)", awayScore: 0, homeScore: 0, isScoringPlay: false },
+                    { timeLabel: "Top 2nd", period: "2nd", awayML: "-120", homeML: "+100", awaySpr: "+1.5", homeSpr: "-1.5", total: "8.5", book: "FanDuel", play: "Witt Jr 2-Run Triple", awayScore: 2, homeScore: 0, isScoringPlay: true },
+                    { timeLabel: "Mid 5th", period: "HT", awayML: "-140", homeML: "+120", awaySpr: "+1.5", homeSpr: "-1.5", total: "8.5", book: "Consensus", play: "5th Inning Stretch: 2-1 KC", awayScore: 2, homeScore: 1, isScoringPlay: false },
+                    { timeLabel: "Final (9th)", period: "FINAL", awayML: "-180", homeML: "+155", awaySpr: "+1.5", homeSpr: "-1.5", total: "8.5", book: "Consensus", play: "FINAL: KC 4, DET 2", awayScore: 4, homeScore: 2, isScoringPlay: false }
+                ]
+            },
+            "ath_min": {
+                matchup: "Athletics @ Minnesota Twins",
+                shift: "Run Line Shift +1.5",
+                shiftSub: "Opening +1.5 → Closing +1.5 (-105)",
+                clv: "+6.1% Edge",
+                volatility: "HIGH (16 Shifts)",
+                eventsCount: "11 Major Plays",
+                timeline: [
+                    { timeLabel: "Pre-Game Open", period: "PRE", awayML: "+160", homeML: "-190", awaySpr: "+1.5", homeSpr: "-1.5", total: "8.0", book: "BetMGM", play: "Opening Lines Released", awayScore: 0, homeScore: 0, isScoringPlay: false },
+                    { timeLabel: "🔒 Closing Lines (First Pitch)", period: "CLOSING", awayML: "+150", homeML: "-175", awaySpr: "+1.5", homeSpr: "-1.5", total: "8.5", book: "Consensus Final", play: "First Pitch Locked (6:10 PM)", awayScore: 0, homeScore: 0, isScoringPlay: false },
+                    { timeLabel: "Bot 3rd", period: "3rd", awayML: "+240", homeML: "-300", awaySpr: "+1.5", homeSpr: "-1.5", total: "9.0", book: "FanDuel", play: "Correa Grand Slam", awayScore: 0, homeScore: 4, isScoringPlay: true },
+                    { timeLabel: "Final (9th)", period: "FINAL", awayML: "+400", homeML: "-550", awaySpr: "+1.5", homeSpr: "-1.5", total: "9.5", book: "Consensus", play: "FINAL: MIN 7, ATH 3", awayScore: 3, homeScore: 7, isScoringPlay: false }
+                ]
+            },
             "okc_bos": {
                 matchup: "OKC Thunder @ BOS Celtics",
                 shift: "+4.5 PTS",
@@ -702,7 +753,7 @@
             }
         };
 
-        let currentMatchupKey = "okc_bos";
+        let currentMatchupKey = "lad_nym";
         let currentMarket = "MARGIN"; // Default to Spread Margin Delta (Cover Line)
         let currentBook = "ALL";
         let historyChart = null;
@@ -712,23 +763,34 @@
         function parseClockToMinute(timeLabel, period) {
             if (period === 'PRE') return 0.0;
             if (period === 'CLOSING') return 0.0;
-            if (period === 'HT') return 24.0;
+            if (period === 'HT' || timeLabel.includes('Mid 5th') || timeLabel.includes('5th Inning Stretch')) return 24.0;
             if (period === 'FINAL') return 48.0;
 
+            const lowerLabel = timeLabel.toLowerCase();
+            if (lowerLabel.includes('1st')) return lowerLabel.includes('top') ? 1.0 : 2.5;
+            if (lowerLabel.includes('2nd')) return lowerLabel.includes('top') ? 5.0 : 7.5;
+            if (lowerLabel.includes('3rd')) return lowerLabel.includes('top') ? 10.0 : 12.5;
+            if (lowerLabel.includes('4th')) return lowerLabel.includes('top') ? 15.0 : 17.5;
+            if (lowerLabel.includes('5th')) return lowerLabel.includes('top') ? 20.0 : (lowerLabel.includes('mid') ? 24.0 : 26.5);
+            if (lowerLabel.includes('6th')) return lowerLabel.includes('top') ? 29.0 : 31.5;
+            if (lowerLabel.includes('7th')) return lowerLabel.includes('top') ? 34.0 : 36.5;
+            if (lowerLabel.includes('8th')) return lowerLabel.includes('top') ? 39.0 : 41.5;
+            if (lowerLabel.includes('9th')) return lowerLabel.includes('top') ? 44.0 : 46.5;
+
             const parts = timeLabel.split(' ');
-            if (parts.length < 2) return 0.0;
+            if (parts.length >= 2) {
+                const q = parts[0];
+                const clock = parts[1];
+                const clockParts = clock.split(':');
+                const mins = parseFloat(clockParts[0]) || 0;
+                const secs = parseFloat(clockParts[1]) || 0;
+                const remainingMins = mins + (secs / 60);
 
-            const q = parts[0]; // "Q1", "Q2", "Q3", "Q4"
-            const clock = parts[1]; // "9:30"
-            const clockParts = clock.split(':');
-            const mins = parseFloat(clockParts[0]) || 0;
-            const secs = parseFloat(clockParts[1]) || 0;
-            const remainingMins = mins + (secs / 60);
-
-            if (q === 'Q1') return parseFloat((12.0 - remainingMins).toFixed(2));
-            if (q === 'Q2') return parseFloat((24.0 - remainingMins).toFixed(2));
-            if (q === 'Q3') return parseFloat((36.0 - remainingMins).toFixed(2));
-            if (q === 'Q4') return parseFloat((48.0 - remainingMins).toFixed(2));
+                if (q === 'Q1') return parseFloat((12.0 - remainingMins).toFixed(2));
+                if (q === 'Q2') return parseFloat((24.0 - remainingMins).toFixed(2));
+                if (q === 'Q3') return parseFloat((36.0 - remainingMins).toFixed(2));
+                if (q === 'Q4') return parseFloat((48.0 - remainingMins).toFixed(2));
+            }
 
             return 0.0;
         }
