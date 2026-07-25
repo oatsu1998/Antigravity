@@ -1655,7 +1655,7 @@
             { id: 'nhl', label: 'NHL', sport: 'hockey', league: 'nhl' },
             { id: 'wnba', label: 'WNBA', sport: 'basketball', league: 'wnba' },
             { id: 'nfl', label: 'NFL', sport: 'football', league: 'nfl' }
-        ];   ];
+        ];
 
         let activeTab = 'live';
         let leagueData = {};
@@ -1723,15 +1723,17 @@
         setInterval(clockTick, 1000);
         clockTick();
 
-        function todayStr() {
-            const d = new Date();
-            return d.getFullYear().toString() +
+        function todayAndTomorrowStr() {
+            const d1 = new Date();
+            const d2 = new Date(Date.now() + 86400000);
+            const fmt = d => d.getFullYear().toString() +
                 String(d.getMonth() + 1).padStart(2, '0') +
                 String(d.getDate()).padStart(2, '0');
+            return `${fmt(d1)}-${fmt(d2)}`;
         }
 
         async function fetchLeague(lg) {
-            const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard?dates=${todayStr()}&limit=50`;
+            const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard?dates=${todayAndTomorrowStr()}&limit=50`;
             try {
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
