@@ -444,38 +444,143 @@
         }
 
         /* Chart container */
-        .terminal-chart-container {
+        .terminal-chart-wrapper {
             background: var(--surface2);
             border: 1px solid var(--border);
-            border-radius: 4px;
-            height: 160px;
-            position: relative;
-            padding: 10px;
+            border-radius: 6px;
+            padding: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chart-header-bar {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chart-price-display {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .chart-current-price {
+            font-family: var(--font-head);
+            font-size: 28px;
+            font-weight: 900;
+            color: #fff;
+        }
+
+        .chart-price-change {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--yes-color);
+            background: rgba(16, 185, 129, 0.12);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .chart-timeframe-tabs {
+            display: flex;
+            gap: 4px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .chart-tf-btn {
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-size: 9px;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .chart-tf-btn.active {
+            background: var(--surface3);
+            color: var(--accent);
+        }
+
+        .terminal-chart-container {
+            position: relative;
+            height: 180px;
+            width: 100%;
+            display: flex;
+        }
+
+        .chart-y-axis {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 9px;
+            color: var(--muted);
+            padding-right: 6px;
+            user-select: none;
+        }
+
+        .chart-canvas-area {
+            position: relative;
+            flex: 1;
+            height: 100%;
         }
 
         .chart-main-svg {
             width: 100%;
             height: 100%;
+            overflow: visible;
         }
 
         .chart-line {
             stroke: var(--accent);
-            stroke-width: 2.5;
+            stroke-width: 3;
             fill: none;
-            filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.25));
+            filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));
+            transition: all 0.3s ease;
         }
 
         .chart-area {
             fill: url(#chart-gradient);
-            opacity: 0.1;
+            opacity: 0.15;
+            transition: all 0.3s ease;
         }
 
         .chart-grid-line {
-            stroke: rgba(255, 255, 255, 0.03);
+            stroke: rgba(255, 255, 255, 0.05);
             stroke-width: 1;
+            stroke-dasharray: 4 4;
+        }
+
+        .chart-live-dot {
+            fill: var(--win);
+            stroke: #fff;
+            stroke-width: 2;
+            filter: drop-shadow(0 0 8px var(--win));
+            animation: pulseDot 1.5s infinite;
+        }
+
+        @keyframes pulseDot {
+            0% { r: 5; opacity: 1; }
+            50% { r: 8; opacity: 0.6; }
+            100% { r: 5; opacity: 1; }
+        }
+
+        .chart-x-axis {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: var(--muted);
+            padding-left: 28px;
+            margin-top: 4px;
         }
 
         .chart-tooltip {
@@ -484,13 +589,15 @@
             border: 1px solid var(--border2);
             padding: 4px 8px;
             border-radius: 4px;
-            font-size: 9px;
+            font-size: 10px;
+            font-weight: bold;
             color: #fff;
             pointer-events: none;
             display: none;
             transform: translate(-50%, -100%);
-            margin-top: -8px;
+            margin-top: -10px;
             z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
 
         /* Order Book Grid */
@@ -1007,24 +1114,61 @@
                     <h2 class="terminal-market-title" id="term-title">Federal Reserve to Cut Rates in June 2026?</h2>
                 </div>
 
-                <!-- Price History Chart -->
-                <div class="terminal-chart-container">
-                    <svg class="chart-main-svg" id="chart-svg">
-                        <defs>
-                            <linearGradient id="chart-gradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.3"></stop>
-                                <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.0"></stop>
-                            </linearGradient>
-                        </defs>
-                        <!-- Grid lines -->
-                        <line class="chart-grid-line" x1="0" y1="40" x2="400" y2="40"></line>
-                        <line class="chart-grid-line" x1="0" y1="80" x2="400" y2="80"></line>
-                        <line class="chart-grid-line" x1="0" y1="120" x2="400" y2="120"></line>
-                        <!-- Chart path -->
-                        <path class="chart-area" d=""></path>
-                        <path class="chart-line" d=""></path>
-                    </svg>
-                    <div class="chart-tooltip" id="chart-tooltip-el">62¢</div>
+                <!-- Real-Time Kalshi Odds History Graph -->
+                <div class="terminal-chart-wrapper">
+                    <div class="chart-header-bar">
+                        <div class="chart-price-display">
+                            <span class="chart-current-price" id="term-chart-price">58¢</span>
+                            <span class="chart-price-change" id="term-chart-change">+4.2% TODAY</span>
+                        </div>
+                        <div class="chart-timeframe-tabs">
+                            <button class="chart-tf-btn active" onclick="switchChartTf('1H', this)">1H</button>
+                            <button class="chart-tf-btn" onclick="switchChartTf('24H', this)">24H</button>
+                            <button class="chart-tf-btn" onclick="switchChartTf('7D', this)">7D</button>
+                            <button class="chart-tf-btn" onclick="switchChartTf('ALL', this)">ALL</button>
+                        </div>
+                    </div>
+
+                    <div class="terminal-chart-container">
+                        <div class="chart-y-axis">
+                            <span>100¢</span>
+                            <span>75¢</span>
+                            <span>50¢</span>
+                            <span>25¢</span>
+                            <span>0¢</span>
+                        </div>
+                        <div class="chart-canvas-area">
+                            <svg class="chart-main-svg" id="chart-svg">
+                                <defs>
+                                    <linearGradient id="chart-gradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.4"></stop>
+                                        <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.0"></stop>
+                                    </linearGradient>
+                                </defs>
+                                <!-- Horizontal Grid lines -->
+                                <line class="chart-grid-line" x1="0" y1="20%" x2="100%" y2="20%"></line>
+                                <line class="chart-grid-line" x1="0" y1="40%" x2="100%" y2="40%"></line>
+                                <line class="chart-grid-line" x1="0" y1="60%" x2="100%" y2="60%"></line>
+                                <line class="chart-grid-line" x1="0" y1="80%" x2="100%" y2="80%"></line>
+                                
+                                <!-- Chart paths -->
+                                <path class="chart-area" d=""></path>
+                                <path class="chart-line" d=""></path>
+                                
+                                <!-- Glowing Live Point -->
+                                <circle class="chart-live-dot" id="chart-live-dot" cx="0" cy="0" r="6"></circle>
+                            </svg>
+                            <div class="chart-tooltip" id="chart-tooltip-el">58¢</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-x-axis">
+                        <span>00:00</span>
+                        <span>06:00</span>
+                        <span>12:00</span>
+                        <span>18:00</span>
+                        <span style="color:var(--win); font-weight:bold;">LIVE ⚡</span>
+                    </div>
                 </div>
 
                 <!-- Real-Time Order Book -->
@@ -1561,12 +1705,33 @@
             });
 
             // Line path string
-            const lineD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+            const lineD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
             pathLine.setAttribute('d', lineD);
 
             // Area path string (closes back to bottom of graph)
-            const areaD = `${lineD} L ${points[points.length - 1].x} ${h - padding} L ${points[0].x} ${h - padding} Z`;
+            const areaD = `${lineD} L ${points[points.length - 1].x.toFixed(1)} ${h - padding} L ${points[0].x.toFixed(1)} ${h - padding} Z`;
             pathArea.setAttribute('d', areaD);
+
+            // Position glowing live dot at the latest point
+            const lastP = points[points.length - 1];
+            const liveDot = document.getElementById('chart-live-dot');
+            if (liveDot && lastP) {
+                liveDot.setAttribute('cx', lastP.x.toFixed(1));
+                liveDot.setAttribute('cy', lastP.y.toFixed(1));
+            }
+
+            // Update top chart header price & change indicator
+            const firstVal = history[0] || lastP.val;
+            const diff = lastP.val - firstVal;
+            const pct = firstVal > 0 ? ((diff / firstVal) * 100).toFixed(1) : 0;
+            const priceEl = document.getElementById('term-chart-price');
+            const changeEl = document.getElementById('term-chart-change');
+            if (priceEl) priceEl.innerText = `${lastP.val}¢`;
+            if (changeEl) {
+                changeEl.innerText = `${diff >= 0 ? '+' : ''}${pct}% TODAY`;
+                changeEl.style.color = diff >= 0 ? 'var(--yes-color)' : 'var(--no-color)';
+                changeEl.style.background = diff >= 0 ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)';
+            }
 
             // Tooltip interactivity
             svg.onmousemove = (e) => {
@@ -1595,6 +1760,21 @@
             svg.onmouseleave = () => {
                 document.getElementById('chart-tooltip-el').style.display = 'none';
             };
+        }
+
+        function switchChartTf(tf, btn) {
+            document.querySelectorAll('.chart-tf-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+
+            const market = marketsData.find(m => m.id === selectedMarketId);
+            if (!market) return;
+
+            let sampleHistory = [...market.history];
+            if (tf === '1H') sampleHistory = sampleHistory.slice(-5);
+            else if (tf === '24H') sampleHistory = sampleHistory.slice(-10);
+            else if (tf === '7D') sampleHistory = [sampleHistory[0] || 50, 45, 52, 58, 62, sampleHistory[sampleHistory.length - 1] || 60];
+
+            drawMainChart(sampleHistory);
         }
 
         // Update the order book panel inside terminal
