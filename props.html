@@ -931,11 +931,15 @@
         // Initialize state
         document.addEventListener('DOMContentLoaded', () => {
             // Load tracked picks from localStorage
-            const localPicks = localStorage.getItem('destiny_tracked_picks');
-            if (localPicks) {
-                trackedPicks = JSON.parse(localPicks);
+            if (window.DestinyState) {
+                trackedPicks = window.DestinyState.getProps();
+                window.DestinyState.subscribe(window.DestinyState.KEYS.PROPS, (data) => {
+                    trackedPicks = data || [];
+                    renderTrackerTable();
+                });
             } else {
-                trackedPicks = [];
+                const localPicks = localStorage.getItem('destiny_tracked_picks');
+                if (localPicks) trackedPicks = JSON.parse(localPicks);
             }
             renderTrackerTable();
 
@@ -1296,7 +1300,11 @@
             };
 
             trackedPicks.unshift(newPick);
-            localStorage.setItem('destiny_tracked_picks', JSON.stringify(trackedPicks));
+            if (window.DestinyState) {
+                window.DestinyState.addProp(newPick);
+            } else {
+                localStorage.setItem('destiny_tracked_picks', JSON.stringify(trackedPicks));
+            }
             renderTrackerTable();
         }
 
@@ -1313,21 +1321,33 @@
                 pick.status = 'PENDING';
             }
 
-            localStorage.setItem('destiny_tracked_picks', JSON.stringify(trackedPicks));
+            if (window.DestinyState) {
+                window.DestinyState.saveProps(trackedPicks);
+            } else {
+                localStorage.setItem('destiny_tracked_picks', JSON.stringify(trackedPicks));
+            }
             renderTrackerTable();
         }
 
         // Delete a single pick from tracker
         function deleteTrackedPick(pickId) {
             trackedPicks = trackedPicks.filter(p => p.id !== pickId);
-            localStorage.setItem('destiny_tracked_picks', JSON.stringify(trackedPicks));
+            if (window.DestinyState) {
+                window.DestinyState.saveProps(trackedPicks);
+            } else {
+                localStorage.setItem('destiny_tracked_picks', JSON.stringify(trackedPicks));
+            }
             renderTrackerTable();
         }
 
         // Clear completed (WON/LOST) picks
         function clearCompletedPicks() {
             trackedPicks = trackedPicks.filter(p => p.status === 'PENDING');
-            localStorage.setItem('destiny_tracked_picks', JSON.stringify(trackedPicks));
+            if (window.DestinyState) {
+                window.DestinyState.saveProps(trackedPicks);
+            } else {
+                localStorage.setItem('destiny_tracked_picks', JSON.stringify(trackedPicks));
+            }
             renderTrackerTable();
         }
 

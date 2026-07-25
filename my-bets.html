@@ -1612,6 +1612,22 @@
                 selectWager(wagers[0].id);
             }
 
+            // Subscribe to DestinyState for cross-page sync
+            if (window.DestinyState) {
+                window.DestinyState.subscribe(window.DestinyState.KEYS.WAGERS, (data) => {
+                    if (Array.isArray(data)) {
+                        wagers = data.map(normalizeWager);
+                        renderWagersLedger();
+                        updateOverallMetrics();
+                    }
+                });
+                window.DestinyState.subscribe(window.DestinyState.KEYS.PROPS, () => {
+                    seedInitialWagers();
+                    renderWagersLedger();
+                    updateOverallMetrics();
+                });
+            }
+
             // Seed logs
             addLiveFeedLog("Traders Terminal initialized. Dynamic feeds loaded.");
             addLiveFeedLog("Connecting to US sportsbooks comparison socket...");

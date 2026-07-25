@@ -1284,14 +1284,30 @@
 
         // Sync and Load Bankroll from Destiny LocalStorage
         function loadBankroll() {
-            const saved = localStorage.getItem('bankroll');
-            if (saved !== null) {
-                bankroll = parseFloat(saved);
+            if (window.DestinyState) {
+                bankroll = window.DestinyState.getBankroll();
+                window.DestinyState.subscribe(window.DestinyState.KEYS.BANKROLL, (val) => {
+                    bankroll = parseFloat(val) || 10000.00;
+                    updateBankrollUI();
+                });
             } else {
-                bankroll = 10000.00;
-                localStorage.setItem('bankroll', bankroll);
+                const saved = localStorage.getItem('bankroll');
+                bankroll = saved !== null ? parseFloat(saved) : 10000.00;
             }
             updateBankrollUI();
+
+            if (window.DestinyLiveFeed) {
+                window.DestinyLiveFeed.onKalshiTick((tick) => {
+                    if (tick && tick.yesPrice && tick.noPrice) {
+                        const marketCard = document.querySelector(`.market-card[data-id="${selectedMarketId}"]`);
+                        if (marketCard) {
+                            marketCard.classList.remove('flash-green', 'flash-red');
+                            void marketCard.offsetWidth;
+                            marketCard.classList.add(tick.yesPrice > 65 ? 'flash-green' : 'flash-red');
+                        }
+                    }
+                });
+            }
         }
 
         function updateBankrollUI() {
@@ -1303,7 +1319,11 @@
 
         function saveBankroll(amount) {
             bankroll = amount;
-            localStorage.setItem('bankroll', bankroll);
+            if (window.DestinyState) {
+                window.DestinyState.setBankroll(amount);
+            } else {
+                localStorage.setItem('bankroll', bankroll);
+            }
             updateBankrollUI();
         }
 

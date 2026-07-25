@@ -1011,6 +1011,20 @@
         async function init() {
             document.getElementById('gameList').innerHTML = '<div style="padding:14px;font-family:var(--font-mono);font-size:10px;color:var(--muted);">LOADING API...</div>';
             await refreshData();
+            
+            if (window.DestinyLiveFeed) {
+                window.DestinyLiveFeed.onLineShift((shiftPayload) => {
+                    if (shiftPayload && shiftPayload.team) {
+                        const gameItem = document.querySelector(`.game-item[data-team="${shiftPayload.team}"]`);
+                        if (gameItem) {
+                            gameItem.classList.remove('flash-green', 'flash-red');
+                            void gameItem.offsetWidth;
+                            gameItem.classList.add(shiftPayload.direction === 'UP' ? 'flash-green' : 'flash-red');
+                        }
+                    }
+                });
+            }
+
             setInterval(() => {
                 refreshCountdown--;
                 if (refreshCountdown <= 0) {

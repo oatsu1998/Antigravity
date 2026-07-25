@@ -1450,10 +1450,15 @@
                 }
                 
                 // Deduct from bankroll dynamically in localStorage
-                const bankrollKey = 'destiny_bankroll';
-                let savedBankroll = parseFloat(localStorage.getItem(bankrollKey)) || 10000.00;
-                savedBankroll -= currentSelectedPrice;
-                localStorage.setItem(bankrollKey, savedBankroll.toFixed(2));
+                if (window.DestinyState) {
+                    let savedBankroll = window.DestinyState.getBankroll();
+                    savedBankroll -= currentSelectedPrice;
+                    window.DestinyState.setBankroll(savedBankroll);
+                } else {
+                    let savedBankroll = parseFloat(localStorage.getItem('bankroll')) || 10000.00;
+                    savedBankroll -= currentSelectedPrice;
+                    localStorage.setItem('bankroll', savedBankroll.toFixed(2));
+                }
                 
                 alert(`Successfully processed payment of $${currentSelectedPrice.toFixed(2)} using your Destiny bankroll ledger! Today's active models are now unlocked.`);
             }, 2000);

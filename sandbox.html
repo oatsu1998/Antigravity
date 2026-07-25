@@ -1164,12 +1164,15 @@
 
         // Sync bankroll
         function loadBankroll() {
-            const saved = localStorage.getItem('bankroll');
-            if (saved !== null) {
-                bankroll = parseFloat(saved);
+            if (window.DestinyState) {
+                bankroll = window.DestinyState.getBankroll();
+                window.DestinyState.subscribe(window.DestinyState.KEYS.BANKROLL, (val) => {
+                    bankroll = parseFloat(val) || 10000.00;
+                    updateBankrollUI();
+                });
             } else {
-                bankroll = 10000.00;
-                localStorage.setItem('bankroll', bankroll);
+                const saved = localStorage.getItem('bankroll');
+                bankroll = saved !== null ? parseFloat(saved) : 10000.00;
             }
             updateBankrollUI();
         }
@@ -1181,28 +1184,44 @@
 
         function addFaucetFunds() {
             bankroll += 1000.00;
-            localStorage.setItem('bankroll', bankroll);
+            if (window.DestinyState) {
+                window.DestinyState.setBankroll(bankroll);
+            } else {
+                localStorage.setItem('bankroll', bankroll);
+            }
             updateBankrollUI();
             
             // Trigger quick ripple in bankroll box
             const box = document.querySelector('.bankroll-container');
-            box.style.transform = 'scale(1.08)';
-            box.style.borderColor = 'var(--green)';
-            setTimeout(() => {
-                box.style.transform = 'scale(1)';
-                box.style.borderColor = '';
-            }, 300);
+            if (box) {
+                box.style.transform = 'scale(1.08)';
+                box.style.borderColor = 'var(--green)';
+                setTimeout(() => {
+                    box.style.transform = 'scale(1)';
+                    box.style.borderColor = '';
+                }, 300);
+            }
         }
 
         function resetBankroll() {
             bankroll = 10000.00;
-            localStorage.setItem('bankroll', bankroll);
+            if (window.DestinyState) {
+                window.DestinyState.setBankroll(bankroll);
+            } else {
+                localStorage.setItem('bankroll', bankroll);
+            }
             updateBankrollUI();
             
             const box = document.querySelector('.bankroll-container');
-            box.style.transform = 'scale(0.95)';
-            box.style.borderColor = 'var(--red)';
-            setTimeout(() => {
+            if (box) {
+                box.style.transform = 'scale(0.95)';
+                box.style.borderColor = 'var(--red)';
+                setTimeout(() => {
+                    box.style.transform = 'scale(1)';
+                    box.style.borderColor = '';
+                }, 300);
+            }
+        }
                 box.style.transform = 'scale(1)';
                 box.style.borderColor = '';
             }, 300);
