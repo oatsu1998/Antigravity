@@ -9,7 +9,8 @@
         BANKROLL: 'bankroll',
         WAGERS: 'destiny_game_wagers',
         PROPS: 'destiny_tracked_picks',
-        KALSHI_POSITIONS: 'kalshi_positions'
+        KALSHI_POSITIONS: 'kalshi_positions',
+        GAME_HISTORY: 'destiny_game_history'
     };
 
     const subscribers = new Map();
@@ -121,6 +122,22 @@
             const data = Array.isArray(positionsArr) ? positionsArr : [];
             localStorage.setItem(KEYS.KALSHI_POSITIONS, JSON.stringify(data));
             if (notify) this._notify(KEYS.KALSHI_POSITIONS, data);
+            return data;
+        },
+
+        // ── Game History Snapshots ───────────────────────────────────────────
+        getGameHistory: function() {
+            try {
+                return JSON.parse(localStorage.getItem(KEYS.GAME_HISTORY) || '{}');
+            } catch (e) {
+                return {};
+            }
+        },
+
+        saveGameHistory: function(historyObj, notify = true) {
+            const data = historyObj && typeof historyObj === 'object' ? historyObj : {};
+            localStorage.setItem(KEYS.GAME_HISTORY, JSON.stringify(data));
+            if (notify) this._notify(KEYS.GAME_HISTORY, data);
             return data;
         },
 

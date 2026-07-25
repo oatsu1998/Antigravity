@@ -99,6 +99,7 @@ function initGlobalNav() {
     const isLineTracker = currentPath.toLowerCase().includes('line-tracker');
     const isProps = currentPath.toLowerCase().includes('props');
     const isMyBets = currentPath.toLowerCase().includes('my-bets');
+    const isHistory = currentPath.toLowerCase().includes('history');
     const isKalshi = currentPath.toLowerCase().includes('kalshi');
     const isSandbox = currentPath.toLowerCase().includes('sandbox');
     const isPortfolio = currentPath.toLowerCase().includes('portfolio');
@@ -114,8 +115,9 @@ function initGlobalNav() {
         <div style="display:flex; align-items:center;">
             <div class="global-nav-brand">DESTINY NETWORK</div>
             <div class="global-nav-links">
-                <a href="index.html" class="global-nav-link ${(!isLineTracker && !isProps && !isMyBets && !isKalshi && !isSandbox && !isPortfolio) ? 'active' : ''}">Command Center</a>
+                <a href="index.html" class="global-nav-link ${(!isLineTracker && !isProps && !isMyBets && !isHistory && !isKalshi && !isSandbox && !isPortfolio) ? 'active' : ''}">Command Center</a>
                 <a href="line-tracker.html" class="global-nav-link ${isLineTracker ? 'active' : ''}">Line Tracker</a>
+                <a href="history.html" class="global-nav-link ${isHistory ? 'active' : ''}">History</a>
                 <a href="props.html" class="global-nav-link ${isProps ? 'active' : ''}">Props</a>
                 <a href="my-bets.html" class="global-nav-link ${isMyBets ? 'active' : ''}">My Bets</a>
                 <a href="kalshi.html" class="global-nav-link ${isKalshi ? 'active' : ''}">Kalshi</a>
