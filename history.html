@@ -652,6 +652,8 @@
         const GAME_HISTORY_DATA = {
             "lad_nym": {
                 matchup: "LA Dodgers @ NY Mets",
+                awayLogo: "https://a.espncdn.com/i/teamlogos/mlb/500/lad.png",
+                homeLogo: "https://a.espncdn.com/i/teamlogos/mlb/500/nym.png",
                 shift: "Run Line -1.5 (+115)",
                 shiftSub: "Opening -1.5 (+105) → Closing -1.5 (+120)",
                 clv: "+5.4% Edge",
@@ -671,6 +673,8 @@
             },
             "kc_det": {
                 matchup: "KC Royals @ Detroit Tigers",
+                awayLogo: "https://a.espncdn.com/i/teamlogos/mlb/500/kc.png",
+                homeLogo: "https://a.espncdn.com/i/teamlogos/mlb/500/det.png",
                 shift: "Total O/U +1.0 Runs",
                 shiftSub: "Opening 7.5 → Closing 8.5",
                 clv: "+3.8% Edge",
@@ -686,6 +690,8 @@
             },
             "ath_min": {
                 matchup: "Athletics @ Minnesota Twins",
+                awayLogo: "https://a.espncdn.com/i/teamlogos/mlb/500/oak.png",
+                homeLogo: "https://a.espncdn.com/i/teamlogos/mlb/500/min.png",
                 shift: "Run Line Shift +1.5",
                 shiftSub: "Opening +1.5 → Closing +1.5 (-105)",
                 clv: "+6.1% Edge",
@@ -700,6 +706,8 @@
             },
             "okc_bos": {
                 matchup: "OKC Thunder @ BOS Celtics",
+                awayLogo: "https://a.espncdn.com/i/teamlogos/nba/500/okc.png",
+                homeLogo: "https://a.espncdn.com/i/teamlogos/nba/500/bos.png",
                 shift: "+4.5 PTS",
                 shiftSub: "Opening -2.5 → Closing +2.0",
                 clv: "+6.8% Edge",
@@ -722,6 +730,8 @@
             },
             "lal_den": {
                 matchup: "LAL Lakers @ DEN Nuggets",
+                awayLogo: "https://a.espncdn.com/i/teamlogos/nba/500/lal.png",
+                homeLogo: "https://a.espncdn.com/i/teamlogos/nba/500/den.png",
                 shift: "+3.0 PTS",
                 shiftSub: "Opening +5.5 → Closing +2.5",
                 clv: "+4.2% Edge",
@@ -738,6 +748,8 @@
             },
             "gsw_sac": {
                 matchup: "GSW Warriors @ SAC Kings",
+                awayLogo: "https://a.espncdn.com/i/teamlogos/nba/500/gsw.png",
+                homeLogo: "https://a.espncdn.com/i/teamlogos/nba/500/sac.png",
                 shift: "+6.0 PTS",
                 shiftSub: "Opening -1.5 → Closing -7.5",
                 clv: "+8.5% Edge",
@@ -805,20 +817,55 @@
             return parseFloat((diff + numericSpr).toFixed(1));
         }
 
+        let loadedAwayLogo = null;
+        let loadedHomeLogo = null;
+
+        function preloadActiveLogos(callback) {
+            const data = GAME_HISTORY_DATA[currentMatchupKey];
+            if (!data || !data.awayLogo || !data.homeLogo) {
+                loadedAwayLogo = null;
+                loadedHomeLogo = null;
+                if (callback) callback();
+                return;
+            }
+
+            let count = 0;
+            const done = () => {
+                count++;
+                if (count >= 2 && callback) callback();
+            };
+
+            loadedAwayLogo = new Image(24, 24);
+            loadedAwayLogo.crossOrigin = 'anonymous';
+            loadedAwayLogo.onload = done;
+            loadedAwayLogo.onerror = done;
+            loadedAwayLogo.src = data.awayLogo;
+
+            loadedHomeLogo = new Image(24, 24);
+            loadedHomeLogo.crossOrigin = 'anonymous';
+            loadedHomeLogo.onload = done;
+            loadedHomeLogo.onerror = done;
+            loadedHomeLogo.src = data.homeLogo;
+        }
+
         // Page Load Init
         document.addEventListener('DOMContentLoaded', () => {
             renderMetrics();
-            initHistoryChart();
-            renderStackedBreakdown();
-            renderLogTable();
+            preloadActiveLogos(() => {
+                initHistoryChart();
+                renderStackedBreakdown();
+                renderLogTable();
+            });
         });
 
         function handleGameSelectChange(newKey) {
             currentMatchupKey = newKey;
             renderMetrics();
-            updateChartData();
-            renderStackedBreakdown();
-            renderLogTable();
+            preloadActiveLogos(() => {
+                updateChartData();
+                renderStackedBreakdown();
+                renderLogTable();
+            });
         }
 
         function switchViewMode(mode, btn) {
@@ -1134,6 +1181,11 @@
                 awayValues = timeline.map(t => calculateSpreadMargin(t.awayScore, t.homeScore, t.awaySpr));
                 homeValues = timeline.map(t => parseFloat(t.total) || 0);
 
+                const marginPointStyles = timeline.map(t => {
+                    const margin = calculateSpreadMargin(t.awayScore, t.homeScore, t.awaySpr);
+                    return margin >= 0 ? (loadedAwayLogo || 'circle') : (loadedHomeLogo || 'circle');
+                });
+
                 return {
                     labels: labels,
                     datasets: [
@@ -1145,7 +1197,9 @@
                             fill: { target: 'origin', above: 'rgba(59, 130, 246, 0.18)', below: 'rgba(245, 158, 11, 0.18)' },
                             borderWidth: 3,
                             tension: 0.25,
-                            pointRadius: 6,
+                            pointStyle: marginPointStyles,
+                            pointRadius: (loadedAwayLogo && loadedHomeLogo) ? 14 : 6,
+                            pointHoverRadius: (loadedAwayLogo && loadedHomeLogo) ? 18 : 8,
                             pointBackgroundColor: '#3b82f6',
                             yAxisID: 'y-spread'
                         },
@@ -1196,7 +1250,9 @@
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         borderWidth: 2.5,
                         tension: 0.2,
-                        pointRadius: 5,
+                        pointStyle: loadedAwayLogo || 'circle',
+                        pointRadius: loadedAwayLogo ? 14 : 5,
+                        pointHoverRadius: loadedAwayLogo ? 18 : 7,
                         pointBackgroundColor: '#3b82f6'
                     },
                     {
@@ -1206,7 +1262,9 @@
                         backgroundColor: 'rgba(245, 158, 11, 0.1)',
                         borderWidth: 2.5,
                         tension: 0.2,
-                        pointRadius: 5,
+                        pointStyle: loadedHomeLogo || 'circle',
+                        pointRadius: loadedHomeLogo ? 14 : 5,
+                        pointHoverRadius: loadedHomeLogo ? 18 : 7,
                         pointBackgroundColor: '#f59e0b'
                     }
                 ]
