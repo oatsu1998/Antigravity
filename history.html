@@ -844,17 +844,54 @@
                             }
                         },
                         tooltip: {
-                            backgroundColor: '#181c22',
-                            borderColor: 'rgba(255, 255, 255, 0.15)',
-                            borderWidth: 1,
-                            titleFont: { family: 'Barlow Condensed', size: 14, weight: 'bold' },
+                            backgroundColor: '#111418',
+                            borderColor: 'rgba(245, 158, 11, 0.4)',
+                            borderWidth: 1.5,
+                            padding: 12,
+                            titleFont: { family: 'Barlow Condensed', size: 16, weight: 'bold' },
+                            titleColor: '#f59e0b',
                             bodyFont: { family: 'JetBrains Mono', size: 11 },
+                            bodyColor: '#e8eaed',
                             callbacks: {
-                                afterBody: function(items) {
+                                title: function(items) {
                                     const idx = items[0].dataIndex;
                                     const timeline = GAME_HISTORY_DATA[currentMatchupKey].timeline;
-                                    if (timeline[idx] && timeline[idx].play) {
-                                        return `\n⚡ Play Event: ${timeline[idx].play}\n📍 Book: ${timeline[idx].book}`;
+                                    return timeline[idx] ? timeline[idx].timeLabel : items[0].label;
+                                },
+                                label: function(context) {
+                                    const idx = context.dataIndex;
+                                    const data = GAME_HISTORY_DATA[currentMatchupKey];
+                                    const item = data.timeline[idx];
+                                    if (!item) return '';
+
+                                    const teams = data.matchup.split('@');
+                                    const awayName = teams[0] ? teams[0].trim() : 'Away';
+                                    const homeName = teams[1] ? teams[1].trim() : 'Home';
+
+                                    if (context.datasetIndex === 0) {
+                                        return [
+                                            `🟦 ${awayName}`,
+                                            `   • ML: ${item.awayML}`,
+                                            `   • Spread: ${item.awaySpr} (-110)`
+                                        ];
+                                    } else {
+                                        return [
+                                            `🟨 ${homeName}`,
+                                            `   • ML: ${item.homeML}`,
+                                            `   • Spread: ${item.homeSpr} (-110)`
+                                        ];
+                                    }
+                                },
+                                afterBody: function(items) {
+                                    const idx = items[0].dataIndex;
+                                    const item = GAME_HISTORY_DATA[currentMatchupKey].timeline[idx];
+                                    if (item) {
+                                        return [
+                                            ``,
+                                            `📊 Total Line: O/U ${item.total}`,
+                                            `⚡ Play Event: ${item.play}`,
+                                            `📍 Book: ${item.book}`
+                                        ];
                                     }
                                     return '';
                                 }
