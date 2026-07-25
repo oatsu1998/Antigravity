@@ -1088,7 +1088,8 @@
         <section class="market-center">
             <div class="market-toolbar">
                 <div class="market-filters">
-                    <button class="filter-tab active" data-category="all">🔥 All Markets</button>
+                    <button class="filter-tab active" data-category="sports">🏆 Sports</button>
+                    <button class="filter-tab" data-category="all">🔥 All Markets</button>
                     <button class="filter-tab" data-category="politics">🗳️ Politics</button>
                     <button class="filter-tab" data-category="economics">📈 Economics</button>
                     <button class="filter-tab" data-category="tech">💻 Tech & Science</button>
@@ -1282,12 +1283,96 @@
     <script>
         // Global variables
         let bankroll = 10000.00;
-        let selectedMarketId = 1;
+        let selectedMarketId = 101;
         let selectedContractType = 'YES'; // YES or NO
         let positions = [];
 
-        // Sample initial markets data
+        // Sample initial markets data with featured Sports markets
         const marketsData = [
+            {
+                id: 101,
+                title: "Will the Boston Celtics Win the 2026 NBA Championship?",
+                category: "sports",
+                yesPrice: 38,
+                noPrice: 62,
+                history: [30, 32, 35, 36, 37, 38],
+                volume: "$4.8M",
+                expiration: "Jun 22, 2026",
+                orderbook: {
+                    yes: { bid: [37, 6200], ask: [38, 2400] },
+                    no: { bid: [61, 3100], ask: [62, 4500] }
+                }
+            },
+            {
+                id: 102,
+                title: "Will Oklahoma City Thunder Win 58+ Regular Season Games?",
+                category: "sports",
+                yesPrice: 65,
+                noPrice: 35,
+                history: [55, 58, 60, 62, 64, 65],
+                volume: "$3.2M",
+                expiration: "Apr 15, 2026",
+                orderbook: {
+                    yes: { bid: [64, 4100], ask: [65, 1800] },
+                    no: { bid: [34, 2100], ask: [35, 3800] }
+                }
+            },
+            {
+                id: 103,
+                title: "Will Kansas City Chiefs Win Super Bowl LXI?",
+                category: "sports",
+                yesPrice: 28,
+                noPrice: 72,
+                history: [22, 24, 25, 27, 26, 28],
+                volume: "$6.5M",
+                expiration: "Feb 14, 2027",
+                orderbook: {
+                    yes: { bid: [27, 8500], ask: [28, 3900] },
+                    no: { bid: [71, 4200], ask: [72, 9100] }
+                }
+            },
+            {
+                id: 104,
+                title: "Will Los Angeles Dodgers Win the 2026 World Series?",
+                category: "sports",
+                yesPrice: 42,
+                noPrice: 58,
+                history: [38, 39, 40, 41, 40, 42],
+                volume: "$5.1M",
+                expiration: "Nov 05, 2026",
+                orderbook: {
+                    yes: { bid: [41, 5400], ask: [42, 2200] },
+                    no: { bid: [57, 3100], ask: [58, 4800] }
+                }
+            },
+            {
+                id: 105,
+                title: "Will Shai Gilgeous-Alexander Win NBA Regular Season MVP?",
+                category: "sports",
+                yesPrice: 54,
+                noPrice: 46,
+                history: [46, 48, 50, 52, 53, 54],
+                volume: "$2.9M",
+                expiration: "May 10, 2026",
+                orderbook: {
+                    yes: { bid: [53, 3800], ask: [54, 1900] },
+                    no: { bid: [45, 2600], ask: [46, 3200] }
+                }
+            },
+            {
+                id: 106,
+                title: "Will Real Madrid Win the UEFA Champions League Title?",
+                category: "sports",
+                yesPrice: 31,
+                noPrice: 69,
+                history: [25, 27, 28, 30, 29, 31],
+                volume: "$3.7M",
+                expiration: "May 30, 2026",
+                orderbook: {
+                    yes: { bid: [30, 4900], ask: [31, 2100] },
+                    no: { bid: [68, 3400], ask: [69, 5800] }
+                }
+            },
             {
                 id: 1,
                 title: "Federal Reserve to Cut Rates in June 2026?",
@@ -1514,7 +1599,7 @@
         }
 
         // Render markets list based on search and filters
-        let currentFilter = 'all';
+        let currentFilter = 'sports';
         let searchQuery = '';
 
         function renderMarkets() {
