@@ -817,55 +817,65 @@
             return parseFloat((diff + numericSpr).toFixed(1));
         }
 
+        const TEAM_LOGO_MAP = {
+            "LAD": "https://a.espncdn.com/i/teamlogos/mlb/500/lad.png",
+            "NYM": "https://a.espncdn.com/i/teamlogos/mlb/500/nym.png",
+            "KC":  "https://a.espncdn.com/i/teamlogos/mlb/500/kc.png",
+            "DET": "https://a.espncdn.com/i/teamlogos/mlb/500/det.png",
+            "ATH": "https://a.espncdn.com/i/teamlogos/mlb/500/oak.png",
+            "MIN": "https://a.espncdn.com/i/teamlogos/mlb/500/min.png",
+            "OKC": "https://a.espncdn.com/i/teamlogos/nba/500/okc.png",
+            "BOS": "https://a.espncdn.com/i/teamlogos/nba/500/bos.png",
+            "LAL": "https://a.espncdn.com/i/teamlogos/nba/500/lal.png",
+            "DEN": "https://a.espncdn.com/i/teamlogos/nba/500/den.png",
+            "GSW": "https://a.espncdn.com/i/teamlogos/nba/500/gsw.png",
+            "SAC": "https://a.espncdn.com/i/teamlogos/nba/500/sac.png"
+        };
+
+        const LOGO_IMAGE_CACHE = {};
+
+        function preloadLogoCache() {
+            Object.keys(TEAM_LOGO_MAP).forEach(teamKey => {
+                const img = new Image(24, 24);
+                img.crossOrigin = 'anonymous';
+                img.src = TEAM_LOGO_MAP[teamKey];
+                LOGO_IMAGE_CACHE[teamKey] = img;
+            });
+        }
+
         let loadedAwayLogo = null;
         let loadedHomeLogo = null;
 
-        function preloadActiveLogos(callback) {
+        function updateActiveLogos() {
             const data = GAME_HISTORY_DATA[currentMatchupKey];
-            if (!data || !data.awayLogo || !data.homeLogo) {
-                loadedAwayLogo = null;
-                loadedHomeLogo = null;
-                if (callback) callback();
-                return;
-            }
+            if (!data) return;
 
-            let count = 0;
-            const done = () => {
-                count++;
-                if (count >= 2 && callback) callback();
-            };
+            const teams = data.matchup.split('@');
+            const awayAbbr = teams[0] ? teams[0].trim().split(' ').pop().toUpperCase() : '';
+            const homeAbbr = teams[1] ? teams[1].trim().split(' ').pop().toUpperCase() : '';
 
-            loadedAwayLogo = new Image(24, 24);
-            loadedAwayLogo.crossOrigin = 'anonymous';
-            loadedAwayLogo.onload = done;
-            loadedAwayLogo.onerror = done;
-            loadedAwayLogo.src = data.awayLogo;
-
-            loadedHomeLogo = new Image(24, 24);
-            loadedHomeLogo.crossOrigin = 'anonymous';
-            loadedHomeLogo.onload = done;
-            loadedHomeLogo.onerror = done;
-            loadedHomeLogo.src = data.homeLogo;
+            // Match logo from cache or create fallback Image
+            loadedAwayLogo = LOGO_IMAGE_CACHE[awayAbbr] || (data.awayLogo ? (() => { const i = new Image(24,24); i.src=data.awayLogo; return i; })() : null);
+            loadedHomeLogo = LOGO_IMAGE_CACHE[homeAbbr] || (data.homeLogo ? (() => { const i = new Image(24,24); i.src=data.homeLogo; return i; })() : null);
         }
 
         // Page Load Init
         document.addEventListener('DOMContentLoaded', () => {
+            preloadLogoCache();
+            updateActiveLogos();
             renderMetrics();
-            preloadActiveLogos(() => {
-                initHistoryChart();
-                renderStackedBreakdown();
-                renderLogTable();
-            });
+            initHistoryChart();
+            renderStackedBreakdown();
+            renderLogTable();
         });
 
         function handleGameSelectChange(newKey) {
             currentMatchupKey = newKey;
+            updateActiveLogos();
             renderMetrics();
-            preloadActiveLogos(() => {
-                updateChartData();
-                renderStackedBreakdown();
-                renderLogTable();
-            });
+            updateChartData();
+            renderStackedBreakdown();
+            renderLogTable();
         }
 
         function switchViewMode(mode, btn) {
@@ -1123,6 +1133,9 @@
                             }
                         }
                     },
+                    layout: {
+                        padding: { top: 25, bottom: 20, left: 10, right: 10 }
+                    },
                     scales: {
                         x: {
                             grid: { color: 'rgba(255, 255, 255, 0.05)' },
@@ -1131,6 +1144,7 @@
                         'y-spread': {
                             type: 'linear',
                             position: 'left',
+                            grace: '15%',
                             grid: {
                                 color: (context) => context.tick.value === 0 ? 'rgba(245, 158, 11, 0.7)' : 'rgba(255, 255, 255, 0.05)',
                                 lineWidth: (context) => context.tick.value === 0 ? 2 : 1
@@ -1147,6 +1161,7 @@
                             type: 'linear',
                             position: 'right',
                             display: true,
+                            grace: '15%',
                             grid: { drawOnChartArea: false },
                             title: {
                                 display: true,
