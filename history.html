@@ -652,6 +652,7 @@
                 eventsCount: "14 Major Events",
                 timeline: [
                     { timeLabel: "Pre-Game Open", period: "PRE", awayML: "+125", homeML: "-145", awaySpr: "+2.5", homeSpr: "-2.5", total: "228.5", book: "FanDuel", play: "Opening Lines Released" },
+                    { timeLabel: "🔒 Closing Lines (T-0:00 Pre-Tip)", period: "CLOSING", awayML: "+110", homeML: "-130", awaySpr: "+1.5", homeSpr: "-1.5", total: "229.5", book: "Consensus Final", play: "Pre-Game Closing Lines Locked (Tipoff)" },
                     { timeLabel: "Q1 9:30", period: "Q1", awayML: "+115", homeML: "-135", awaySpr: "+1.5", homeSpr: "-1.5", total: "229.0", book: "DraftKings", play: "OKC 7-0 Opening Run" },
                     { timeLabel: "Q1 4:15", period: "Q1", awayML: "+130", homeML: "-150", awaySpr: "+3.0", homeSpr: "-3.0", total: "227.5", book: "BetMGM", play: "Tatum 3PT Basket" },
                     { timeLabel: "Q2 11:00", period: "Q2", awayML: "+110", homeML: "-130", awaySpr: "+1.0", homeSpr: "-1.0", total: "230.5", book: "Consensus", play: "Gilgeous-Alexander Steal & Dunk" },
@@ -673,6 +674,7 @@
                 eventsCount: "10 Major Events",
                 timeline: [
                     { timeLabel: "Pre-Game Open", period: "PRE", awayML: "+180", homeML: "-210", awaySpr: "+5.5", homeSpr: "-5.5", total: "224.5", book: "FanDuel", play: "Opening Lines Released" },
+                    { timeLabel: "🔒 Closing Lines (T-0:00 Pre-Tip)", period: "CLOSING", awayML: "+150", homeML: "-175", awaySpr: "+3.5", homeSpr: "-3.5", total: "224.0", book: "Consensus Final", play: "Pre-Game Closing Lines Locked (Tipoff)" },
                     { timeLabel: "Q1 6:00", period: "Q1", awayML: "+165", homeML: "-195", awaySpr: "+4.5", homeSpr: "-4.5", total: "225.0", book: "DraftKings", play: "LeBron 2PT Dunk" },
                     { timeLabel: "Halftime", period: "HT", awayML: "+140", homeML: "-165", awaySpr: "+3.0", homeSpr: "-3.0", total: "223.5", book: "Consensus", play: "Halftime Score: 58-54 DEN" },
                     { timeLabel: "Q3 4:00", period: "Q3", awayML: "+120", homeML: "-140", awaySpr: "+2.0", homeSpr: "-2.0", total: "226.0", book: "BetMGM", play: "Davis 3PT Jump Shot" },
@@ -688,6 +690,7 @@
                 eventsCount: "16 Major Events",
                 timeline: [
                     { timeLabel: "Pre-Game Open", period: "PRE", awayML: "-120", homeML: "+100", awaySpr: "-1.5", homeSpr: "+1.5", total: "235.0", book: "BetOnline", play: "Opening Lines Released" },
+                    { timeLabel: "🔒 Closing Lines (T-0:00 Pre-Tip)", period: "CLOSING", awayML: "-140", homeML: "+120", awaySpr: "-2.5", homeSpr: "+2.5", total: "236.5", book: "Consensus Final", play: "Pre-Game Closing Lines Locked (Tipoff)" },
                     { timeLabel: "Q1 5:00", period: "Q1", awayML: "-150", homeML: "+125", awaySpr: "-3.5", homeSpr: "+3.5", total: "238.0", book: "FanDuel", play: "Curry Back-to-Back 3PTs" },
                     { timeLabel: "Halftime", period: "HT", awayML: "-220", homeML: "+180", awaySpr: "-6.0", homeSpr: "+6.0", total: "239.5", book: "Consensus", play: "Halftime Score: 68-52 GSW" },
                     { timeLabel: "Q4 0:00 (FINAL)", period: "FINAL", awayML: "-350", homeML: "+270", awaySpr: "-9.0", homeSpr: "+9.0", total: "236.0", book: "Consensus", play: "FINAL: GSW 124, SAC 108" }
@@ -748,12 +751,19 @@
             const homeName = teams[1] ? teams[1].trim() : 'Home';
 
             data.timeline.forEach(item => {
+                const isClosing = item.period === 'CLOSING';
                 const card = document.createElement('div');
-                card.className = 'stacked-card';
+                card.className = `stacked-card ${isClosing ? 'closing-card' : ''}`;
+                if (isClosing) {
+                    card.style.borderColor = 'var(--accent)';
+                    card.style.background = 'linear-gradient(135deg, var(--surface) 0%, rgba(245, 158, 11, 0.08) 100%)';
+                    card.style.boxShadow = '0 0 20px rgba(245, 158, 11, 0.15)';
+                }
+
                 card.innerHTML = `
                     <div class="stacked-period-title">
                         <span>${item.timeLabel}</span>
-                        <span class="event-badge">${item.book}</span>
+                        <span class="event-badge" style="${isClosing ? 'background:rgba(245,158,11,0.2); color:var(--accent); border-color:var(--accent); font-weight:bold;' : ''}">${item.book}</span>
                     </div>
                     
                     <div class="stacked-team-block">
@@ -782,6 +792,7 @@
                         <div class="stacked-footer-row">📊 Total Line: <strong style="color:var(--cyan);">O/U ${item.total}</strong></div>
                         <div class="stacked-footer-row">⚡ Play Event: <strong style="color:#fff;">${item.play}</strong></div>
                         <div class="stacked-footer-row">📍 Book: <strong style="color:var(--accent2);">${item.book}</strong></div>
+                        ${isClosing ? `<div class="stacked-footer-row" style="margin-top:4px; font-weight:bold; color:var(--win);">🔒 FINAL PRE-GAME CLOSING LINES (LOCKED AT TIPOFF)</div>` : ''}
                     </div>
                 `;
                 container.appendChild(card);
