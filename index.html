@@ -1652,6 +1652,7 @@
         const LEAGUES = [
             { id: 'nba', label: 'NBA', sport: 'basketball', league: 'nba' },
             { id: 'mlb', label: 'MLB', sport: 'baseball', league: 'mlb' },
+            { id: 'ncaaf', label: 'NCAAF', sport: 'football', league: 'college-football' },
             { id: 'nhl', label: 'NHL', sport: 'hockey', league: 'nhl' },
             { id: 'wnba', label: 'WNBA', sport: 'basketball', league: 'wnba' },
             { id: 'nfl', label: 'NFL', sport: 'football', league: 'nfl' }
@@ -1664,8 +1665,11 @@
         let previousGameState = {};
         let leaguePollingState = {
             'nba': { nextPoll: 0, interval: 3600 },
+            'mlb': { nextPoll: 0, interval: 3600 },
+            'ncaaf': { nextPoll: 0, interval: 3600 },
             'nhl': { nextPoll: 0, interval: 3600 },
-            'mlb': { nextPoll: 0, interval: 3600 }
+            'wnba': { nextPoll: 0, interval: 3600 },
+            'nfl': { nextPoll: 0, interval: 3600 }
         };
 
         // THE ODDS API INTEGRATION
@@ -1674,7 +1678,10 @@
         const ODDS_SPORT_MAP = {
             'nba': 'basketball_nba',
             'mlb': 'baseball_mlb',
-            'nhl': 'icehockey_nhl'
+            'nhl': 'icehockey_nhl',
+            'ncaaf': 'americanfootball_ncaaf',
+            'nfl': 'americanfootball_nfl',
+            'wnba': 'basketball_wnba'
         };
 
         let globalMaxUsed = parseInt(localStorage.getItem('espn_api_usage')) || null;
