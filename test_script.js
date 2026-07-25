@@ -1,5 +1,5 @@
 
-        const API_KEY = "4b3eeba2d1e049c875c619c01cf1307d";
+        const API_KEY = "9827845ff1d9a1467dae344761f2db23";
         const SPORT = "basketball_nba";
 
         var BOOKS = [
