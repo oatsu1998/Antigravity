@@ -577,7 +577,10 @@
                         <button class="ctrl-btn active" onclick="switchMarketTab('ML', this)">Moneyline</button>
                         <button class="ctrl-btn" onclick="switchMarketTab('SPREAD', this)">Spread</button>
                         <button class="ctrl-btn" onclick="switchMarketTab('TOTAL', this)">Totals (O/U)</button>
+                        <button class="ctrl-btn" onclick="switchMarketTab('SCORE', this)" style="color:var(--win); font-weight:bold;">🏀 Game Score</button>
                     </div>
+
+                    <button id="scoringOnlyFilterBtn" class="ctrl-btn" onclick="toggleScoringOnlyFilter()" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:6px; color:var(--muted); font-size:11px;">⚡ Scoring Events Only</button>
 
                     <select id="bookFilter" class="book-select-dropdown" onchange="handleBookFilterChange(this.value)">
                         <option value="ALL">Consensus Market Avg</option>
@@ -651,18 +654,18 @@
                 volatility: "HIGH (18 Shifts)",
                 eventsCount: "14 Major Events",
                 timeline: [
-                    { timeLabel: "Pre-Game Open", period: "PRE", awayML: "+125", homeML: "-145", awaySpr: "+2.5", homeSpr: "-2.5", total: "228.5", book: "FanDuel", play: "Opening Lines Released" },
-                    { timeLabel: "🔒 Closing Lines (T-0:00 Pre-Tip)", period: "CLOSING", awayML: "+110", homeML: "-130", awaySpr: "+1.5", homeSpr: "-1.5", total: "229.5", book: "Consensus Final", play: "Pre-Game Closing Lines Locked (Tipoff)" },
-                    { timeLabel: "Q1 9:30", period: "Q1", awayML: "+115", homeML: "-135", awaySpr: "+1.5", homeSpr: "-1.5", total: "229.0", book: "DraftKings", play: "OKC 7-0 Opening Run" },
-                    { timeLabel: "Q1 4:15", period: "Q1", awayML: "+130", homeML: "-150", awaySpr: "+3.0", homeSpr: "-3.0", total: "227.5", book: "BetMGM", play: "Tatum 3PT Basket" },
-                    { timeLabel: "Q2 11:00", period: "Q2", awayML: "+110", homeML: "-130", awaySpr: "+1.0", homeSpr: "-1.0", total: "230.5", book: "Consensus", play: "Gilgeous-Alexander Steal & Dunk" },
-                    { timeLabel: "Q2 5:45", period: "Q2", awayML: "-105", homeML: "-115", awaySpr: "PK", homeSpr: "PK", total: "231.0", book: "FanDuel", play: "OKC Takes Lead 48-46" },
-                    { timeLabel: "Halftime", period: "HT", awayML: "-110", homeML: "-110", awaySpr: "PK", homeSpr: "PK", total: "230.0", book: "Consensus", play: "Halftime Score: 56-55 OKC" },
-                    { timeLabel: "Q3 8:20", period: "Q3", awayML: "-125", homeML: "+105", awaySpr: "-2.0", homeSpr: "+2.0", total: "232.5", book: "BetOnline", play: "Williams 3PT + Foul" },
-                    { timeLabel: "Q3 2:10", period: "Q3", awayML: "-115", homeML: "-105", awaySpr: "-1.0", homeSpr: "+1.0", total: "231.5", book: "DraftKings", play: "Brown Fastbreak Layup" },
-                    { timeLabel: "Q4 10:00", period: "Q4", awayML: "-135", homeML: "+115", awaySpr: "-3.0", homeSpr: "+3.0", total: "233.0", book: "FanDuel", play: "OKC 10-2 Run to Start Q4" },
-                    { timeLabel: "Q4 3:30", period: "Q4", awayML: "-160", homeML: "+135", awaySpr: "-4.5", homeSpr: "+4.5", total: "231.5", book: "BetMGM", play: "Chet Holmgren Block & 3PT" },
-                    { timeLabel: "Q4 0:00 (FINAL)", period: "FINAL", awayML: "-180", homeML: "+155", awaySpr: "-5.5", homeSpr: "+5.5", total: "229.5", book: "Consensus", play: "FINAL: OKC 118, BOS 112" }
+                    { timeLabel: "Pre-Game Open", period: "PRE", awayML: "+125", homeML: "-145", awaySpr: "+2.5", homeSpr: "-2.5", total: "228.5", book: "FanDuel", play: "Opening Lines Released", awayScore: 0, homeScore: 0, isScoringPlay: false },
+                    { timeLabel: "🔒 Closing Lines (T-0:00 Pre-Tip)", period: "CLOSING", awayML: "+110", homeML: "-130", awaySpr: "+1.5", homeSpr: "-1.5", total: "229.5", book: "Consensus Final", play: "Pre-Game Closing Lines Locked (Tipoff)", awayScore: 0, homeScore: 0, isScoringPlay: false },
+                    { timeLabel: "Q1 9:30", period: "Q1", awayML: "+115", homeML: "-135", awaySpr: "+1.5", homeSpr: "-1.5", total: "229.0", book: "DraftKings", play: "OKC 7-0 Opening Run", awayScore: 7, homeScore: 0, isScoringPlay: true },
+                    { timeLabel: "Q1 4:15", period: "Q1", awayML: "+130", homeML: "-150", awaySpr: "+3.0", homeSpr: "-3.0", total: "227.5", book: "BetMGM", play: "Tatum 3PT Basket", awayScore: 14, homeScore: 18, isScoringPlay: true },
+                    { timeLabel: "Q2 11:00", period: "Q2", awayML: "+110", homeML: "-130", awaySpr: "+1.0", homeSpr: "-1.0", total: "230.5", book: "Consensus", play: "Gilgeous-Alexander Steal & Dunk", awayScore: 28, homeScore: 26, isScoringPlay: true },
+                    { timeLabel: "Q2 5:45", period: "Q2", awayML: "-105", homeML: "-115", awaySpr: "PK", homeSpr: "PK", total: "231.0", book: "FanDuel", play: "OKC Takes Lead 48-46", awayScore: 48, homeScore: 46, isScoringPlay: true },
+                    { timeLabel: "Halftime", period: "HT", awayML: "-110", homeML: "-110", awaySpr: "PK", homeSpr: "PK", total: "230.0", book: "Consensus", play: "Halftime Score: 56-55 OKC", awayScore: 56, homeScore: 55, isScoringPlay: false },
+                    { timeLabel: "Q3 8:20", period: "Q3", awayML: "-125", homeML: "+105", awaySpr: "-2.0", homeSpr: "+2.0", total: "232.5", book: "BetOnline", play: "Williams 3PT + Foul", awayScore: 68, homeScore: 62, isScoringPlay: true },
+                    { timeLabel: "Q3 2:10", period: "Q3", awayML: "-115", homeML: "-105", awaySpr: "-1.0", homeSpr: "+1.0", total: "231.5", book: "DraftKings", play: "Brown Fastbreak Layup", awayScore: 82, homeScore: 84, isScoringPlay: true },
+                    { timeLabel: "Q4 10:00", period: "Q4", awayML: "-135", homeML: "+115", awaySpr: "-3.0", homeSpr: "+3.0", total: "233.0", book: "FanDuel", play: "OKC 10-2 Run to Start Q4", awayScore: 96, homeScore: 90, isScoringPlay: true },
+                    { timeLabel: "Q4 3:30", period: "Q4", awayML: "-160", homeML: "+135", awaySpr: "-4.5", homeSpr: "+4.5", total: "231.5", book: "BetMGM", play: "Chet Holmgren Block & 3PT", awayScore: 108, homeScore: 102, isScoringPlay: true },
+                    { timeLabel: "Q4 0:00 (FINAL)", period: "FINAL", awayML: "-180", homeML: "+155", awaySpr: "-5.5", homeSpr: "+5.5", total: "229.5", book: "Consensus", play: "FINAL: OKC 118, BOS 112", awayScore: 118, homeScore: 112, isScoringPlay: false }
                 ]
             },
             "lal_den": {
@@ -673,12 +676,12 @@
                 volatility: "MED (12 Shifts)",
                 eventsCount: "10 Major Events",
                 timeline: [
-                    { timeLabel: "Pre-Game Open", period: "PRE", awayML: "+180", homeML: "-210", awaySpr: "+5.5", homeSpr: "-5.5", total: "224.5", book: "FanDuel", play: "Opening Lines Released" },
-                    { timeLabel: "🔒 Closing Lines (T-0:00 Pre-Tip)", period: "CLOSING", awayML: "+150", homeML: "-175", awaySpr: "+3.5", homeSpr: "-3.5", total: "224.0", book: "Consensus Final", play: "Pre-Game Closing Lines Locked (Tipoff)" },
-                    { timeLabel: "Q1 6:00", period: "Q1", awayML: "+165", homeML: "-195", awaySpr: "+4.5", homeSpr: "-4.5", total: "225.0", book: "DraftKings", play: "LeBron 2PT Dunk" },
-                    { timeLabel: "Halftime", period: "HT", awayML: "+140", homeML: "-165", awaySpr: "+3.0", homeSpr: "-3.0", total: "223.5", book: "Consensus", play: "Halftime Score: 58-54 DEN" },
-                    { timeLabel: "Q3 4:00", period: "Q3", awayML: "+120", homeML: "-140", awaySpr: "+2.0", homeSpr: "-2.0", total: "226.0", book: "BetMGM", play: "Davis 3PT Jump Shot" },
-                    { timeLabel: "Q4 0:00 (FINAL)", period: "FINAL", awayML: "+110", homeML: "-130", awaySpr: "+1.5", homeSpr: "-1.5", total: "222.0", book: "Consensus", play: "FINAL: DEN 108, LAL 106" }
+                    { timeLabel: "Pre-Game Open", period: "PRE", awayML: "+180", homeML: "-210", awaySpr: "+5.5", homeSpr: "-5.5", total: "224.5", book: "FanDuel", play: "Opening Lines Released", awayScore: 0, homeScore: 0, isScoringPlay: false },
+                    { timeLabel: "🔒 Closing Lines (T-0:00 Pre-Tip)", period: "CLOSING", awayML: "+150", homeML: "-175", awaySpr: "+3.5", homeSpr: "-3.5", total: "224.0", book: "Consensus Final", play: "Pre-Game Closing Lines Locked (Tipoff)", awayScore: 0, homeScore: 0, isScoringPlay: false },
+                    { timeLabel: "Q1 6:00", period: "Q1", awayML: "+165", homeML: "-195", awaySpr: "+4.5", homeSpr: "-4.5", total: "225.0", book: "DraftKings", play: "LeBron 2PT Dunk", awayScore: 12, homeScore: 14, isScoringPlay: true },
+                    { timeLabel: "Halftime", period: "HT", awayML: "+140", homeML: "-165", awaySpr: "+3.0", homeSpr: "-3.0", total: "223.5", book: "Consensus", play: "Halftime Score: 58-54 DEN", awayScore: 54, homeScore: 58, isScoringPlay: false },
+                    { timeLabel: "Q3 4:00", period: "Q3", awayML: "+120", homeML: "-140", awaySpr: "+2.0", homeSpr: "-2.0", total: "226.0", book: "BetMGM", play: "Davis 3PT Jump Shot", awayScore: 78, homeScore: 76, isScoringPlay: true },
+                    { timeLabel: "Q4 0:00 (FINAL)", period: "FINAL", awayML: "+110", homeML: "-130", awaySpr: "+1.5", homeSpr: "-1.5", total: "222.0", book: "Consensus", play: "FINAL: DEN 108, LAL 106", awayScore: 106, homeScore: 108, isScoringPlay: false }
                 ]
             },
             "gsw_sac": {
@@ -689,11 +692,11 @@
                 volatility: "HIGH (22 Shifts)",
                 eventsCount: "16 Major Events",
                 timeline: [
-                    { timeLabel: "Pre-Game Open", period: "PRE", awayML: "-120", homeML: "+100", awaySpr: "-1.5", homeSpr: "+1.5", total: "235.0", book: "BetOnline", play: "Opening Lines Released" },
-                    { timeLabel: "🔒 Closing Lines (T-0:00 Pre-Tip)", period: "CLOSING", awayML: "-140", homeML: "+120", awaySpr: "-2.5", homeSpr: "+2.5", total: "236.5", book: "Consensus Final", play: "Pre-Game Closing Lines Locked (Tipoff)" },
-                    { timeLabel: "Q1 5:00", period: "Q1", awayML: "-150", homeML: "+125", awaySpr: "-3.5", homeSpr: "+3.5", total: "238.0", book: "FanDuel", play: "Curry Back-to-Back 3PTs" },
-                    { timeLabel: "Halftime", period: "HT", awayML: "-220", homeML: "+180", awaySpr: "-6.0", homeSpr: "+6.0", total: "239.5", book: "Consensus", play: "Halftime Score: 68-52 GSW" },
-                    { timeLabel: "Q4 0:00 (FINAL)", period: "FINAL", awayML: "-350", homeML: "+270", awaySpr: "-9.0", homeSpr: "+9.0", total: "236.0", book: "Consensus", play: "FINAL: GSW 124, SAC 108" }
+                    { timeLabel: "Pre-Game Open", period: "PRE", awayML: "-120", homeML: "+100", awaySpr: "-1.5", homeSpr: "+1.5", total: "235.0", book: "BetOnline", play: "Opening Lines Released", awayScore: 0, homeScore: 0, isScoringPlay: false },
+                    { timeLabel: "🔒 Closing Lines (T-0:00 Pre-Tip)", period: "CLOSING", awayML: "-140", homeML: "+120", awaySpr: "-2.5", homeSpr: "+2.5", total: "236.5", book: "Consensus Final", play: "Pre-Game Closing Lines Locked (Tipoff)", awayScore: 0, homeScore: 0, isScoringPlay: false },
+                    { timeLabel: "Q1 5:00", period: "Q1", awayML: "-150", homeML: "+125", awaySpr: "-3.5", homeSpr: "+3.5", total: "238.0", book: "FanDuel", play: "Curry Back-to-Back 3PTs", awayScore: 18, homeScore: 10, isScoringPlay: true },
+                    { timeLabel: "Halftime", period: "HT", awayML: "-220", homeML: "+180", awaySpr: "-6.0", homeSpr: "+6.0", total: "239.5", book: "Consensus", play: "Halftime Score: 68-52 GSW", awayScore: 68, homeScore: 52, isScoringPlay: false },
+                    { timeLabel: "Q4 0:00 (FINAL)", period: "FINAL", awayML: "-350", homeML: "+270", awaySpr: "-9.0", homeSpr: "+9.0", total: "236.0", book: "Consensus", play: "FINAL: GSW 124, SAC 108", awayScore: 124, homeScore: 108, isScoringPlay: false }
                 ]
             }
         };
@@ -799,10 +802,37 @@
             });
         }
 
+        let isScoringOnly = false;
+
+        function toggleScoringOnlyFilter() {
+            isScoringOnly = !isScoringOnly;
+            const btn = document.getElementById('scoringOnlyFilterBtn');
+            if (isScoringOnly) {
+                btn.style.background = 'rgba(16, 185, 129, 0.2)';
+                btn.style.borderColor = 'var(--win)';
+                btn.style.color = 'var(--win)';
+                btn.innerText = '⚡ Showing Scoring Events Only';
+            } else {
+                btn.style.background = 'rgba(0,0,0,0.3)';
+                btn.style.borderColor = 'var(--border)';
+                btn.style.color = 'var(--muted)';
+                btn.innerText = '⚡ Scoring Events Only';
+            }
+            updateChartData();
+        }
+
         function switchMarketTab(market, btn) {
             currentMarket = market;
-            document.querySelectorAll('.ctrl-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.ctrl-btn-group .ctrl-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+
+            const titleP = document.querySelector('.chart-title-group p');
+            if (market === 'SCORE') {
+                titleP.innerText = 'Live in-game point progression trajectory and scoring play events timeline';
+            } else {
+                titleP.innerText = 'Timeline visualization of odds movements from pre-game opening lines through game completion';
+            }
+
             updateChartData();
         }
 
@@ -820,7 +850,16 @@
             document.getElementById('metricCLV').innerText = data.clv;
             document.getElementById('metricVolatility').innerText = data.volatility;
             document.getElementById('metricEvents').innerText = data.eventsCount;
-            document.getElementById('chartMatchupTitle').innerText = `${data.matchup.toUpperCase()} — FULL GAME LINE TIMELINE`;
+            document.getElementById('chartMatchupTitle').innerText = `${data.matchup.toUpperCase()} — FULL GAME ${currentMarket === 'SCORE' ? 'SCORE TRAJECTORY' : 'LINE TIMELINE'}`;
+        }
+
+        function getActiveTimeline() {
+            const data = GAME_HISTORY_DATA[currentMatchupKey];
+            if (!data || !data.timeline) return [];
+            if (isScoringOnly) {
+                return data.timeline.filter(t => t.isScoringPlay || t.period === 'HT' || t.period === 'FINAL');
+            }
+            return data.timeline;
         }
 
         function initHistoryChart() {
@@ -855,13 +894,14 @@
                             callbacks: {
                                 title: function(items) {
                                     const idx = items[0].dataIndex;
-                                    const timeline = GAME_HISTORY_DATA[currentMatchupKey].timeline;
+                                    const timeline = getActiveTimeline();
                                     return timeline[idx] ? timeline[idx].timeLabel : items[0].label;
                                 },
                                 label: function(context) {
                                     const idx = context.dataIndex;
                                     const data = GAME_HISTORY_DATA[currentMatchupKey];
-                                    const item = data.timeline[idx];
+                                    const timeline = getActiveTimeline();
+                                    const item = timeline[idx];
                                     if (!item) return '';
 
                                     const teams = data.matchup.split('@');
@@ -870,13 +910,13 @@
 
                                     if (context.datasetIndex === 0) {
                                         return [
-                                            `🟦 ${awayName}`,
+                                            `🟦 ${awayName} ${currentMarket === 'SCORE' ? `Score: ${item.awayScore} PTS` : ''}`,
                                             `   • ML: ${item.awayML}`,
                                             `   • Spread: ${item.awaySpr} (-110)`
                                         ];
                                     } else {
                                         return [
-                                            `🟨 ${homeName}`,
+                                            `🟨 ${homeName} ${currentMarket === 'SCORE' ? `Score: ${item.homeScore} PTS` : ''}`,
                                             `   • ML: ${item.homeML}`,
                                             `   • Spread: ${item.homeSpr} (-110)`
                                         ];
@@ -884,7 +924,8 @@
                                 },
                                 afterBody: function(items) {
                                     const idx = items[0].dataIndex;
-                                    const item = GAME_HISTORY_DATA[currentMatchupKey].timeline[idx];
+                                    const timeline = getActiveTimeline();
+                                    const item = timeline[idx];
                                     if (item) {
                                         return [
                                             ``,
@@ -914,7 +955,7 @@
 
         function getChartDataset() {
             const data = GAME_HISTORY_DATA[currentMatchupKey];
-            const timeline = data.timeline;
+            const timeline = getActiveTimeline();
             const labels = timeline.map(t => t.timeLabel);
 
             let awayValues = [];
@@ -941,6 +982,11 @@
                 labelHome = `Consensus Total`;
                 awayValues = timeline.map(t => parseFloat(t.total) || 0);
                 homeValues = timeline.map(t => parseFloat(t.total) || 0);
+            } else if (currentMarket === 'SCORE') {
+                labelAway = `${awayName} Score`;
+                labelHome = `${homeName} Score`;
+                awayValues = timeline.map(t => t.awayScore || 0);
+                homeValues = timeline.map(t => t.homeScore || 0);
             }
 
             return {
