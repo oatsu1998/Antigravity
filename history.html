@@ -574,10 +574,11 @@
 
                 <div class="chart-controls">
                     <div class="ctrl-btn-group">
-                        <button class="ctrl-btn active" onclick="switchMarketTab('ML', this)">Moneyline</button>
+                        <button class="ctrl-btn active" onclick="switchMarketTab('MARGIN', this)" style="color:var(--accent); font-weight:bold;">📊 Spread Margin (Cover Line)</button>
+                        <button class="ctrl-btn" onclick="switchMarketTab('ML', this)">Moneyline</button>
                         <button class="ctrl-btn" onclick="switchMarketTab('SPREAD', this)">Spread</button>
                         <button class="ctrl-btn" onclick="switchMarketTab('TOTAL', this)">Totals (O/U)</button>
-                        <button class="ctrl-btn" onclick="switchMarketTab('SCORE', this)" style="color:var(--win); font-weight:bold;">🏀 Game Score</button>
+                        <button class="ctrl-btn" onclick="switchMarketTab('SCORE', this)" style="color:var(--win);">🏀 Game Score</button>
                     </div>
 
                     <button id="scoringOnlyFilterBtn" class="ctrl-btn" onclick="toggleScoringOnlyFilter()" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:6px; color:var(--muted); font-size:11px;">⚡ Scoring Events Only</button>
@@ -702,11 +703,45 @@
         };
 
         let currentMatchupKey = "okc_bos";
-        let currentMarket = "ML";
+        let currentMarket = "MARGIN"; // Default to Spread Margin Delta (Cover Line)
         let currentBook = "ALL";
         let historyChart = null;
-
         let currentViewMode = 'STACKED';
+
+        // Helper: Convert clock string & period to continuous game clock minute (0.0 to 48.0)
+        function parseClockToMinute(timeLabel, period) {
+            if (period === 'PRE') return 0.0;
+            if (period === 'CLOSING') return 0.0;
+            if (period === 'HT') return 24.0;
+            if (period === 'FINAL') return 48.0;
+
+            const parts = timeLabel.split(' ');
+            if (parts.length < 2) return 0.0;
+
+            const q = parts[0]; // "Q1", "Q2", "Q3", "Q4"
+            const clock = parts[1]; // "9:30"
+            const clockParts = clock.split(':');
+            const mins = parseFloat(clockParts[0]) || 0;
+            const secs = parseFloat(clockParts[1]) || 0;
+            const remainingMins = mins + (secs / 60);
+
+            if (q === 'Q1') return parseFloat((12.0 - remainingMins).toFixed(2));
+            if (q === 'Q2') return parseFloat((24.0 - remainingMins).toFixed(2));
+            if (q === 'Q3') return parseFloat((36.0 - remainingMins).toFixed(2));
+            if (q === 'Q4') return parseFloat((48.0 - remainingMins).toFixed(2));
+
+            return 0.0;
+        }
+
+        // Helper: Calculate Spread Cover Margin Delta
+        // Margin = (Away Score - Home Score) + Away Spread Line
+        // If Margin > 0: Away is covering by +Margin PTS
+        // If Margin < 0: Home is covering by |Margin| PTS
+        function calculateSpreadMargin(awayScore, homeScore, awaySpr) {
+            const diff = awayScore - homeScore;
+            const numericSpr = parseFloat(awaySpr === 'PK' ? 0 : awaySpr) || 0;
+            return parseFloat((diff + numericSpr).toFixed(1));
+        }
 
         // Page Load Init
         document.addEventListener('DOMContentLoaded', () => {
@@ -827,12 +862,15 @@
             btn.classList.add('active');
 
             const titleP = document.querySelector('.chart-title-group p');
-            if (market === 'SCORE') {
+            if (market === 'MARGIN') {
+                titleP.innerText = 'Spread Margin Delta vs. Cover Line (0 = Push Target) with continuous 48-minute game clock and live total overlay';
+            } else if (market === 'SCORE') {
                 titleP.innerText = 'Live in-game point progression trajectory and scoring play events timeline';
             } else {
                 titleP.innerText = 'Timeline visualization of odds movements from pre-game opening lines through game completion';
             }
 
+            renderMetrics();
             updateChartData();
         }
 
@@ -850,7 +888,14 @@
             document.getElementById('metricCLV').innerText = data.clv;
             document.getElementById('metricVolatility').innerText = data.volatility;
             document.getElementById('metricEvents').innerText = data.eventsCount;
-            document.getElementById('chartMatchupTitle').innerText = `${data.matchup.toUpperCase()} — FULL GAME ${currentMarket === 'SCORE' ? 'SCORE TRAJECTORY' : 'LINE TIMELINE'}`;
+            
+            let marketLabel = 'SPREAD MARGIN DELTA (COVER LINE)';
+            if (currentMarket === 'ML') marketLabel = 'MONEYLINE TIMELINE';
+            else if (currentMarket === 'SPREAD') marketLabel = 'SPREAD TIMELINE';
+            else if (currentMarket === 'TOTAL') marketLabel = 'TOTALS O/U TIMELINE';
+            else if (currentMarket === 'SCORE') marketLabel = 'LIVE SCORE TRAJECTORY';
+
+            document.getElementById('chartMatchupTitle').innerText = `${data.matchup.toUpperCase()} — ${marketLabel}`;
         }
 
         function getActiveTimeline() {
@@ -884,9 +929,9 @@
                         },
                         tooltip: {
                             backgroundColor: '#111418',
-                            borderColor: 'rgba(245, 158, 11, 0.4)',
+                            borderColor: 'rgba(245, 158, 11, 0.5)',
                             borderWidth: 1.5,
-                            padding: 12,
+                            padding: 14,
                             titleFont: { family: 'Barlow Condensed', size: 16, weight: 'bold' },
                             titleColor: '#f59e0b',
                             bodyFont: { family: 'JetBrains Mono', size: 11 },
@@ -895,7 +940,10 @@
                                 title: function(items) {
                                     const idx = items[0].dataIndex;
                                     const timeline = getActiveTimeline();
-                                    return timeline[idx] ? timeline[idx].timeLabel : items[0].label;
+                                    const item = timeline[idx];
+                                    if (!item) return items[0].label;
+                                    const minFloat = parseClockToMinute(item.timeLabel, item.period);
+                                    return `${item.timeLabel} (${minFloat.toFixed(1)}m Game Clock)`;
                                 },
                                 label: function(context) {
                                     const idx = context.dataIndex;
@@ -907,6 +955,33 @@
                                     const teams = data.matchup.split('@');
                                     const awayName = teams[0] ? teams[0].trim() : 'Away';
                                     const homeName = teams[1] ? teams[1].trim() : 'Home';
+                                    const openItem = data.timeline[0];
+                                    const margin = calculateSpreadMargin(item.awayScore, item.homeScore, item.awaySpr);
+
+                                    let statusTag = '';
+                                    if (margin > 0) {
+                                        statusTag = `🔥 STATUS: ${awayName} Covering by +${margin} PTS`;
+                                    } else if (margin < 0) {
+                                        statusTag = `⚡ STATUS: ${homeName} Covering by +${Math.abs(margin)} PTS`;
+                                    } else {
+                                        statusTag = `⚖️ STATUS: PUSH / AT SPREAD TARGET`;
+                                    }
+
+                                    if (currentMarket === 'MARGIN') {
+                                        if (context.datasetIndex === 0) {
+                                            return [
+                                                `🎯 ${statusTag}`,
+                                                `🟦 ${awayName}: Score ${item.awayScore} | Spread ${item.awaySpr} (-110)`,
+                                                `   • Live Spread vs Open: ${item.awaySpr} (Opened ${openItem.awaySpr})`,
+                                                `   • Moneyline: ${item.awayML}`
+                                            ];
+                                        } else {
+                                            return [
+                                                `🟨 ${homeName}: Score ${item.homeScore} | Spread ${item.homeSpr} (-110)`,
+                                                `   • Moneyline: ${item.homeML}`
+                                            ];
+                                        }
+                                    }
 
                                     if (context.datasetIndex === 0) {
                                         return [
@@ -944,9 +1019,33 @@
                             grid: { color: 'rgba(255, 255, 255, 0.05)' },
                             ticks: { color: '#6b7280', font: { family: 'JetBrains Mono', size: 10 } }
                         },
-                        y: {
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#6b7280', font: { family: 'JetBrains Mono', size: 10 } }
+                        'y-spread': {
+                            type: 'linear',
+                            position: 'left',
+                            grid: {
+                                color: (context) => context.tick.value === 0 ? 'rgba(245, 158, 11, 0.7)' : 'rgba(255, 255, 255, 0.05)',
+                                lineWidth: (context) => context.tick.value === 0 ? 2 : 1
+                            },
+                            title: {
+                                display: true,
+                                text: 'COVER MARGIN DELTA (0 = COVER LINE)',
+                                color: '#3b82f6',
+                                font: { family: 'Barlow Condensed', size: 11, weight: 'bold' }
+                            },
+                            ticks: { color: '#3b82f6', font: { family: 'JetBrains Mono', size: 10 } }
+                        },
+                        'y-total': {
+                            type: 'linear',
+                            position: 'right',
+                            display: true,
+                            grid: { drawOnChartArea: false },
+                            title: {
+                                display: true,
+                                text: 'LIVE TOTAL O/U',
+                                color: '#06b6d4',
+                                font: { family: 'Barlow Condensed', size: 11, weight: 'bold' }
+                            },
+                            ticks: { color: '#06b6d4', font: { family: 'JetBrains Mono', size: 10 } }
                         }
                     }
                 }
@@ -956,7 +1055,7 @@
         function getChartDataset() {
             const data = GAME_HISTORY_DATA[currentMatchupKey];
             const timeline = getActiveTimeline();
-            const labels = timeline.map(t => t.timeLabel);
+            const labels = timeline.map(t => `${t.timeLabel} (${parseClockToMinute(t.timeLabel, t.period)}m)`);
 
             let awayValues = [];
             let homeValues = [];
@@ -966,6 +1065,42 @@
             const teams = data.matchup.split('@');
             const awayName = teams[0] ? teams[0].trim() : "Away";
             const homeName = teams[1] ? teams[1].trim() : "Home";
+
+            if (currentMarket === 'MARGIN') {
+                labelAway = `${awayName} Spread Margin Delta (Cover Line)`;
+                labelHome = `Live Total O/U`;
+                awayValues = timeline.map(t => calculateSpreadMargin(t.awayScore, t.homeScore, t.awaySpr));
+                homeValues = timeline.map(t => parseFloat(t.total) || 0);
+
+                return {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: labelAway,
+                            data: awayValues,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                            fill: { target: 'origin', above: 'rgba(59, 130, 246, 0.18)', below: 'rgba(245, 158, 11, 0.18)' },
+                            borderWidth: 3,
+                            tension: 0.25,
+                            pointRadius: 6,
+                            pointBackgroundColor: '#3b82f6',
+                            yAxisID: 'y-spread'
+                        },
+                        {
+                            label: labelHome,
+                            data: homeValues,
+                            borderColor: '#06b6d4',
+                            borderDash: [4, 4],
+                            borderWidth: 1.5,
+                            tension: 0.2,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#06b6d4',
+                            yAxisID: 'y-total'
+                        }
+                    ]
+                };
+            }
 
             if (currentMarket === 'ML') {
                 labelAway = `${awayName} Moneyline`;
