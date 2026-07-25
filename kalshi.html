@@ -998,6 +998,76 @@
             border-radius: 4px;
         }
 
+        /* Explainer Guide Card */
+        .pricing-explainer-card {
+            background: var(--surface);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+        }
+
+        .explainer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: var(--font-head);
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--accent);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .explainer-toggle-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-family: var(--font-mono);
+            font-size: 9px;
+            padding: 3px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .explainer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+        }
+
+        .explainer-box {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 12px;
+        }
+
+        .explainer-box h4 {
+            font-family: var(--font-head);
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .explainer-box p {
+            font-size: 10px;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        .explainer-box code {
+            background: rgba(0,0,0,0.3);
+            color: var(--accent);
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
         /* Activity ticker */
         .ticker-card {
             background: var(--surface);
@@ -1086,6 +1156,33 @@
     <main class="workspace">
         <!-- Left Column: Markets & Search -->
         <section class="market-center">
+            <!-- PREDICTION PRICING & AMERICAN ODDS EXPLAINER -->
+            <div class="pricing-explainer-card">
+                <div class="explainer-header">
+                    <span>💡 HOW KALSHI PRICING & AMERICAN ODDS WORK</span>
+                    <button class="explainer-toggle-btn" id="explainerToggleBtn" onclick="toggleExplainerGuide()">Hide Guide</button>
+                </div>
+                <div class="explainer-content" id="explainerGuideContent">
+                    <div class="explainer-grid">
+                        <div class="explainer-box">
+                            <h4>1. Cents = Implied Win Probability</h4>
+                            <p>Contract prices range from <strong>1¢ to 99¢</strong>, directly representing the probability that an outcome occurs. (e.g. <strong>36¢ = 36% win chance</strong>).</p>
+                        </div>
+                        <div class="explainer-box">
+                            <h4>2. Fixed $1.00 Payout Settlement</h4>
+                            <p>Every winning contract settles at <strong>$1.00 cash payout</strong> per share. Buying at <strong>36¢</strong> pays <strong>$1.00</strong> on win for a <strong>+$0.64 profit (+178%)</strong> per share!</p>
+                        </div>
+                        <div class="explainer-box">
+                            <h4>3. American Odds Conversion</h4>
+                            <p>
+                                • Under 50¢ (Underdog): <code>+((100-P)/P)*100</code> (e.g. <strong>36¢ = +178</strong>)<br>
+                                • Over 50¢ (Favorite): <code>-(P/(100-P))*100</code> (e.g. <strong>64¢ = -178</strong>)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="market-toolbar">
                 <div class="market-filters">
                     <button class="filter-tab active" data-category="sports">🏆 Sports</button>
@@ -1283,12 +1380,82 @@
     <script>
         // Global variables
         let bankroll = 10000.00;
-        let selectedMarketId = 101;
+        let selectedMarketId = 201;
         let selectedContractType = 'YES'; // YES or NO
         let positions = [];
 
-        // Sample initial markets data with featured Sports markets
+        // American Odds Converter Helper
+        function centsToAmericanOdds(cents) {
+            const p = parseFloat(cents);
+            if (isNaN(p) || p <= 0 || p >= 100) return 'EVEN';
+            if (p === 50) return '+100';
+            if (p > 50) {
+                const odds = Math.round((p / (100 - p)) * 100);
+                return `-${odds}`;
+            } else {
+                const odds = Math.round(((100 - p) / p) * 100);
+                return `+${odds}`;
+            }
+        }
+
+        // Sample initial markets data with featured Sports & NCAAF College Football markets
         const marketsData = [
+            {
+                id: 201,
+                title: "Will Georgia Bulldogs Win the College Football National Championship?",
+                category: "sports",
+                yesPrice: 36,
+                noPrice: 64,
+                history: [28, 30, 32, 34, 35, 36],
+                volume: "$5.4M",
+                expiration: "Jan 18, 2027",
+                orderbook: {
+                    yes: { bid: [35, 7800], ask: [36, 3100] },
+                    no: { bid: [63, 4200], ask: [64, 8500] }
+                }
+            },
+            {
+                id: 202,
+                title: "Will Ohio State Buckeyes Win the College Football National Championship?",
+                category: "sports",
+                yesPrice: 32,
+                noPrice: 68,
+                history: [24, 26, 28, 30, 31, 32],
+                volume: "$4.1M",
+                expiration: "Jan 18, 2027",
+                orderbook: {
+                    yes: { bid: [31, 6500], ask: [32, 2800] },
+                    no: { bid: [67, 3900], ask: [68, 7200] }
+                }
+            },
+            {
+                id: 203,
+                title: "Will Texas Longhorns Win the College Football National Championship?",
+                category: "sports",
+                yesPrice: 25,
+                noPrice: 75,
+                history: [18, 20, 22, 24, 24, 25],
+                volume: "$3.8M",
+                expiration: "Jan 18, 2027",
+                orderbook: {
+                    yes: { bid: [24, 8200], ask: [25, 4100] },
+                    no: { bid: [74, 4900], ask: [75, 9400] }
+                }
+            },
+            {
+                id: 204,
+                title: "Will Oregon Ducks Make the College Football Playoff Finals?",
+                category: "sports",
+                yesPrice: 48,
+                noPrice: 52,
+                history: [40, 42, 45, 46, 47, 48],
+                volume: "$2.6M",
+                expiration: "Jan 18, 2027",
+                orderbook: {
+                    yes: { bid: [47, 5100], ask: [48, 2300] },
+                    no: { bid: [51, 3400], ask: [52, 6100] }
+                }
+            },
             {
                 id: 101,
                 title: "Will the Boston Celtics Win the 2026 NBA Championship?",
@@ -1652,11 +1819,11 @@
                     <div class="market-buttons-section">
                         <div class="price-box yes" id="yes-box-${m.id}" onclick="event.stopPropagation(); selectMarket(${m.id}); selectContractType('YES');">
                             <span class="price-box-label">YES</span>
-                            <span class="price-box-value">${m.yesPrice}¢</span>
+                            <span class="price-box-value">${m.yesPrice}¢ <span style="font-size:9px; opacity:0.8; font-weight:normal;">(${centsToAmericanOdds(m.yesPrice)})</span></span>
                         </div>
                         <div class="price-box no" id="no-box-${m.id}" onclick="event.stopPropagation(); selectMarket(${m.id}); selectContractType('NO');">
                             <span class="price-box-label">NO</span>
-                            <span class="price-box-value">${m.noPrice}¢</span>
+                            <span class="price-box-value">${m.noPrice}¢ <span style="font-size:9px; opacity:0.8; font-weight:normal;">(${centsToAmericanOdds(m.noPrice)})</span></span>
                         </div>
                     </div>
                 `;
@@ -1700,6 +1867,18 @@
         }
 
         // Select specific market for terminal view
+        function toggleExplainerGuide() {
+            const content = document.getElementById('explainerGuideContent');
+            const btn = document.getElementById('explainerToggleBtn');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                btn.innerText = 'Hide Guide';
+            } else {
+                content.style.display = 'none';
+                btn.innerText = 'Show Guide';
+            }
+        }
+
         function selectMarket(id) {
             selectedMarketId = id;
             
@@ -1731,15 +1910,16 @@
 
         function updateTerminalPricesUI(market) {
             const price = selectedContractType === 'YES' ? market.yesPrice : market.noPrice;
-            document.getElementById('trade-price-display').innerText = `${price}¢`;
+            const amOdds = centsToAmericanOdds(price);
+            document.getElementById('trade-price-display').innerHTML = `${price}¢ <span style="font-size:11px; color:var(--accent); font-weight:bold; margin-left:6px;">(${amOdds})</span>`;
             
             const submitBtn = document.getElementById('submit-order-btn');
             if (selectedContractType === 'YES') {
                 submitBtn.className = 'action-button yes';
-                submitBtn.innerText = `SUBMIT YES BUY ORDER`;
+                submitBtn.innerText = `SUBMIT YES BUY ORDER (${amOdds})`;
             } else {
                 submitBtn.className = 'action-button no';
-                submitBtn.innerText = `SUBMIT NO BUY ORDER`;
+                submitBtn.innerText = `SUBMIT NO BUY ORDER (${amOdds})`;
             }
         }
 
