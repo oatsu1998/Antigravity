@@ -398,6 +398,121 @@
             padding: 2px 6px;
             border-radius: 3px;
         }
+
+        /* STACKED BREAKDOWN (EASY TO READ) STYLES */
+        .view-mode-toggle {
+            display: flex;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 2px;
+        }
+
+        .view-mode-btn {
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-family: var(--font-head);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .view-mode-btn.active {
+            background: var(--surface2);
+            color: var(--accent);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .stacked-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .stacked-card {
+            background: var(--surface);
+            border: 1px solid var(--border2);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            transition: all 0.2s;
+        }
+
+        .stacked-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .stacked-period-title {
+            font-family: var(--font-head);
+            font-size: 20px;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stacked-team-block {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .stacked-team-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stacked-team-badge {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        .stacked-team-badge.away { background: #3b82f6; }
+        .stacked-team-badge.home { background: #f59e0b; }
+
+        .stacked-team-list {
+            list-style: none;
+            padding-left: 24px;
+            font-size: 13px;
+            color: #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stacked-footer {
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .stacked-footer-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
     </style>
 </head>
 
@@ -487,13 +602,23 @@
             </div>
         </div>
 
-        <!-- TIMELINE MOVEMENT LOG TABLE -->
+        <!-- TIMELINE MOVEMENT LOG / STACKED BREAKDOWN -->
         <div class="log-section">
             <div class="log-header">
-                <div class="log-title">Chronological Odds Shift Ledger</div>
+                <div class="log-title">Game Odds Shift Breakdown</div>
+                <div class="view-mode-toggle">
+                    <button class="view-mode-btn active" onclick="switchViewMode('STACKED', this)">📱 Stacked Breakdown</button>
+                    <button class="view-mode-btn" onclick="switchViewMode('TABLE', this)">📋 Audit Table</button>
+                </div>
             </div>
 
-            <div class="log-table-wrapper">
+            <!-- Stacked Breakdown View (Easy to Read - Reference Design) -->
+            <div id="stackedBreakdownContainer" class="stacked-grid">
+                <!-- Dynamically populated via renderStackedBreakdown() -->
+            </div>
+
+            <!-- Table View -->
+            <div id="tableContainer" class="log-table-wrapper" style="display: none;">
                 <table class="log-table">
                     <thead>
                         <tr>
@@ -575,10 +700,13 @@
         let currentBook = "ALL";
         let historyChart = null;
 
+        let currentViewMode = 'STACKED';
+
         // Page Load Init
         document.addEventListener('DOMContentLoaded', () => {
             renderMetrics();
             initHistoryChart();
+            renderStackedBreakdown();
             renderLogTable();
         });
 
@@ -586,7 +714,78 @@
             currentMatchupKey = newKey;
             renderMetrics();
             updateChartData();
+            renderStackedBreakdown();
             renderLogTable();
+        }
+
+        function switchViewMode(mode, btn) {
+            currentViewMode = mode;
+            document.querySelectorAll('.view-mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const stackedEl = document.getElementById('stackedBreakdownContainer');
+            const tableEl = document.getElementById('tableContainer');
+
+            if (mode === 'STACKED') {
+                stackedEl.style.display = 'grid';
+                tableEl.style.display = 'none';
+            } else {
+                stackedEl.style.display = 'none';
+                tableEl.style.display = 'block';
+            }
+        }
+
+        function renderStackedBreakdown() {
+            const container = document.getElementById('stackedBreakdownContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const data = GAME_HISTORY_DATA[currentMatchupKey];
+            if (!data || !data.timeline) return;
+
+            const teams = data.matchup.split('@');
+            const awayName = teams[0] ? teams[0].trim() : 'Away';
+            const homeName = teams[1] ? teams[1].trim() : 'Home';
+
+            data.timeline.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'stacked-card';
+                card.innerHTML = `
+                    <div class="stacked-period-title">
+                        <span>${item.timeLabel}</span>
+                        <span class="event-badge">${item.book}</span>
+                    </div>
+                    
+                    <div class="stacked-team-block">
+                        <div class="stacked-team-name">
+                            <span class="stacked-team-badge away"></span>
+                            <span>${awayName}</span>
+                        </div>
+                        <ul class="stacked-team-list">
+                            <li>• ML: <strong style="color:var(--accent);">${item.awayML}</strong></li>
+                            <li>• Spread: <strong style="color:#fff;">${item.awaySpr}</strong> <span style="color:var(--muted);">(-110)</span></li>
+                        </ul>
+                    </div>
+
+                    <div class="stacked-team-block">
+                        <div class="stacked-team-name">
+                            <span class="stacked-team-badge home"></span>
+                            <span>${homeName}</span>
+                        </div>
+                        <ul class="stacked-team-list">
+                            <li>• ML: <strong style="color:var(--accent);">${item.homeML}</strong></li>
+                            <li>• Spread: <strong style="color:#fff;">${item.homeSpr}</strong> <span style="color:var(--muted);">(-110)</span></li>
+                        </ul>
+                    </div>
+
+                    <div class="stacked-footer">
+                        <div class="stacked-footer-row">📊 Total Line: <strong style="color:var(--cyan);">O/U ${item.total}</strong></div>
+                        <div class="stacked-footer-row">⚡ Play Event: <strong style="color:#fff;">${item.play}</strong></div>
+                        <div class="stacked-footer-row">📍 Book: <strong style="color:var(--accent2);">${item.book}</strong></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
         }
 
         function switchMarketTab(market, btn) {
