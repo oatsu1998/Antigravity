@@ -1191,54 +1191,6 @@
                 g.game_status = gStatus;
                 g.period = ''; g.clock = '';
 
-                const espnMatch = espnEvents.find(e => {
-                    const hName = e.competitions?.[0]?.competitors?.find(c => c.homeAway === 'home')?.team?.name?.toLowerCase() || '';
-                    const aName = e.competitions?.[0]?.competitors?.find(c => c.homeAway === 'away')?.team?.name?.toLowerCase() || '';
-                    return game.home_team.toLowerCase().includes(hName) || game.away_team.toLowerCase().includes(aName);
-                });
-
-                if (espnMatch) {
-                    const comp = espnMatch.competitions[0];
-                    const hTeam = comp.competitors.find(c => c.homeAway === 'home');
-                    const aTeam = comp.competitors.find(c => c.homeAway === 'away');
-                    g.home_logo = hTeam?.team?.logo || '';
-                    g.away_logo = aTeam?.team?.logo || '';
-                    g.away_linescores = (aTeam?.linescores || []).map(l => l.displayValue || l.value || '-');
-                    g.home_linescores = (hTeam?.linescores || []).map(l => l.displayValue || l.value || '-');
-
-                    // Team records (e.g. "39-26-17" or "53-29")
-                    const fmtRecord = function(rec) {
-                        if (!rec || !rec.length) return '';
-                        var overall = rec.find(r => r.type === 'total' || r.name === 'overall' || r.abbreviation === 'overall');
-                        return overall ? overall.summary || '' : (rec[0] ? rec[0].summary || '' : '');
-                    };
-                    g.away_record = fmtRecord(aTeam?.records);
-                    g.home_record = fmtRecord(hTeam?.records);
-                    g.espn_sport  = espnMatch._sport || '';
-
-                    if (espnMatch.date) g.commence_time = espnMatch.date;
-
-                    const espnState = espnMatch.status?.type?.state || '';
-                    const espnDesc = espnMatch.status?.type?.description || '';
-                    const espnCompleted = espnMatch.status?.type?.completed || false;
-
-                    // Always grab period + clock from ESPN regardless of sub-state
-                    g.period = espnMatch.status?.period || '';
-                    g.clock  = espnMatch.status?.displayClock || '';
-                    g.espn_status = espnDesc;
-                    g.espn_detail = espnMatch.status?.type?.shortDetail || '';
-
-                    // Drive live/completed off ESPN, not just score
-                    if (espnCompleted) {
-                        g.game_status = 'completed';
-                    } else if (espnState === 'in' || espnState === 'mid' ||
-                               espnDesc === 'In Progress' || espnDesc === 'Halftime' ||
-                               espnDesc.startsWith('End of') || espnDesc.startsWith('End Period')) {
-                        g.game_status = 'live';
-                    }
-                    // else keep whatever the odds API set
-                }
-
                 const snap = { time: nowTime, books: {}, aScore: aScore, hScore: hScore };
 
                 game.bookmakers.forEach(book => {
@@ -1938,8 +1890,11 @@
         function populateBookSel() {
             var g = games[selectedGame]; if (!g) return;
             var sel = document.getElementById('bookSel');
-            sel.innerHTML = '<option value="all">ALL BOOKS (avg)</option>' +
-                BOOKS.map(function (b) { return '<option value="' + b.prefix + '">' + b.name + '</option>'; }).join('');
+            if (!sel) return;
+            var currentVal = sel.value || 'kalshi';
+            sel.innerHTML = BOOKS.map(function (b) { 
+                return '<option value="' + b.prefix + '"' + (b.prefix === currentVal ? ' selected' : '') + '>' + b.name + '</option>'; 
+            }).join('') + '<option value="all"' + (currentVal === 'all' ? ' selected' : '') + '>ALL BOOKS (avg)</option>';
         }
 
         function avg(arr) { return arr.length ? arr.reduce(function (a, b) { return a + b; }, 0) / arr.length : null; }
