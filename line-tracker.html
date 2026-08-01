@@ -1021,16 +1021,24 @@
                     const rawTeam = (tick.team || tick.ticker || '').toUpperCase();
                     if (!rawTeam) return;
 
+                    const matchTeamName = (fullName, query) => {
+                        if (!fullName || !query) return false;
+                        const f = fullName.toUpperCase();
+                        const q = query.toUpperCase();
+                        if (f === q || f.includes(q) || q.includes(f)) return true;
+                        const fWords = f.split(' ');
+                        const qWords = q.split(' ');
+                        const fLast = fWords[fWords.length - 1];
+                        const qLast = qWords[qWords.length - 1];
+                        return fLast.length > 3 && (q.includes(fLast) || fLast === qLast);
+                    };
+
                     // Match against games in line tracker catalog
                     let matchedGameId = null;
                     const gameIds = Object.keys(games);
                     for (let id of gameIds) {
                         const g = games[id];
-                        const away = (g.away_team || '').toUpperCase();
-                        const home = (g.home_team || '').toUpperCase();
-
-                        if (away.includes(rawTeam) || home.includes(rawTeam) ||
-                            rawTeam.includes(away.split(' ').pop()) || rawTeam.includes(home.split(' ').pop())) {
+                        if (matchTeamName(g.away_team, rawTeam) || matchTeamName(g.home_team, rawTeam)) {
                             matchedGameId = id;
                             break;
                         }
@@ -1052,9 +1060,8 @@
                     const oppOddsStr = window.DestinyLiveFeed.centsToAmericanOdds ? window.DestinyLiveFeed.centsToAmericanOdds(oppP) : (oppP > 50 ? '-' + Math.round((oppP/(100-oppP))*100) : '+' + Math.round(((100-oppP)/oppP)*100));
                     const oppOddsNum = parseInt(oppOddsStr.replace('+', ''), 10) || +100;
 
-                    const awayUpper = g.away_team.toUpperCase();
                     let awayML, homeML;
-                    if (awayUpper.includes(rawTeam) || rawTeam.includes(awayUpper.split(' ').pop())) {
+                    if (matchTeamName(g.away_team, rawTeam)) {
                         awayML = teamOddsNum;
                         homeML = oppOddsNum;
                     } else {
@@ -1433,7 +1440,7 @@
             });
         }
 
-        function lastName(n) { return n ? n.split(' ').slice(-2).join(' ') : '?'; }
+        function lastName(n) { return n || '?'; }
         function lastWord(n) { return n ? n.split(' ').pop() : '?'; }
 
         function fmtTime(isoStr) {
@@ -1500,11 +1507,13 @@
                 var leagueBadge = '';
                 if (g.sport_key) {
                     if (g.sport_key.includes('nba')) leagueBadge = 'NBA';
-                    else if (g.sport_key.includes('nhl')) leagueBadge = 'NHL';
-                    else if (g.sport_key.includes('mlb')) leagueBadge = 'MLB';
+                    else if (g.sport_key.includes('nfl')) leagueBadge = 'NFL';
+                    else if (g.sport_key.includes('ncaaf') || g.sport_key.includes('college-football')) leagueBadge = 'NCAAF';
+                    else if (g.sport_key.includes('nhl') || g.sport_key.includes('hockey')) leagueBadge = 'NHL';
+                    else if (g.sport_key.includes('mlb') || g.sport_key.includes('baseball')) leagueBadge = 'MLB';
                     else if (g.sport_key.includes('wnba')) leagueBadge = 'WNBA';
-                    else if (g.sport_key.includes('ncaa')) leagueBadge = 'NCAA';
-                    else if (g.sport_key.includes('mls')) leagueBadge = 'MLS';
+                    else if (g.sport_key.includes('ncaa') || g.sport_key.includes('mens-college-basketball')) leagueBadge = 'NCAAB';
+                    else if (g.sport_key.includes('mls') || g.sport_key.includes('soccer')) leagueBadge = 'MLS';
                     else leagueBadge = g.sport_key.split('_').pop().toUpperCase();
                 }
                 html += '<div class="game-item' + (isLiveNow ? ' is-live' : '') + (act ? ' active' : '') + (isPinned ? ' pinned-card' : '') + '"'

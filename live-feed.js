@@ -126,13 +126,13 @@
 
             const MOCK_TEAMS = ['Rangers', 'Bruins', 'Tigers', 'Astros', 'Athletics', 'Royals', 'Brewers', 'Angels', 'LAD', 'NYM', 'DET', 'LAL', 'DEN', 'DAL', 'BOS', 'OKC'];
             const KALSHI_SPORTS_CONTRACTS = [
-                { ticker: 'NYR-BOS-WIN', team: 'Rangers', basePrice: 54 },
-                { ticker: 'DET-ATH-WIN', team: 'Tigers', basePrice: 58 },
-                { ticker: 'TEX-HOU-WIN', team: 'Astros', basePrice: 62 },
-                { ticker: 'KC-COL-WIN', team: 'Royals', basePrice: 51 },
-                { ticker: 'MIL-ANG-WIN', team: 'Angels', basePrice: 48 },
-                { ticker: 'LAD-NYM-WIN', team: 'LAD', basePrice: 58 },
-                { ticker: 'OKC-BOS-WIN', team: 'BOS', basePrice: 55 }
+                { ticker: 'NYR-BOS-WIN', team: 'New York Rangers', basePrice: 54 },
+                { ticker: 'DET-ATH-WIN', team: 'Detroit Tigers', basePrice: 58 },
+                { ticker: 'TEX-HOU-WIN', team: 'Houston Astros', basePrice: 62 },
+                { ticker: 'KC-COL-WIN', team: 'Kansas City Royals', basePrice: 51 },
+                { ticker: 'MIL-ANG-WIN', team: 'Los Angeles Angels', basePrice: 48 },
+                { ticker: 'LAD-NYM-WIN', team: 'Los Angeles Dodgers', basePrice: 58 },
+                { ticker: 'OKC-BOS-WIN', team: 'Boston Celtics', basePrice: 55 }
             ];
 
             simulationTimer = setInterval(() => {
