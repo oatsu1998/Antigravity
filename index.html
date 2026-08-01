@@ -3765,6 +3765,31 @@
                        !m.includes('cavaliers') && !m.includes('knicks') && !m.includes('cavs');
             });
             
+            // Seed Red Sox @ Dodgers Over 13.5 (-155, $155 to win $100)
+            const hasRedSoxOver = wagers.some(w => {
+                const target = (w.target || '').toLowerCase();
+                const matchup = (w.matchup || '').toLowerCase();
+                return (target.includes('over 13.5') || target.includes('13.5')) && (matchup.includes('red sox') || matchup.includes('dodgers') || matchup.includes('bos'));
+            });
+            if (!hasRedSoxOver) {
+                wagers.unshift({
+                    id: 'active-redsox-dodgers-over13.5-live',
+                    matchup: 'Boston Red Sox @ Los Angeles Dodgers',
+                    target: 'Total — Over 13.5',
+                    type: 'Total',
+                    detail: 'Over 13.5 (-155)',
+                    wager: 155.00,
+                    stake: 155.00,
+                    placedOdds: '-155',
+                    currentOdds: '-155',
+                    sportsbook: 'Kalshi (Live)',
+                    status: 'PENDING',
+                    history: ['-150', '-155'],
+                    betType: 'GAME',
+                    toWin: 100.00
+                });
+            }
+
             // Seed Thunder +7 Spread safely
             const hasThunderSpread = wagers.some(w => {
                 const target = w.target || '';
