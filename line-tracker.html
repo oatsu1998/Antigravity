@@ -1051,6 +1051,15 @@
                     if (!matchedGameId || !games[matchedGameId]) return;
                     const g = games[matchedGameId];
 
+                    // Process live score / period / status from Kalshi feed
+                    if (tick.aScore !== undefined && tick.hScore !== undefined) {
+                        g.away_score = String(tick.aScore);
+                        g.home_score = String(tick.hScore);
+                    }
+                    if (tick.period !== undefined) g.period = String(tick.period);
+                    if (tick.clock !== undefined) g.clock = tick.clock;
+                    if (tick.status_label) g.espn_detail = tick.status_label;
+
                     // Process price / probability / odds
                     const yesP = tick.yesPrice || (tick.price ? Math.round(tick.price * 100) : 50);
                     const teamOddsStr = tick.americanOdds || (window.DestinyLiveFeed.centsToAmericanOdds ? window.DestinyLiveFeed.centsToAmericanOdds(yesP) : (yesP > 50 ? '-' + Math.round((yesP/(100-yesP))*100) : '+' + Math.round(((100-yesP)/yesP)*100)));

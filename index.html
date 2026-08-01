@@ -4006,6 +4006,19 @@
                         const cardText = card.innerText.toUpperCase();
 
                         if (cardText.includes(rawTeam) || awayAbbr.includes(rawTeam) || homeAbbr.includes(rawTeam) || rawTeam.includes(awayAbbr) || rawTeam.includes(homeAbbr)) {
+                            // Update live scores and game period from Kalshi feed
+                            if (tick.aScore !== undefined && tick.hScore !== undefined) {
+                                const scores = card.querySelectorAll('.team-score');
+                                if (scores.length >= 2) {
+                                    scores[0].innerText = tick.aScore;
+                                    scores[1].innerText = tick.hScore;
+                                }
+                            }
+                            if (tick.status_label) {
+                                const statusTag = card.querySelector('.game-status span:first-child');
+                                if (statusTag) statusTag.innerText = tick.status_label;
+                            }
+
                             const isAwayMatch = awayAbbr.includes(rawTeam) || rawTeam.includes(awayAbbr);
                             const awayCents = isAwayMatch ? yesPrice : noPrice;
                             const homeCents = isAwayMatch ? noPrice : yesPrice;

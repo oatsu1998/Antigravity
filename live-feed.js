@@ -126,13 +126,13 @@
 
             const MOCK_TEAMS = ['Rangers', 'Bruins', 'Tigers', 'Astros', 'Athletics', 'Royals', 'Brewers', 'Angels', 'LAD', 'NYM', 'DET', 'LAL', 'DEN', 'DAL', 'BOS', 'OKC'];
             const KALSHI_SPORTS_CONTRACTS = [
-                { ticker: 'NYR-BOS-WIN', team: 'New York Rangers', basePrice: 54 },
-                { ticker: 'DET-ATH-WIN', team: 'Detroit Tigers', basePrice: 58 },
-                { ticker: 'TEX-HOU-WIN', team: 'Houston Astros', basePrice: 62 },
-                { ticker: 'KC-COL-WIN', team: 'Kansas City Royals', basePrice: 51 },
-                { ticker: 'MIL-ANG-WIN', team: 'Los Angeles Angels', basePrice: 48 },
-                { ticker: 'LAD-NYM-WIN', team: 'Los Angeles Dodgers', basePrice: 58 },
-                { ticker: 'OKC-BOS-WIN', team: 'Boston Celtics', basePrice: 55 }
+                { ticker: 'NYR-BOS-WIN', team: 'New York Rangers', away: 'New York Rangers', home: 'Boston Bruins', aScore: 3, hScore: 2, period: 3, clock: '6:12', status_label: '6:12 - Q3', basePrice: 54 },
+                { ticker: 'DET-ATH-WIN', team: 'Detroit Tigers', away: 'Detroit Tigers', home: 'Oakland Athletics', aScore: 9, hScore: 1, period: 8, clock: 'Top 8th', status_label: 'Top 8th', basePrice: 88 },
+                { ticker: 'TEX-HOU-WIN', team: 'Houston Astros', away: 'Houston Astros', home: 'Texas Rangers', aScore: 6, hScore: 4, period: 7, clock: 'Bot 7th', status_label: 'Bot 7th', basePrice: 62 },
+                { ticker: 'KC-COL-WIN', team: 'Kansas City Royals', away: 'Kansas City Royals', home: 'Colorado Rockies', aScore: 5, hScore: 2, period: 6, clock: 'Top 6th', status_label: 'Top 6th', basePrice: 71 },
+                { ticker: 'MIL-ANG-WIN', team: 'Los Angeles Angels', away: 'Milwaukee Brewers', home: 'Los Angeles Angels', aScore: 6, hScore: 2, period: 9, clock: 'Bot 9th', status_label: 'Bot 9th', basePrice: 18 },
+                { ticker: 'LAD-NYM-WIN', team: 'Los Angeles Dodgers', away: 'Los Angeles Dodgers', home: 'New York Mets', aScore: 4, hScore: 3, period: 8, clock: 'Top 8th', status_label: 'Top 8th', basePrice: 58 },
+                { ticker: 'OKC-BOS-WIN', team: 'Boston Celtics', away: 'Oklahoma City Thunder', home: 'Boston Celtics', aScore: 100, hScore: 93, period: 4, clock: '2:37', status_label: '2:37 - Q4', basePrice: 25 }
             ];
 
             simulationTimer = setInterval(() => {
@@ -148,6 +148,13 @@
                     const payload = {
                         ticker: contract.ticker,
                         team: contract.team,
+                        away: contract.away,
+                        home: contract.home,
+                        aScore: contract.aScore,
+                        hScore: contract.hScore,
+                        period: contract.period,
+                        clock: contract.clock,
+                        status_label: contract.status_label,
                         yesPrice: newYes,
                         noPrice: 100 - newYes,
                         americanOdds: centsToAmericanOdds(newYes),
