@@ -124,19 +124,21 @@
             if (simulationTimer) return;
             this._updateBadge(true, '⚡ KALSHI STREAM ACTIVE');
 
-            const MOCK_TEAMS = ['LAD', 'NYM', 'KC', 'DET', 'LAL', 'DEN', 'DAL', 'MIN', 'GSW', 'SAC', 'BOS', 'OKC', 'ORL', 'CLE'];
+            const MOCK_TEAMS = ['Rangers', 'Bruins', 'Tigers', 'Astros', 'Athletics', 'Royals', 'Brewers', 'Angels', 'LAD', 'NYM', 'DET', 'LAL', 'DEN', 'DAL', 'BOS', 'OKC'];
             const KALSHI_SPORTS_CONTRACTS = [
+                { ticker: 'NYR-BOS-WIN', team: 'Rangers', basePrice: 54 },
+                { ticker: 'DET-ATH-WIN', team: 'Tigers', basePrice: 58 },
+                { ticker: 'TEX-HOU-WIN', team: 'Astros', basePrice: 62 },
+                { ticker: 'KC-COL-WIN', team: 'Royals', basePrice: 51 },
+                { ticker: 'MIL-ANG-WIN', team: 'Angels', basePrice: 48 },
                 { ticker: 'LAD-NYM-WIN', team: 'LAD', basePrice: 58 },
-                { ticker: 'KC-DET-WIN', team: 'DET', basePrice: 52 },
-                { ticker: 'LAL-HOU-WIN', team: 'LAL', basePrice: 62 },
-                { ticker: 'OKC-BOS-WIN', team: 'OKC', basePrice: 54 },
-                { ticker: 'FED-CUT-25BP', team: 'MACRO', basePrice: 68 }
+                { ticker: 'OKC-BOS-WIN', team: 'BOS', basePrice: 55 }
             ];
 
             simulationTimer = setInterval(() => {
                 const randomType = Math.random();
 
-                if (randomType < 0.6) {
+                if (randomType < 0.7) {
                     // Kalshi Real-Time Order Book & Price Tick
                     const contract = KALSHI_SPORTS_CONTRACTS[Math.floor(Math.random() * KALSHI_SPORTS_CONTRACTS.length)];
                     const shift = Math.floor((Math.random() * 5) - 2);
@@ -191,7 +193,7 @@
                         el.classList.add(isPositive ? 'flash-green' : 'flash-red');
                     });
                 }
-            }, 2500);
+            }, 1800);
         },
 
         _updateBadge: function(active, text) {

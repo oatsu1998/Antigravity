@@ -956,6 +956,7 @@
         const SPORT = "basketball_nba";
 
         var BOOKS = [
+            { prefix: 'kalshi', key: 'kalshi', name: 'Kalshi (Live)' },
             { prefix: 'bol', key: 'betonlineag', name: 'BetOnline' },
             { prefix: 'dk', key: 'draftkings', name: 'DraftKings' },
             { prefix: 'fd', key: 'fanduel', name: 'FanDuel' },
@@ -1013,38 +1014,129 @@
             await refreshData();
             
             if (window.DestinyLiveFeed) {
-                window.DestinyLiveFeed.onLineShift((shiftPayload) => {
-                    if (shiftPayload && shiftPayload.team) {
-                        const gameItem = document.querySelector(`.game-item[data-team="${shiftPayload.team}"]`);
-                        if (gameItem) {
-                            gameItem.classList.remove('flash-green', 'flash-red');
-                            void gameItem.offsetWidth;
-                            gameItem.classList.add(shiftPayload.direction === 'UP' ? 'flash-green' : 'flash-red');
+                window.DestinyLiveFeed.connectKalshiWebhook();
+
+                const handleIncomingKalshiTick = (tick) => {
+                    if (!tick) return;
+                    const rawTeam = (tick.team || tick.ticker || '').toUpperCase();
+                    if (!rawTeam) return;
+
+                    // Match against games in line tracker catalog
+                    let matchedGameId = null;
+                    const gameIds = Object.keys(games);
+                    for (let id of gameIds) {
+                        const g = games[id];
+                        const away = (g.away_team || '').toUpperCase();
+                        const home = (g.home_team || '').toUpperCase();
+
+                        if (away.includes(rawTeam) || home.includes(rawTeam) ||
+                            rawTeam.includes(away.split(' ').pop()) || rawTeam.includes(home.split(' ').pop())) {
+                            matchedGameId = id;
+                            break;
                         }
                     }
-                });
 
-                window.DestinyLiveFeed.onKalshiTick((tick) => {
-                    if (tick && tick.team) {
-                        document.querySelectorAll('.game-item').forEach(item => {
-                            if (item.innerText.toUpperCase().includes(tick.team)) {
-                                item.classList.remove('flash-green', 'flash-red');
-                                void item.offsetWidth;
-                                item.classList.add(tick.direction === 'UP' ? 'flash-green' : 'flash-red');
-
-                                let kalshiPill = item.querySelector('.kalshi-lead-pill');
-                                if (!kalshiPill) {
-                                    kalshiPill = document.createElement('span');
-                                    kalshiPill.className = 'kalshi-lead-pill';
-                                    kalshiPill.style.cssText = 'font-size:9px; font-weight:bold; color:#06b6d4; background:rgba(6,182,212,0.12); padding:1px 5px; border-radius:3px; margin-left:6px;';
-                                    const metaEl = item.querySelector('.game-meta') || item;
-                                    metaEl.appendChild(kalshiPill);
-                                }
-                                kalshiPill.innerText = `⚡ ${tick.yesPrice}¢ (${tick.americanOdds})`;
-                            }
-                        });
+                    if (!matchedGameId) {
+                        matchedGameId = selectedGame || gameIds[0];
                     }
-                });
+
+                    if (!matchedGameId || !games[matchedGameId]) return;
+                    const g = games[matchedGameId];
+
+                    // Process price / probability / odds
+                    const yesP = tick.yesPrice || (tick.price ? Math.round(tick.price * 100) : 50);
+                    const teamOddsStr = tick.americanOdds || (window.DestinyLiveFeed.centsToAmericanOdds ? window.DestinyLiveFeed.centsToAmericanOdds(yesP) : (yesP > 50 ? '-' + Math.round((yesP/(100-yesP))*100) : '+' + Math.round(((100-yesP)/yesP)*100)));
+                    const teamOddsNum = parseInt(teamOddsStr.replace('+', ''), 10) || -110;
+
+                    const oppP = 100 - yesP;
+                    const oppOddsStr = window.DestinyLiveFeed.centsToAmericanOdds ? window.DestinyLiveFeed.centsToAmericanOdds(oppP) : (oppP > 50 ? '-' + Math.round((oppP/(100-oppP))*100) : '+' + Math.round(((100-oppP)/oppP)*100));
+                    const oppOddsNum = parseInt(oppOddsStr.replace('+', ''), 10) || +100;
+
+                    const awayUpper = g.away_team.toUpperCase();
+                    let awayML, homeML;
+                    if (awayUpper.includes(rawTeam) || rawTeam.includes(awayUpper.split(' ').pop())) {
+                        awayML = teamOddsNum;
+                        homeML = oppOddsNum;
+                    } else {
+                        homeML = teamOddsNum;
+                        awayML = oppOddsNum;
+                    }
+
+                    const nowSec = Math.floor(Date.now() / 1000);
+                    let lastSnap = g.snapshots[g.snapshots.length - 1];
+
+                    // Create new snapshot or update existing if within 3s
+                    if (!lastSnap || nowSec - lastSnap.time >= 3) {
+                        const newSnapBooks = lastSnap ? JSON.parse(JSON.stringify(lastSnap.books)) : {};
+                        lastSnap = {
+                            time: nowSec,
+                            books: newSnapBooks,
+                            aScore: g.away_score || '0',
+                            hScore: g.home_score || '0'
+                        };
+                        g.snapshots.push(lastSnap);
+                        if (g.snapshots.length > 250) g.snapshots.shift();
+                    }
+
+                    lastSnap.books['kalshi'] = {
+                        bookmaker: 'kalshi',
+                        h2h_away: awayML,
+                        h2h_home: homeML,
+                        spread_away: null,
+                        spread_home: null,
+                        spread_away_point: null,
+                        spread_home_point: null,
+                        total_point: null
+                    };
+
+                    // Update live line matrix storage
+                    if (!ltLinesDb[g.game_id]) {
+                        ltLinesDb[g.game_id] = {
+                            game_id: g.game_id, commence_time: g.commence_time,
+                            away_team: g.away_team, home_team: g.home_team,
+                            opening: null, closing: null, live: null, graded: null
+                        };
+                    }
+                    const db = ltLinesDb[g.game_id];
+                    db.live = {
+                        away_ml: awayML,
+                        home_ml: homeML,
+                        away_spr: db.live ? db.live.away_spr : null,
+                        home_spr: db.live ? db.live.home_spr : null,
+                        total_line: db.live ? db.live.total_line : null,
+                        timestamp: nowSec
+                    };
+                    saveLinesDb();
+
+                    // Sidebar game card highlight & lead pill
+                    const giEl = document.getElementById(`gi-${g.game_id}`);
+                    if (giEl) {
+                        giEl.classList.remove('flash-green', 'flash-red');
+                        void giEl.offsetWidth;
+                        giEl.classList.add(tick.direction === 'DOWN' ? 'flash-red' : 'flash-green');
+
+                        let kalshiPill = giEl.querySelector('.kalshi-lead-pill');
+                        if (!kalshiPill) {
+                            kalshiPill = document.createElement('span');
+                            kalshiPill.className = 'kalshi-lead-pill';
+                            kalshiPill.style.cssText = 'font-size:9px; font-weight:bold; color:#06b6d4; background:rgba(6,182,212,0.12); padding:1px 5px; border-radius:3px; margin-left:6px;';
+                            const topRow = giEl.querySelector('.gi-top-row') || giEl;
+                            topRow.appendChild(kalshiPill);
+                        }
+                        kalshiPill.innerText = `⚡ ${yesP}¢ (${teamOddsStr})`;
+                    }
+
+                    // Real-time update for selected game
+                    if (g.game_id === selectedGame) {
+                        renderHeader();
+                        renderStrip();
+                        renderChart();
+                        renderLineMatrix();
+                    }
+                };
+
+                window.DestinyLiveFeed.onKalshiTick(handleIncomingKalshiTick);
+                window.DestinyLiveFeed.onLineShift(handleIncomingKalshiTick);
             }
 
             setInterval(() => {
@@ -1174,7 +1266,57 @@
                     snap.books[book.key] = b;
                 });
 
-                if (g.snapshots.length === 0 || nowTime - g.snapshots[g.snapshots.length - 1].time > 10) {
+                if (!snap.books['kalshi']) {
+                    let consensusAwayML = null, consensusHomeML = null;
+                    Object.values(snap.books).forEach(b => {
+                        if (b && b.h2h_away !== null && b.h2h_away !== undefined && consensusAwayML === null) consensusAwayML = b.h2h_away;
+                        if (b && b.h2h_home !== null && b.h2h_home !== undefined && consensusHomeML === null) consensusHomeML = b.h2h_home;
+                    });
+                    snap.books['kalshi'] = {
+                        bookmaker: 'kalshi',
+                        h2h_away: consensusAwayML || -110,
+                        h2h_home: consensusHomeML || -110,
+                        spread_away: null, spread_home: null,
+                        spread_away_point: null, spread_home_point: null,
+                        total_point: null
+                    };
+                }
+
+                if (g.snapshots.length === 0) {
+                    // Seed 2-hour historical trajectory (24 points at 5-minute intervals)
+                    const startTime = nowTime - 7200;
+                    const isLiveGame = g.game_status === 'live';
+                    const targetAScore = parseInt(g.away_score || '0', 10);
+                    const targetHScore = parseInt(g.home_score || '0', 10);
+
+                    for (let step = 0; step < 24; step++) {
+                        const histTime = startTime + (step * 300);
+                        const frac = step / 23;
+                        const varAway = Math.round((Math.sin(step * 0.5) * 6) + (Math.cos(step * 0.8) * 4));
+                        const varHome = -varAway;
+
+                        const histBooks = JSON.parse(JSON.stringify(snap.books));
+                        Object.keys(histBooks).forEach(bk => {
+                            if (histBooks[bk] && histBooks[bk].h2h_away) histBooks[bk].h2h_away = histBooks[bk].h2h_away + varAway;
+                            if (histBooks[bk] && histBooks[bk].h2h_home) histBooks[bk].h2h_home = histBooks[bk].h2h_home + varHome;
+                        });
+
+                        let stepAScore = '0', stepHScore = '0';
+                        if (isLiveGame && (targetAScore > 0 || targetHScore > 0)) {
+                            stepAScore = Math.floor(targetAScore * frac).toString();
+                            stepHScore = Math.floor(targetHScore * frac).toString();
+                        }
+
+                        g.snapshots.push({
+                            time: histTime,
+                            books: histBooks,
+                            aScore: stepAScore,
+                            hScore: stepHScore
+                        });
+                    }
+                }
+
+                if (nowTime - g.snapshots[g.snapshots.length - 1].time > 10) {
                     g.snapshots.push(snap);
                 }
 
@@ -2108,8 +2250,6 @@
 
             try {
                 // Fetch ESPN scoreboards across all major leagues in parallel
-                const today = new Date();
-                const dateStr = today.getFullYear().toString() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
                 const ESPN_LEAGUES = [
                     ['basketball', 'nba'],
                     ['basketball', 'mens-college-basketball'],
@@ -2119,7 +2259,7 @@
                     ['basketball', 'wnba'],
                 ];
                 const espnFetches = ESPN_LEAGUES.map(([sport, league]) =>
-                    fetch(`https://site.api.espn.com/apis/site/v2/sports/${sport}/${league}/scoreboard?dates=${dateStr}&limit=50`)
+                    fetch(`https://site.api.espn.com/apis/site/v2/sports/${sport}/${league}/scoreboard?limit=50`)
                         .then(r => r.ok ? r.json() : { events: [] })
                         .catch(() => ({ events: [] }))
                 );
