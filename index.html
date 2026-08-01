@@ -398,6 +398,98 @@
             border-radius: 6px;
         }
 
+        .kalshi-card-tile {
+            background: rgba(15, 23, 34, 0.75);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-top: 10px;
+            transition: all 0.2s ease;
+        }
+        .kalshi-card-tile:hover {
+            border-color: rgba(6, 182, 212, 0.7);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.2);
+        }
+        .kalshi-tile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .kalshi-live-tag {
+            font-size: 9px;
+            font-weight: 800;
+            color: #06B6D4;
+            letter-spacing: 0.8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .kalshi-market-type {
+            font-size: 8px;
+            color: var(--muted);
+            font-family: var(--font-mono);
+            letter-spacing: 0.5px;
+        }
+        .kalshi-tile-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .kalshi-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .kalshi-team-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .kalshi-mini-logo {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+        }
+        .kalshi-team-abbr {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .kalshi-team-role {
+            font-size: 8px;
+            color: var(--muted);
+            font-family: var(--font-mono);
+        }
+        .kalshi-odds-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(6, 182, 212, 0.08);
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .kalshi-odds-box:hover {
+            background: rgba(6, 182, 212, 0.25);
+            border-color: #06B6D4;
+        }
+        .kalshi-cents-val {
+            font-size: 13px;
+            font-weight: 800;
+            color: #06B6D4;
+        }
+        .kalshi-american-val {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text);
+            opacity: 0.85;
+        }
+
         .no-games .icon {
             font-size: 32px;
             margin-bottom: 12px;
@@ -2394,6 +2486,98 @@
             const betsCount = wagersList.length;
             const showScoreBlock = status.isLive || status.isFinal;
 
+            // ⚡ Kalshi Live Odds Tile Generation (ALWAYS SHOWN)
+            const awayAbbrStr = away.team?.abbreviation || away.team?.name || 'AWAY';
+            const homeAbbrStr = home.team?.abbreviation || home.team?.name || 'HOME';
+            const awayNameStr = away.team?.displayName || away.team?.name || awayAbbrStr;
+            const homeNameStr = home.team?.displayName || home.team?.name || homeAbbrStr;
+
+            let kalshiAwayCents = 50;
+            let kalshiHomeCents = 50;
+
+            if (status.isLive) {
+                const diff = awayScore - homeScore;
+                if (diff > 0) {
+                    kalshiAwayCents = Math.min(92, 50 + diff * 6);
+                    kalshiHomeCents = 100 - kalshiAwayCents;
+                } else if (diff < 0) {
+                    kalshiHomeCents = Math.min(92, 50 + Math.abs(diff) * 6);
+                    kalshiAwayCents = 100 - kalshiHomeCents;
+                }
+            } else if (status.isFinal) {
+                if (awayScore > homeScore) { kalshiAwayCents = 99; kalshiHomeCents = 1; }
+                else if (homeScore > awayScore) { kalshiHomeCents = 99; kalshiAwayCents = 1; }
+            } else if (matchedOdds) {
+                const h2h = matchedOdds.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h');
+                if (h2h) {
+                    const aPrice = h2h.outcomes?.find(o => o.name === matchedOdds.away_team)?.price || -110;
+                    if (aPrice < 0) {
+                        kalshiAwayCents = Math.min(90, Math.max(10, Math.round((Math.abs(aPrice) / (Math.abs(aPrice) + 100)) * 100)));
+                        kalshiHomeCents = 100 - kalshiAwayCents;
+                    } else {
+                        kalshiHomeCents = Math.min(90, Math.max(10, Math.round((Math.abs(aPrice) / (Math.abs(aPrice) + 100)) * 100)));
+                        kalshiAwayCents = 100 - kalshiAwayCents;
+                    }
+                }
+            }
+
+            const calcAmerican = (cents) => {
+                if (cents >= 99) return '-10000';
+                if (cents <= 1) return '+10000';
+                if (cents === 50) return 'EVEN';
+                if (cents > 50) {
+                    const num = Math.round((cents / (100 - cents)) * 100);
+                    return `-${num}`;
+                } else {
+                    const num = Math.round(((100 - cents) / cents) * 100);
+                    return `+${num}`;
+                }
+            };
+
+            const awayAmericanStr = calcAmerican(kalshiAwayCents);
+            const homeAmericanStr = calcAmerican(kalshiHomeCents);
+
+            const kalshiTileHtml = `
+            <div class="kalshi-card-tile" onclick="event.stopPropagation()" data-away="${awayAbbrStr}" data-home="${homeAbbrStr}">
+                <div class="kalshi-tile-header">
+                    <span class="kalshi-live-tag">⚡ KALSHI LIVE</span>
+                    <span class="kalshi-market-type">WIN PROBABILITY</span>
+                </div>
+                <div class="kalshi-tile-rows">
+                    <div class="kalshi-row">
+                        <div class="kalshi-team-label">
+                            ${awayLogo ? `<img src="${awayLogo}" class="kalshi-mini-logo">` : ''}
+                            <span class="kalshi-team-abbr">${awayAbbrStr}</span>
+                            <span class="kalshi-team-role">AWAY</span>
+                        </div>
+                        <div class="kalshi-odds-box clickable" onclick="addToBetSlip('${awayNameStr.replace(/'/g, "\\'")}', 'Moneyline (Kalshi)', '${awayAmericanStr}')">
+                            <span class="kalshi-cents-val">${kalshiAwayCents}¢</span>
+                            <span class="kalshi-american-val">${awayAmericanStr}</span>
+                        </div>
+                    </div>
+                    <div class="kalshi-row">
+                        <div class="kalshi-team-label">
+                            ${homeLogo ? `<img src="${homeLogo}" class="kalshi-mini-logo">` : ''}
+                            <span class="kalshi-team-abbr">${homeAbbrStr}</span>
+                            <span class="kalshi-team-role">HOME</span>
+                        </div>
+                        <div class="kalshi-odds-box clickable" onclick="addToBetSlip('${homeNameStr.replace(/'/g, "\\'")}', 'Moneyline (Kalshi)', '${homeAmericanStr}')">
+                            <span class="kalshi-cents-val">${kalshiHomeCents}¢</span>
+                            <span class="kalshi-american-val">${homeAmericanStr}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bw-prob" style="margin-top: 8px;">
+                    <span class="bw-prob-val-left">${kalshiAwayCents}% ${awayAbbrStr} (${awayAmericanStr})</span>
+                    <div class="bw-prob-bar-wrap">
+                        <div class="bw-prob-bar-left" style="width: ${kalshiAwayCents}%;"></div>
+                        <div class="bw-prob-bar-right" style="width: ${kalshiHomeCents}%;"></div>
+                    </div>
+                    <span class="bw-prob-val-right">${kalshiHomeCents}% ${homeAbbrStr}</span>
+                </div>
+            </div>
+            `;
+
             return `
     <div class="game-card ${status.isLive ? 'live' : ''} ${espnPinned.has(event.id) ? 'pinned' : ''}" id="card-${panelType}-${event.id}" data-eid="${event.id}"
          draggable="true"
@@ -2438,6 +2622,7 @@
         </div>
       </div>
       ` : ''}
+      ${kalshiTileHtml}
       ${bettingWidgetHtml}
       <div class="game-footer" style="${bettingWidgetHtml !== '' ? 'display: none;' : ''}">
         <span class="game-info">${[venue, broadcast].filter(Boolean).join(' · ')}</span>
@@ -3789,39 +3974,62 @@
             // ⚡ Sub-Second Kalshi WebSocket Real-Time Listener
             if (window.DestinyLiveFeed) {
                 window.DestinyLiveFeed.onKalshiTick((tick) => {
-                    if (!tick || !tick.team) return;
-                    const team = tick.team;
+                    if (!tick || (!tick.team && !tick.ticker)) return;
+                    const rawTeam = (tick.team || tick.ticker || '').toUpperCase();
                     const yesPrice = tick.yesPrice || 50;
                     const noPrice = 100 - yesPrice;
-                    const americanOdds = tick.americanOdds || (window.centsToAmericanOdds ? window.centsToAmericanOdds(yesPrice) : 'EVEN');
+                    const americanOdds = tick.americanOdds || (window.DestinyLiveFeed.centsToAmericanOdds ? window.DestinyLiveFeed.centsToAmericanOdds(yesPrice) : 'EVEN');
+
+                    const centsToAmerican = (cents) => {
+                        if (cents >= 99) return '-10000';
+                        if (cents <= 1) return '+10000';
+                        if (cents === 50) return 'EVEN';
+                        if (cents > 50) return `-${Math.round((cents / (100 - cents)) * 100)}`;
+                        return `+${Math.round(((100 - cents) / cents) * 100)}`;
+                    };
+
+                    const oppAmerican = centsToAmerican(noPrice);
 
                     // Find game cards matching team
                     const cards = document.querySelectorAll('.game-card');
                     cards.forEach(card => {
+                        const tile = card.querySelector('.kalshi-card-tile');
+                        if (!tile) return;
+                        const awayAbbr = (tile.dataset.away || '').toUpperCase();
+                        const homeAbbr = (tile.dataset.home || '').toUpperCase();
                         const cardText = card.innerText.toUpperCase();
-                        if (cardText.includes(team)) {
-                            // Update or inject Kalshi streaming badge
-                            let badge = card.querySelector('.kalshi-stream-badge');
-                            if (!badge) {
-                                const header = card.querySelector('.game-header') || card;
-                                badge = document.createElement('div');
-                                badge.className = 'kalshi-stream-badge';
-                                badge.style.cssText = 'font-size:9px; font-weight:bold; color:#06b6d4; background:rgba(6,182,212,0.12); border:1px solid rgba(6,182,212,0.3); border-radius:3px; padding:2px 6px; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:4px; margin-bottom:6px;';
-                                badge.innerHTML = '⚡ KALSHI LIVE STREAM';
-                                header.prepend(badge);
-                            }
+
+                        if (cardText.includes(rawTeam) || awayAbbr.includes(rawTeam) || homeAbbr.includes(rawTeam) || rawTeam.includes(awayAbbr) || rawTeam.includes(homeAbbr)) {
+                            const isAwayMatch = awayAbbr.includes(rawTeam) || rawTeam.includes(awayAbbr);
+                            const awayCents = isAwayMatch ? yesPrice : noPrice;
+                            const homeCents = isAwayMatch ? noPrice : yesPrice;
+                            const awayAm = isAwayMatch ? americanOdds : oppAmerican;
+                            const homeAm = isAwayMatch ? oppAmerican : americanOdds;
 
                             // Update probability bar instantly
-                            const probLeft = card.querySelector('.bw-prob-bar-left');
-                            const probRight = card.querySelector('.bw-prob-bar-right');
-                            const valLeft = card.querySelector('.bw-prob-val-left');
-                            const valRight = card.querySelector('.bw-prob-val-right');
+                            const probLeft = tile.querySelector('.bw-prob-bar-left');
+                            const probRight = tile.querySelector('.bw-prob-bar-right');
+                            const valLeft = tile.querySelector('.bw-prob-val-left');
+                            const valRight = tile.querySelector('.bw-prob-val-right');
 
                             if (probLeft && probRight && valLeft && valRight) {
-                                probLeft.style.width = yesPrice + '%';
-                                probRight.style.width = noPrice + '%';
-                                valLeft.innerText = `${yesPrice}% ${team} (${americanOdds})`;
-                                valRight.innerText = `${noPrice}%`;
+                                probLeft.style.width = awayCents + '%';
+                                probRight.style.width = homeCents + '%';
+                                valLeft.innerText = `${awayCents}% ${awayAbbr} (${awayAm})`;
+                                valRight.innerText = `${homeCents}% ${homeAbbr}`;
+                            }
+
+                            // Update cents and american values in the tile boxes
+                            const boxes = tile.querySelectorAll('.kalshi-odds-box');
+                            if (boxes.length >= 2) {
+                                const awayCentsEl = boxes[0].querySelector('.kalshi-cents-val');
+                                const awayAmEl = boxes[0].querySelector('.kalshi-american-val');
+                                const homeCentsEl = boxes[1].querySelector('.kalshi-cents-val');
+                                const homeAmEl = boxes[1].querySelector('.kalshi-american-val');
+                                if (awayCentsEl) awayCentsEl.innerText = `${awayCents}¢`;
+                                if (awayAmEl) awayAmEl.innerText = awayAm;
+                                if (homeCentsEl) homeCentsEl.innerText = `${homeCents}¢`;
+                                if (homeAmEl) homeAmEl.innerText = homeAm;
                             }
 
                             // Flash card container green/red based on tick direction
