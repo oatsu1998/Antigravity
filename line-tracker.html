@@ -1375,10 +1375,10 @@
             if (Object.keys(games).length === 0) {
                 const DEFAULT_KALSHI_GAMES = [
                     { id: 'kalshi_1', away: 'New York Rangers', home: 'Boston Bruins', sport: 'hockey_nhl', aScore: '2', hScore: '1', period: '2', clock: '08:42' },
-                    { id: 'kalshi_2', away: 'Detroit Tigers', home: 'Athletics', sport: 'baseball_mlb', aScore: '4', hScore: '3', period: '7', clock: 'Bot 7th' },
+                    { id: 'kalshi_2', away: 'Detroit Tigers', home: 'Oakland Athletics', sport: 'baseball_mlb', aScore: '4', hScore: '3', period: '7', clock: 'Bot 7th' },
                     { id: 'kalshi_3', away: 'Houston Astros', home: 'Texas Rangers', sport: 'baseball_mlb', aScore: '5', hScore: '2', period: '6', clock: 'Top 6th' },
                     { id: 'kalshi_4', away: 'Kansas City Royals', home: 'Colorado Rockies', sport: 'baseball_mlb', aScore: '3', hScore: '1', period: '5', clock: 'Bot 5th' },
-                    { id: 'kalshi_5', away: 'Los Angeles Dodgers', home: 'New York Mets', sport: 'baseball_mlb', aScore: '6', hScore: '4', period: '8', clock: 'Top 8th' },
+                    { id: 'kalshi_5', away: 'Boston Red Sox', home: 'Los Angeles Dodgers', sport: 'baseball_mlb', aScore: '8', hScore: '4', period: '7', clock: 'Top 7th' },
                     { id: 'kalshi_6', away: 'Oklahoma City Thunder', home: 'Boston Celtics', sport: 'basketball_nba', aScore: '98', hScore: '94', period: '4', clock: '04:12' }
                 ];
 
@@ -1475,6 +1475,37 @@
             renderSidebar();
         }
 
+        function getTeamLogoUrl(teamName, sportKey) {
+            if (!teamName) return '';
+            const t = teamName.toLowerCase();
+            
+            // NHL
+            if (t.includes('rangers') || t.includes('nyr')) return 'https://a.espncdn.com/i/teamlogos/nhl/500/nyr.png';
+            if (t.includes('bruins') || t.includes('bos')) return 'https://a.espncdn.com/i/teamlogos/nhl/500/bos.png';
+            
+            // MLB
+            if (t.includes('red sox') || t.includes('bos')) return 'https://a.espncdn.com/i/teamlogos/mlb/500/bos.png';
+            if (t.includes('dodgers') || t.includes('lad')) return 'https://a.espncdn.com/i/teamlogos/mlb/500/lad.png';
+            if (t.includes('mets') || t.includes('nym')) return 'https://a.espncdn.com/i/teamlogos/mlb/500/nym.png';
+            if (t.includes('tigers') || t.includes('det')) return 'https://a.espncdn.com/i/teamlogos/mlb/500/det.png';
+            if (t.includes('athletics') || t.includes('oak') || t.includes('ath')) return 'https://a.espncdn.com/i/teamlogos/mlb/500/oak.png';
+            if (t.includes('astros') || t.includes('hou')) return 'https://a.espncdn.com/i/teamlogos/mlb/500/hou.png';
+            if (t.includes('tex') || t.includes('texas')) return 'https://a.espncdn.com/i/teamlogos/mlb/500/tex.png';
+            if (t.includes('royals') || t.includes('kc')) return 'https://a.espncdn.com/i/teamlogos/mlb/500/kc.png';
+            if (t.includes('rockies') || t.includes('col')) return 'https://a.espncdn.com/i/teamlogos/mlb/500/col.png';
+            if (t.includes('brewers') || t.includes('mil')) return 'https://a.espncdn.com/i/teamlogos/mlb/500/mil.png';
+            if (t.includes('angels') || t.includes('laa') || t.includes('ang')) return 'https://a.espncdn.com/i/teamlogos/mlb/500/laa.png';
+            if (t.includes('yankees') || t.includes('nyy')) return 'https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png';
+            
+            // NBA
+            if (t.includes('thunder') || t.includes('okc')) return 'https://a.espncdn.com/i/teamlogos/nba/500/okc.png';
+            if (t.includes('celtics') || t.includes('bos')) return 'https://a.espncdn.com/i/teamlogos/nba/500/bos.png';
+            if (t.includes('lakers') || t.includes('lal')) return 'https://a.espncdn.com/i/teamlogos/nba/500/lal.png';
+            if (t.includes('nuggets') || t.includes('den')) return 'https://a.espncdn.com/i/teamlogos/nba/500/den.png';
+            
+            return '';
+        }
+
         function renderSidebar() {
             var el = document.getElementById('gameList');
             var allGames = sortGames();
@@ -1527,6 +1558,10 @@
                     else if (g.sport_key.includes('mls') || g.sport_key.includes('soccer')) leagueBadge = 'MLS';
                     else leagueBadge = g.sport_key.split('_').pop().toUpperCase();
                 }
+
+                var awayLogoUrl = g.away_logo || getTeamLogoUrl(g.away_team, g.sport_key);
+                var homeLogoUrl = g.home_logo || getTeamLogoUrl(g.home_team, g.sport_key);
+
                 html += '<div class="game-item' + (isLiveNow ? ' is-live' : '') + (act ? ' active' : '') + (isPinned ? ' pinned-card' : '') + '"'
                     + ' id="gi-' + g.game_id + '"'
                     + ' draggable="true"'
@@ -1541,7 +1576,7 @@
                     + '<div class="gi-top-row">'
                     + '<div style="display:flex; align-items:center; gap:8px;">'
                     + '<span class="gi-status ' + (isLiveNow ? 'live' : '') + '" style="' + (isLiveNow ? '' : 'color:var(--muted);') + '">' + stxt + '</span>'
-                    + (leagueBadge ? '<span style="font-family:var(--font-mono);font-size:8px;color:var(--muted);letter-spacing:1px;">' + leagueBadge + '</span>' : '')
+                    + (leagueBadge ? '<span style="font-family:var(--font-mono);font-size:8px;color:var(--muted);letter-spacing:1px;background:rgba(255,255,255,0.06);padding:1px 4px;border-radius:3px;">' + leagueBadge + '</span>' : '')
                     + '</div>'
                     + '<div class="gi-actions" onclick="event.stopPropagation()">'
                     + '<button class="pin-btn' + (isPinned ? ' pinned' : '') + '" title="' + (isPinned ? 'Unpin' : 'Pin') + '" onclick="togglePin(\'' + g.game_id + '\', event)">'
@@ -1552,16 +1587,16 @@
                     // Away team
                     + '<div class="gi-team-row away-row">'
                     + '<div style="display:flex; align-items:center; gap:8px;">'
-                    + (g.away_logo ? '<img src="' + g.away_logo + '" style="width:16px;height:16px;object-fit:contain;">' : '<span class="gi-label">AWAY</span>')
-                    + '<span class="gi-team-name">' + lastName(g.away_team) + '</span>'
+                    + (awayLogoUrl ? '<img src="' + awayLogoUrl + '" style="width:16px;height:16px;object-fit:contain;flex-shrink:0;" onerror="this.style.display=\'none\'">' : '<span class="gi-label">AWAY</span>')
+                    + '<span class="gi-team-name">' + (g.away_team || '?') + '</span>'
                     + '</div>'
                     + '<span class="gi-score">' + g.away_score + '</span>'
                     + '</div>'
                     // Home team
                     + '<div class="gi-team-row">'
                     + '<div style="display:flex; align-items:center; gap:8px;">'
-                    + (g.home_logo ? '<img src="' + g.home_logo + '" style="width:16px;height:16px;object-fit:contain;">' : '<span class="gi-label">HOME</span>')
-                    + '<span class="gi-team-name">' + lastName(g.home_team) + '</span>'
+                    + (homeLogoUrl ? '<img src="' + homeLogoUrl + '" style="width:16px;height:16px;object-fit:contain;flex-shrink:0;" onerror="this.style.display=\'none\'">' : '<span class="gi-label">HOME</span>')
+                    + '<span class="gi-team-name">' + (g.home_team || '?') + '</span>'
                     + '</div>'
                     + '<span class="gi-score">' + g.home_score + '</span>'
                     + '</div>'
@@ -1891,7 +1926,7 @@
 
             // Row helper
             var mkRow = function(isAway) {
-                var logo  = isAway ? g.away_logo  : g.home_logo;
+                var logo  = isAway ? (g.away_logo || getTeamLogoUrl(g.away_team, g.sport_key)) : (g.home_logo || getTeamLogoUrl(g.home_team, g.sport_key));
                 var team  = isAway ? g.away_team  : g.home_team;
                 var rec   = isAway ? (g.away_record || '') : (g.home_record || '');
                 var score = isAway ? g.away_score  : g.home_score;
@@ -1910,7 +1945,7 @@
                 r += '<div style="display:flex; align-items:center; gap:8px;">';
                 if (logo) r += '<img src="' + logo + '" style="width:22px; height:22px; object-fit:contain; flex-shrink:0;" onerror="this.style.display=\'none\'">';
                 r += '<div>';
-                r += '<div style="font-weight:700; color:var(--fg); font-size:12px;">' + (team ? team.split(' ').pop() : '?') + '</div>';
+                r += '<div style="font-weight:700; color:var(--fg); font-size:12px;">' + (team || '?') + '</div>';
                 if (rec) r += '<div style="font-size:9px; color:var(--muted); margin-top:1px;">' + rec + '</div>';
                 r += '</div></div></td>';
 
@@ -2284,24 +2319,9 @@
 
             el.innerHTML = html;
         }
-
-        function sortGames() {
-            return Object.values(games).sort(function (a, b) {
-                var order = { live: 0, pre_game: 1, completed: 2 };
-                var oa = order[a.game_status] || 1, ob = order[b.game_status] || 1;
-                if (oa !== ob) return oa - ob;
-                return (a.commence_time || '').localeCompare(b.commence_time || '');
-            });
-        }
-
-        function lastName(n) { return n ? n.split(' ').slice(-2).join(' ') : '?'; }
-        function lastWord(n) { return n ? n.split(' ').pop() : '?'; }
-
-        function fmtTime(isoStr) {
-            if (!isoStr) return '';
-            var normalized = isoStr.trim().replace(' UTC', 'Z').replace(' ', 'T');
-            return new Date(normalized).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: TZ });
-        }
+    </script>
+</body>
+</html>
 
         // ── Sidebar state ─────────────────────────────────────────────
         var pinnedGames = new Set(JSON.parse(localStorage.getItem('lt_pinned') || '[]'));
