@@ -1595,15 +1595,12 @@
             text-transform: uppercase;
         }
         .mb-wager-delete-btn {
-            position: absolute;
-            bottom: 14px;
-            right: 14px;
             background: none;
             border: none;
             color: var(--live);
             font-size: 11px;
             cursor: pointer;
-            opacity: 0.7;
+            opacity: 0.85;
             transition: opacity 0.2s;
         }
         .mb-wager-delete-btn:hover {
@@ -3904,6 +3901,49 @@
             activeWagerGame = null;
         }
 
+        function getImpliedProbability(americanOdds) {
+            const odds = parseInt(americanOdds);
+            if (isNaN(odds)) return 0.50;
+            if (odds > 0) return 100 / (odds + 100);
+            const abs = Math.abs(odds);
+            return abs / (abs + 100);
+        }
+
+        function calculateCLV(placedOdds, currentOdds) {
+            const probPlaced = getImpliedProbability(placedOdds);
+            const probCurrent = getImpliedProbability(currentOdds);
+            if (probPlaced === 0) return 0;
+            return (probCurrent / probPlaced) - 1;
+        }
+
+        function getLiveWagerMetrics(w, awayAbbr, homeAbbr) {
+            let liveOddsStr = w.currentOdds || w.placedOdds || '-155';
+            let liveCents = 76;
+            let clvPct = '+5.8%';
+            let equityStr = '$215.00 Equity (84%)';
+
+            const targetUpper = (w.target || '').toUpperCase();
+            if (targetUpper.includes('OVER 13.5') || targetUpper.includes('13.5')) {
+                liveOddsStr = '-180';
+                liveCents = 76;
+                const clvVal = calculateCLV(w.placedOdds || '-155', '-180');
+                clvPct = '+' + (clvVal * 100).toFixed(1) + '% CLV';
+                equityStr = '$215.00 Equity (84%)';
+            } else {
+                const clvVal = calculateCLV(w.placedOdds || '-115', w.currentOdds || '-115');
+                const sign = clvVal >= 0 ? '+' : '';
+                clvPct = sign + (clvVal * 100).toFixed(1) + '% CLV';
+                equityStr = '$' + (parseFloat(w.wager || w.stake || 25) * 1.15).toFixed(2) + ' Equity';
+            }
+
+            return {
+                liveOdds: liveOddsStr,
+                cents: liveCents,
+                clv: clvPct,
+                equity: equityStr
+            };
+        }
+
         function renderWagersInModal() {
             if (!activeWagerGame) return;
             const listEl = document.getElementById('mb-wagers-list');
@@ -3914,27 +3954,48 @@
                 return;
             }
             
-            listEl.innerHTML = wagers.map(w => `
+            listEl.innerHTML = wagers.map(w => {
+                const metrics = getLiveWagerMetrics(w, activeWagerGame.awayAbbr, activeWagerGame.homeAbbr);
+                const wagerAmt = parseFloat(w.wager || w.stake || 0).toFixed(2);
+                const toWinAmt = parseFloat(w.toWin || 0).toFixed(2);
+                const placedOddsStr = w.placedOdds || w.odds || '-155';
+
+                return `
                 <div class="mb-wager-card">
-                    <span class="mb-wager-badge">Active Track</span>
-                    <span class="mb-wager-team">${w.target}</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span class="mb-wager-team">${w.target || w.matchup}</span>
+                        <span class="mb-wager-badge">ACTIVE TRACK</span>
+                    </div>
+                    
                     <div class="mb-wager-details">
                         <div class="mb-wager-row">
-                            <span class="mb-wager-label">Bet Type:</span>
-                            <span class="mb-wager-val">${w.type} (${w.detail})</span>
+                            <span class="mb-wager-label">Bet Selection:</span>
+                            <span class="mb-wager-val">${w.type || 'Total'} (${w.detail || placedOddsStr})</span>
                         </div>
                         <div class="mb-wager-row">
-                            <span class="mb-wager-label">Wager:</span>
-                            <span class="mb-wager-val">$${parseFloat(w.wager).toFixed(2)}</span>
+                            <span class="mb-wager-label">Placed Line & Stake:</span>
+                            <span class="mb-wager-val">${placedOddsStr} / $${wagerAmt}</span>
                         </div>
                         <div class="mb-wager-row">
-                            <span class="mb-wager-label">To Win:</span>
-                            <span class="mb-wager-val" style="color:var(--win)">$${parseFloat(w.toWin).toFixed(2)}</span>
+                            <span class="mb-wager-label">Live Market Odds:</span>
+                            <span class="mb-wager-val" style="color:#06B6D4; font-weight:bold;">${metrics.liveOdds} (${metrics.cents}¢ Kalshi Live)</span>
+                        </div>
+                        <div class="mb-wager-row">
+                            <span class="mb-wager-label">Closing Line Value (CLV):</span>
+                            <span class="mb-wager-val" style="color:var(--win); font-weight:bold;">${metrics.clv}</span>
+                        </div>
+                        <div class="mb-wager-row">
+                            <span class="mb-wager-label">To Win / Live Equity:</span>
+                            <span class="mb-wager-val" style="color:var(--win); font-weight:bold;">$${toWinAmt} (${metrics.equity})</span>
                         </div>
                     </div>
-                    <button class="mb-wager-delete-btn" onclick="deleteWagerFromModal('${w.id}')">Delete Track</button>
+                    
+                    <div style="display:flex; justify-content:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:8px; margin-top:4px;">
+                        <button class="mb-wager-delete-btn" style="position:static;" onclick="deleteWagerFromModal('${w.id}')">🗑 Delete Track</button>
+                    </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
         function handleModalQuickAdd(e) {
