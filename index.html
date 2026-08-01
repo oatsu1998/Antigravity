@@ -2695,6 +2695,12 @@
     `;
             }
 
+            allLiveEvents.sort((a, b) => {
+                const isPinA = espnPinned.has(a.event.id), isPinB = espnPinned.has(b.event.id);
+                if (isPinA !== isPinB) return isPinA ? -1 : 1;
+                return new Date(a.event.date || 0) - new Date(b.event.date || 0);
+            });
+
             return `<div class="games-grid">${allLiveEvents.map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>`;
         }
 

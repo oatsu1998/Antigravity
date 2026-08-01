@@ -1433,6 +1433,8 @@
 
         function sortGames() {
             return Object.values(games).sort(function (a, b) {
+                var isPinA = pinnedGames.has(a.game_id), isPinB = pinnedGames.has(b.game_id);
+                if (isPinA !== isPinB) return isPinA ? -1 : 1;
                 var order = { live: 0, pre_game: 1, completed: 2 };
                 var oa = order[a.game_status] || 1, ob = order[b.game_status] || 1;
                 if (oa !== ob) return oa - ob;
