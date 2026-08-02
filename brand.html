@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand & Portfolio Dashboard — Destiny Ecosystem Hub</title>
+    <meta name="description" content="Central Brand Command Center and Live Directory for Destiny Network, Outdoor Aquatics, and Basement Aquatics web properties.">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #07090c;
+            --surface: #0e1116;
+            --surface2: #151a21;
+            --surface3: #1c232d;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(245, 158, 11, 0.2);
+            --text: #e2e8f0;
+            --muted: #64748b;
+            --accent: #f59e0b;      /* Neon Amber/Gold */
+            --accent-cyan: #06b6d4; /* Neon Cyan */
+            --accent-purple: #a855f7;/* Aqua/Purple */
+            --win: #10b981;         /* Neon Emerald */
+            --warning: #eab308;     /* Warning Gold */
+            --font-head: 'Barlow Condensed', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            padding-bottom: 60px;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.03) 0%, transparent 40%);
+        }
+
+        .page-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 72px 24px 32px 24px;
+        }
+
+        /* ── Header ── */
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-title-box h1 {
+            font-family: var(--font-head);
+            font-size: 38px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent) 50%, var(--accent-cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .header-title-box p {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .sync-badge {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.1);
+        }
+
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--win);
+            box-shadow: 0 0 12px var(--win);
+            animation: pulse-ring 2s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 18px var(--win); }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        .sync-text {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .sync-time {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        /* ── Top Metrics Row ── */
+        .metrics-banner {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 1024px) {
+            .metrics-banner { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .metrics-banner { grid-template-columns: 1fr; }
+        }
+
+        .metric-card {
+            background: linear-gradient(145deg, var(--surface) 0%, var(--surface2) 100%);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px 24px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-cyan) 100%);
+        }
+
+        .metric-lbl {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .metric-val {
+            font-family: var(--font-head);
+            font-size: 32px;
+            font-weight: 900;
+            color: #fff;
+        }
+
+        .metric-sub {
+            font-size: 11px;
+            color: var(--accent-cyan);
+            margin-top: 4px;
+        }
+
+        /* ── Main Layout: Properties Grid + Live Activity Feed ── */
+        .dashboard-main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1.1fr;
+            gap: 28px;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-main-grid { grid-template-columns: 1fr; }
+        }
+
+        .section-title {
+            font-family: var(--font-head);
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #fff;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-tag {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+
+        /* ── Brand Property Cards ── */
+        .properties-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .property-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            position: relative;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .property-card:hover {
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 158, 11, 0.08);
+        }
+
+        .prop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .prop-identity {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .prop-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: var(--accent);
+        }
+
+        .prop-icon.cyan {
+            background: rgba(6, 182, 212, 0.1);
+            border-color: rgba(6, 182, 212, 0.3);
+            color: var(--accent-cyan);
+        }
+
+        .prop-icon.purple {
+            background: rgba(168, 85, 247, 0.1);
+            border-color: rgba(168, 85, 247, 0.3);
+            color: var(--accent-purple);
+        }
+
+        .prop-title-box h3 {
+            font-family: var(--font-head);
+            font-size: 22px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .prop-title-box p {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .prop-status-pill {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: var(--win);
+        }
+
+        .status-pending {
+            background: rgba(234, 179, 8, 0.12);
+            border: 1px solid rgba(234, 179, 8, 0.4);
+            color: var(--warning);
+        }
+
+        .prop-domains-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .domain-tag {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .domain-tag:hover {
+            border-color: var(--accent);
+            background: var(--surface3);
+            color: var(--accent);
+        }
+
+        .domain-type {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+
+        .type-primary { background: rgba(245, 158, 11, 0.2); color: var(--accent); }
+        .type-redirect { background: rgba(6, 182, 212, 0.2); color: var(--accent-cyan); }
+        .type-vercel { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+
+        .prop-features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .prop-features-grid { grid-template-columns: 1fr; }
+        }
+
+        .feature-item {
+            font-size: 12px;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-bullet {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .prop-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-action:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-action.secondary:hover {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+        }
+
+        /* ── Conversation & Update Log Timeline Widget ── */
+        .activity-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .timeline-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 12px;
+            max-height: 640px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .timeline-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .timeline-container::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .timeline-item {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            position: relative;
+            transition: border-color 0.2s;
+        }
+
+        .timeline-item:hover {
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .timeline-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .timeline-date {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .timeline-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--muted);
+        }
+
+        .timeline-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .timeline-desc {
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .timeline-input-box {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .timeline-textarea {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            color: #fff;
+            font-family: var(--font-body);
+            font-size: 12px;
+            resize: none;
+            outline: none;
+        }
+
+        .timeline-textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .btn-log-note {
+            align-self: flex-end;
+            background: var(--accent);
+            border: none;
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .btn-log-note:hover {
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* ── DNS & Namecheap Guide Modal ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            padding: 32px;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page-container">
+        <!-- ── HEADER ── -->
+        <header class="brand-header">
+            <div class="header-title-box">
+                <h1>Brand & Portfolio Ecosystem</h1>
+                <p>Central Command Center & Real-Time Directory of All Web Properties, Domains & Live Terminals</p>
+            </div>
+            <div class="sync-badge">
+                <div class="pulse-dot"></div>
+                <div>
+                    <div class="sync-text">LIVE AGENT SYNC ACTIVE</div>
+                    <div class="sync-time" id="lastSyncTime">Last Updated: Just Now</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ── TOP METRICS ROW ── -->
+        <section class="metrics-banner">
+            <div class="metric-card">
+                <div class="metric-lbl">Total Web Domains</div>
+                <div class="metric-val">5</div>
+                <div class="metric-sub">.com / .org / vercel.app</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-lbl">Vercel Team ID</div>
+                <div class="metric-val" style="font-size: 20px; font-weight: 700;">team_nCX4a...</div>
+                <div class="metric-sub">Unified DNS & SSL Hosting</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-lbl">Namecheap Bundle</div>
+                <div class="metric-val">$28.84</div>
+                <div class="metric-sub">Order #209972994 (3 Domains)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-lbl">Live Terminal Uptime</div>
+                <div class="metric-val" style="color: var(--win);">99.98%</div>
+                <div class="metric-sub">WebSocket & Odds Active</div>
+            </div>
+        </section>
+
+        <!-- ── MAIN GRID ── -->
+        <div class="dashboard-main-grid">
+
+            <!-- LEFT COLUMN: BRAND PROPERTIES -->
+            <div class="properties-list">
+                <div class="section-title">
+                    <span>Ecosystem Web Properties</span>
+                    <span class="section-tag">3 Major Brands</span>
+                </div>
+
+                <!-- CARD 1: DESTINY NETWORK -->
+                <div class="property-card">
+                    <div class="prop-header">
+                        <div class="prop-identity">
+                            <div class="prop-icon">⚡</div>
+                            <div class="prop-title-box">
+                                <h3>Destiny Network Terminal & Betting Suite</h3>
+                                <p>High-Utility Betting Intelligence, Line Tracker & Margin Delta Terminal</p>
+                            </div>
+                        </div>
+                        <div class="prop-status-pill status-active">
+                            <span style="display:inline-block; width:6px; height:6px; background:var(--win); border-radius:50%;"></span>
+                            LIVE PRODUCTION
+                        </div>
+                    </div>
+
+                    <div class="prop-domains-list">
+                        <a href="https://antigravity-three-nu.vercel.app/" target="_blank" class="domain-tag">
+                            <span>antigravity-three-nu.vercel.app</span>
+                            <span class="domain-type type-vercel">Vercel Primary</span>
+                        </a>
+                        <a href="history.html" class="domain-tag">
+                            <span>history.html</span>
+                            <span class="domain-type type-primary">Delta Terminal</span>
+                        </a>
+                    </div>
+
+                    <div class="prop-features-grid">
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Spread Margin Delta (Δ)</div>
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Continuous Clock Engine</div>
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Sub-second Kalshi Ticker</div>
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Dual Y-Axis Trajectory</div>
+                        <div class="feature-item"><span class="feature-bullet">✓</span> ESPN Team Logo Nodes</div>
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Real-Time Bankroll Manager</div>
+                    </div>
+
+                    <div class="prop-actions">
+                        <a href="index.html" class="btn-action">🚀 Launch Command Center</a>
+                        <a href="history.html" class="btn-action secondary">📈 Line History Terminal</a>
+                        <a href="line-tracker.html" class="btn-action secondary">📊 Line Tracker</a>
+                        <a href="kalshi.html" class="btn-action secondary">🎯 Kalshi Hub</a>
+                    </div>
+                </div>
+
+                <!-- CARD 2: OUTDOOR AQUATICS -->
+                <div class="property-card">
+                    <div class="prop-header">
+                        <div class="prop-identity">
+                            <div class="prop-icon cyan">🌊</div>
+                            <div class="prop-title-box">
+                                <h3>Outdoor Aquatics Brand Ecosystem</h3>
+                                <p>Custom Turtle Basking Habitats, Outdoor Patio Tanks & Glow Build Systems</p>
+                            </div>
+                        </div>
+                        <div class="prop-status-pill status-pending">
+                            <span style="display:inline-block; width:6px; height:6px; background:var(--warning); border-radius:50%;"></span>
+                            DNS PROPAGATING
+                        </div>
+                    </div>
+
+                    <div class="prop-domains-list">
+                        <div class="domain-tag">
+                            <span>outdooraquatics.com</span>
+                            <span class="domain-type type-primary">Primary Domain</span>
+                        </div>
+                        <div class="domain-tag">
+                            <span>outdooraquatics.org</span>
+                            <span class="domain-type type-redirect">301 Redirect to .com</span>
+                        </div>
+                    </div>
+
+                    <div class="prop-features-grid">
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Namecheap 1-Yr Secured</div>
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Free Domain Privacy</div>
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Vercel Custom DNS Configured</div>
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Patio Pond Showcase</div>
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Turtle Basking Habitat Specs</div>
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Auto SSL Certificate</div>
+                    </div>
+
+                    <div class="prop-actions">
+                        <button onclick="openDnsGuide('outdooraquatics.com')" class="btn-action">🛠️ DNS Setup & Status</button>
+                        <a href="https://outdooraquatics.com" target="_blank" class="btn-action secondary">🌐 Visit Site</a>
+                    </div>
+                </div>
+
+                <!-- CARD 3: BASEMENT AQUATICS -->
+                <div class="property-card">
+                    <div class="prop-header">
+                        <div class="prop-identity">
+                            <div class="prop-icon purple">🐠</div>
+                            <div class="prop-title-box">
+                                <h3>Basement Aquatics Brand Ecosystem</h3>
+                                <p>Indoor Breeder Systems, Fish Room Controls & Automated Water Filtration</p>
+                            </div>
+                        </div>
+                        <div class="prop-status-pill status-pending">
+                            <span style="display:inline-block; width:6px; height:6px; background:var(--warning); border-radius:50%;"></span>
+                            DNS PROPAGATING
+                        </div>
+                    </div>
+
+                    <div class="prop-domains-list">
+                        <div class="domain-tag">
+                            <span>basementaquatics.com</span>
+                            <span class="domain-type type-primary">Primary Domain</span>
+                        </div>
+                        <div class="domain-tag">
+                            <span>basementaquatics.org</span>
+                            <span class="domain-type type-redirect">301 Redirect to .com</span>
+                        </div>
+                    </div>
+
+                    <div class="prop-features-grid">
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Namecheap 1-Yr Secured</div>
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Free Domain Privacy</div>
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Vercel Custom DNS Configured</div>
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Indoor Breeder Rack Schematics</div>
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Water Quality Monitor API</div>
+                        <div class="feature-item"><span class="feature-bullet">✓</span> Auto SSL Certificate</div>
+                    </div>
+
+                    <div class="prop-actions">
+                        <button onclick="openDnsGuide('basementaquatics.org')" class="btn-action">🛠️ DNS Setup & Status</button>
+                        <a href="https://basementaquatics.org" target="_blank" class="btn-action secondary">🌐 Visit Site</a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN: LIVE CONVERSATION & UPDATE TIMELINE WIDGET -->
+            <div class="activity-panel">
+                <div class="section-title">
+                    <span>Agent & Project Timeline</span>
+                    <span class="section-tag">Conversation Sync</span>
+                </div>
+
+                <div class="timeline-container" id="timelineList">
+                    <!-- Dynamic timeline entries populated via JS -->
+                </div>
+
+                <div class="timeline-input-box">
+                    <textarea id="noteInput" class="timeline-textarea" rows="2" placeholder="Add a milestone, conversation note, or brand task..."></textarea>
+                    <button onclick="addTimelineNote()" class="btn-log-note">+ Add Log Entry</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── DNS GUIDE MODAL ── -->
+    <div class="modal-overlay" id="dnsModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeDnsModal()">✕</button>
+            <h3 style="font-family: var(--font-head); font-size: 24px; color: #fff; margin-bottom: 12px;">DNS & Vercel Setup Guide</h3>
+            <p style="font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 20px;">
+                To point your Namecheap domain to Vercel Team <strong style="color:var(--accent);">team_nCX4aBWblVD6baNdwe9T73Au</strong>:
+            </p>
+            <div style="background: rgba(0,0,0,0.3); border:1px solid var(--border); padding: 16px; border-radius: 8px; font-family: var(--font-mono); font-size: 12px; margin-bottom: 20px; color: var(--accent-cyan);">
+                Nameserver 1: ns1.vercel-dns.com<br>
+                Nameserver 2: ns2.vercel-dns.com
+            </div>
+            <p style="font-size: 12px; color: #94a3b8; line-height: 1.6;">
+                1. Log into <strong>Namecheap</strong> > Domain List > Manage.<br>
+                2. Switch Nameservers to <strong>Custom DNS</strong> and enter Vercel's nameservers.<br>
+                3. Save and wait 5 to 30 minutes for global DNS propagation.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Default Conversation & Project Updates History
+        const defaultTimelineData = [
+            {
+                date: "Aug 2, 2026",
+                tag: "Domain Setup",
+                title: "Acquired Brand Domains & Set Vercel DNS Routing",
+                desc: "Purchased outdooraquatics.com, outdooraquatics.org, and basementaquatics.org via Namecheap bundle ($28.84 total, Order #209972994). Configured 301 redirects and Vercel team routing."
+            },
+            {
+                date: "Aug 1, 2026",
+                tag: "Code Update",
+                title: "Kalshi Live Prediction Engine & WebSocket Sync",
+                desc: "Enhanced sub-second Kalshi prediction odds calculation and websocket tick listeners across index.html & live-feed.js (commit 776423c)."
+            },
+            {
+                date: "Aug 1, 2026",
+                tag: "Architecture",
+                title: "Destiny Line History Terminal Released",
+                desc: "Implemented continuous game clock normalization engine, dual Y-axis margin delta (Δ), ESPN team logo badges, and live play-by-play audit tooltips."
+            }
+        ];
+
+        function loadTimeline() {
+            const saved = localStorage.getItem('brand_timeline_notes');
+            const data = saved ? JSON.parse(saved) : defaultTimelineData;
+            const container = document.getElementById('timelineList');
+            container.innerHTML = data.map(item => `
+                <div class="timeline-item">
+                    <div class="timeline-meta">
+                        <span class="timeline-date">${item.date}</span>
+                        <span class="timeline-badge">${item.tag}</span>
+                    </div>
+                    <div class="timeline-title">${item.title}</div>
+                    <div class="timeline-desc">${item.desc}</div>
+                </div>
+            `).join('');
+        }
+
+        function addTimelineNote() {
+            const input = document.getElementById('noteInput');
+            const val = input.value.trim();
+            if (!val) return;
+
+            const saved = localStorage.getItem('brand_timeline_notes');
+            const data = saved ? JSON.parse(saved) : defaultTimelineData;
+
+            const today = new Date();
+            const dateStr = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+            data.unshift({
+                date: dateStr,
+                tag: "User / Agent Note",
+                title: val.length > 50 ? val.substring(0, 50) + "..." : val,
+                desc: val
+            });
+
+            localStorage.setItem('brand_timeline_notes', JSON.stringify(data));
+            input.value = '';
+            loadTimeline();
+        }
+
+        function openDnsGuide(domain) {
+            document.getElementById('dnsModal').style.display = 'flex';
+        }
+
+        function closeDnsModal() {
+            document.getElementById('dnsModal').style.display = 'none';
+        }
+
+        // Live timestamp
+        document.getElementById('lastSyncTime').innerText = 'Last Updated: ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        document.addEventListener('DOMContentLoaded', loadTimeline);
+    </script>
+</body>
+</html>
