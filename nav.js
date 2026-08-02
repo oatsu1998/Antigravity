@@ -103,7 +103,6 @@ function initGlobalNav() {
     const isKalshi = currentPath.toLowerCase().includes('kalshi');
     const isSandbox = currentPath.toLowerCase().includes('sandbox');
     const isPortfolio = currentPath.toLowerCase().includes('portfolio');
-    const isBrand = currentPath.toLowerCase().includes('brand');
 
     // Get current bankroll from localStorage or state manager
     const savedBankroll = parseFloat(localStorage.getItem('bankroll')) || 10000.00;
@@ -116,8 +115,7 @@ function initGlobalNav() {
         <div style="display:flex; align-items:center;">
             <div class="global-nav-brand">DESTINY NETWORK</div>
             <div class="global-nav-links">
-                <a href="brand.html" class="global-nav-link ${isBrand ? 'active' : ''}" style="color:#f59e0b; font-weight:bold;">🌐 Brand Hub</a>
-                <a href="index.html" class="global-nav-link ${(!isBrand && !isLineTracker && !isProps && !isMyBets && !isHistory && !isKalshi && !isSandbox && !isPortfolio) ? 'active' : ''}">Command Center</a>
+                <a href="index.html" class="global-nav-link ${(!isLineTracker && !isProps && !isMyBets && !isHistory && !isKalshi && !isSandbox && !isPortfolio) ? 'active' : ''}">Command Center</a>
                 <a href="line-tracker.html" class="global-nav-link ${isLineTracker ? 'active' : ''}">Line Tracker</a>
                 <a href="history.html" class="global-nav-link ${isHistory ? 'active' : ''}">History</a>
                 <a href="props.html" class="global-nav-link ${isProps ? 'active' : ''}">Props</a>
