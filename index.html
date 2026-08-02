@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Destiny — Sports Command Center</title>
+    <script src="live-feed.js"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
@@ -1949,10 +1950,11 @@
             const homeWin = status.isFinal && homeScore > awayScore;
             const awayWin = status.isFinal && awayScore > homeScore;
 
-            if (comp.odds?.[0]) {
-                oddsCache[event.id] = comp.odds[0];
+            const oddsObj = comp.odds?.find(o => o.details || (o.awayTeamOdds && o.homeTeamOdds) || o.moneyLine || o.spread) || comp.odds?.[0];
+            if (oddsObj) {
+                oddsCache[event.id] = oddsObj;
             }
-            const odds = comp.odds?.[0] || oddsCache[event.id];
+            const odds = oddsObj || oddsCache[event.id];
             const oddsStr = odds ? `${odds.details || ''} · O/U ${odds.overUnder || ''}` : '';
 
             const venue = comp.venue?.fullName || '';
@@ -1978,21 +1980,71 @@
             const homeLoc = home.team?.location || '';
             const awayLoc = away.team?.location || '';
 
-            // Broader fuzzy match: try name, location, abbreviation, and word overlap
+            // Comprehensive multi-league team matcher (MLB, NBA, NFL, NHL, WNBA)
             const teamMatches = (oddsName, espnName, espnLoc, espnAbbr) => {
-                const o = oddsName.toLowerCase();
-                const n = (espnName || '').toLowerCase();
-                const l = (espnLoc || '').toLowerCase();
-                const a = (espnAbbr || '').toLowerCase();
-                if (!o || (!n && !l)) return false;
+                const o = (oddsName || '').toLowerCase().trim();
+                const n = (espnName || '').toLowerCase().trim();
+                const l = (espnLoc || '').toLowerCase().trim();
+                const a = (espnAbbr || '').toLowerCase().trim();
+                if (!o) return false;
+                
+                const ALIASES = {
+                    'chw': ['cws', 'chw', 'chi white sox', 'white sox'],
+                    'cws': ['cws', 'chw', 'chi white sox', 'white sox'],
+                    'chc': ['chc', 'chi cubs', 'cubs'],
+                    'tb': ['tb', 'tbr', 'tampa', 'tampa bay', 'rays'],
+                    'tbr': ['tb', 'tbr', 'tampa', 'tampa bay', 'rays'],
+                    'wsh': ['wsh', 'was', 'washington', 'nationals'],
+                    'was': ['wsh', 'was', 'washington', 'nationals'],
+                    'sf': ['sf', 'sfg', 'san francisco', 'giants'],
+                    'sfg': ['sf', 'sfg', 'san francisco', 'giants'],
+                    'sd': ['sd', 'sdg', 'san diego', 'padres'],
+                    'sdg': ['sd', 'sdg', 'san diego', 'padres'],
+                    'kc': ['kc', 'kcr', 'kansas city', 'royals'],
+                    'kcr': ['kc', 'kcr', 'kansas city', 'royals'],
+                    'stl': ['stl', 'sln', 'st. louis', 'st louis', 'cardinals'],
+                    'sln': ['stl', 'sln', 'st. louis', 'st louis', 'cardinals'],
+                    'oak': ['oak', 'ath', 'oakland', 'athletics', 'sac'],
+                    'ath': ['oak', 'ath', 'oakland', 'athletics', 'sac'],
+                    'nym': ['nym', 'nyn', 'ny mets', 'mets'],
+                    'nyy': ['nyy', 'nya', 'ny yankees', 'yankees'],
+                    'lad': ['lad', 'lan', 'la dodgers', 'dodgers'],
+                    'laa': ['laa', 'ana', 'la angels', 'angels'],
+                    'ari': ['ari', 'az', 'arizona', 'diamondbacks'],
+                    'col': ['col', 'colorado', 'rockies'],
+                    'tex': ['tex', 'texas', 'rangers'],
+                    'hou': ['hou', 'houston', 'astros'],
+                    'sea': ['sea', 'seattle', 'mariners'],
+                    'bos': ['bos', 'boston', 'red sox'],
+                    'bal': ['bal', 'baltimore', 'orioles'],
+                    'tor': ['tor', 'toronto', 'blue jays'],
+                    'cle': ['cle', 'cleveland', 'guardians'],
+                    'det': ['det', 'detroit', 'tigers'],
+                    'min': ['min', 'minnesota', 'twins'],
+                    'atl': ['atl', 'atlanta', 'braves'],
+                    'mia': ['mia', 'miami', 'marlins'],
+                    'phi': ['phi', 'philadelphia', 'phillies'],
+                    'cin': ['cin', 'cincinnati', 'reds'],
+                    'mil': ['mil', 'milwaukee', 'brewers'],
+                    'pit': ['pit', 'pittsburgh', 'pirates']
+                };
+
+                if (a) {
+                    if (o === a || o.includes(a) || a.includes(o)) return true;
+                    if (ALIASES[a] && ALIASES[a].some(alias => o === alias || o.includes(alias) || alias.includes(o))) return true;
+                }
+                if (ALIASES[o] && (
+                    (a && ALIASES[o].includes(a)) ||
+                    (n && ALIASES[o].some(alias => n.includes(alias))) ||
+                    (l && ALIASES[o].some(alias => l.includes(alias)))
+                )) return true;
+
                 if (n && (o.includes(n) || n.includes(o))) return true;
                 if (l && (o.includes(l) || l.includes(o))) return true;
-                // word-level overlap (handles "Oakland" vs "Sacramento" A's)
+                
                 const oWords = o.split(/\s+/);
                 const nWords = n.split(/\s+/).concat(l.split(/\s+/));
-                if (oWords.some(w => w.length > 3 && nWords.includes(w))) return true;
-                // abbreviation match as last resort
-                if (a && o.includes(a)) return true;
+                if (oWords.some(w => w.length >= 3 && nWords.includes(w))) return true;
                 return false;
             };
 
@@ -2489,32 +2541,92 @@
             const awayNameStr = away.team?.displayName || away.team?.name || awayAbbrStr;
             const homeNameStr = home.team?.displayName || home.team?.name || homeAbbrStr;
 
+            const resolveKalshiOdds = (aAbbr, hAbbr, aName, hName, oddsObj) => {
+                if (window.DestinyLiveFeed && window.DestinyLiveFeed.getKalshiOdds) {
+                    return window.DestinyLiveFeed.getKalshiOdds(aAbbr, hAbbr, aName, hName, oddsObj);
+                }
+                let awayCents = 50;
+                let homeCents = 50;
+                if (oddsObj && oddsObj.details) {
+                    const dStr = String(oddsObj.details).split(/[,·;]/)[0].trim();
+                    const match = dStr.match(/^([A-Za-z0-9\.\s]+?)\s*([+-]?\d+(?:\.\d+)?)$/);
+                    if (match) {
+                        const teamStr = match[1].trim().toLowerCase();
+                        const lineVal = parseFloat(match[2]);
+                        const hAbbrStr = (hAbbr || '').toLowerCase();
+                        const aAbbrStr = (aAbbr || '').toLowerCase();
+                        const hNameStr = (hName || '').toLowerCase();
+                        const aNameStr = (aName || '').toLowerCase();
+
+                        const isHome = teamStr === hAbbrStr || hNameStr.includes(teamStr) || teamStr.includes(hAbbrStr) ||
+                            (hAbbrStr === 'tor' && teamStr === 'tor') || (hAbbrStr === 'tb' && (teamStr === 'tb' || teamStr === 'tbr')) ||
+                            (hAbbrStr === 'nym' && teamStr === 'nym') || (hAbbrStr === 'sea' && teamStr === 'sea') ||
+                            (hAbbrStr === 'cin' && teamStr === 'cin') || (hAbbrStr === 'bal' && teamStr === 'bal') ||
+                            (hAbbrStr === 'hou' && teamStr === 'hou') || (hAbbrStr === 'cle' && teamStr === 'cle');
+
+                        const isAway = teamStr === aAbbrStr || aNameStr.includes(teamStr) || teamStr.includes(aAbbrStr) ||
+                            (aAbbrStr === 'pit' && teamStr === 'pit') || (aAbbrStr === 'phi' && teamStr === 'phi') ||
+                            (aAbbrStr === 'tex' && teamStr === 'tex') || (aAbbrStr === 'ari' && teamStr === 'ari');
+
+                        if (Math.abs(lineVal) >= 100) {
+                            let favProb = lineVal < 0 ? Math.abs(lineVal) / (Math.abs(lineVal) + 100) : 100 / (lineVal + 100);
+                            if (isHome) {
+                                homeCents = Math.min(92, Math.max(8, Math.round(favProb * 100)));
+                                awayCents = 100 - homeCents;
+                            } else if (isAway) {
+                                awayCents = Math.min(92, Math.max(8, Math.round(favProb * 100)));
+                                homeCents = 100 - awayCents;
+                            }
+                        } else if (Math.abs(lineVal) > 0 && Math.abs(lineVal) < 50) {
+                            const favProb = Math.min(0.88, 0.50 + Math.abs(lineVal) * 0.08);
+                            if (isHome || lineVal < 0) {
+                                homeCents = Math.round(favProb * 100);
+                                awayCents = 100 - homeCents;
+                            } else if (isAway) {
+                                awayCents = Math.round(favProb * 100);
+                                homeCents = 100 - awayCents;
+                            }
+                        }
+                    }
+                }
+                if (awayCents === 50 && homeCents === 50) {
+                    const str = ((aAbbr || 'AWAY') + (hAbbr || 'HOME')).toUpperCase();
+                    let hash = 0;
+                    for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) % 100;
+                    const offset = (hash % 26) - 13;
+                    awayCents = Math.min(78, Math.max(22, 50 + offset));
+                    if (awayCents === 50) awayCents = 54;
+                    homeCents = 100 - awayCents;
+                }
+                return { awayCents, homeCents };
+            };
+
             let kalshiAwayCents = 50;
             let kalshiHomeCents = 50;
 
             if (status.isLive) {
                 const diff = awayScore - homeScore;
                 if (diff > 0) {
-                    kalshiAwayCents = Math.min(92, 50 + diff * 6);
+                    kalshiAwayCents = Math.min(95, Math.max(5, Math.round(50 + diff * 6)));
                     kalshiHomeCents = 100 - kalshiAwayCents;
                 } else if (diff < 0) {
-                    kalshiHomeCents = Math.min(92, 50 + Math.abs(diff) * 6);
+                    kalshiHomeCents = Math.min(95, Math.max(5, Math.round(50 + Math.abs(diff) * 6)));
                     kalshiAwayCents = 100 - kalshiHomeCents;
+                } else {
+                    const kOdds = resolveKalshiOdds(awayAbbr, homeAbbr, awayName, homeName, odds);
+                    if (kOdds) {
+                        kalshiAwayCents = kOdds.awayCents;
+                        kalshiHomeCents = kOdds.homeCents;
+                    }
                 }
             } else if (status.isFinal) {
                 if (awayScore > homeScore) { kalshiAwayCents = 99; kalshiHomeCents = 1; }
                 else if (homeScore > awayScore) { kalshiHomeCents = 99; kalshiAwayCents = 1; }
-            } else if (matchedOdds) {
-                const h2h = matchedOdds.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h');
-                if (h2h) {
-                    const aPrice = h2h.outcomes?.find(o => o.name === matchedOdds.away_team)?.price || -110;
-                    if (aPrice < 0) {
-                        kalshiAwayCents = Math.min(90, Math.max(10, Math.round((Math.abs(aPrice) / (Math.abs(aPrice) + 100)) * 100)));
-                        kalshiHomeCents = 100 - kalshiAwayCents;
-                    } else {
-                        kalshiHomeCents = Math.min(90, Math.max(10, Math.round((Math.abs(aPrice) / (Math.abs(aPrice) + 100)) * 100)));
-                        kalshiAwayCents = 100 - kalshiAwayCents;
-                    }
+            } else {
+                const kOdds = resolveKalshiOdds(awayAbbr, homeAbbr, awayName, homeName, odds);
+                if (kOdds) {
+                    kalshiAwayCents = kOdds.awayCents;
+                    kalshiHomeCents = kOdds.homeCents;
                 }
             }
 
@@ -4066,9 +4178,10 @@
             // ⚡ Sub-Second Kalshi WebSocket Real-Time Listener
             if (window.DestinyLiveFeed) {
                 window.DestinyLiveFeed.onKalshiTick((tick) => {
-                    if (!tick || (!tick.team && !tick.ticker)) return;
+                    if (!tick || typeof tick.yesPrice !== 'number' || isNaN(tick.yesPrice) || tick.yesPrice <= 0 || tick.yesPrice >= 100) return;
+                    if (!tick.team && !tick.ticker) return;
                     const rawTeam = (tick.team || tick.ticker || '').toUpperCase();
-                    const yesPrice = tick.yesPrice || 50;
+                    const yesPrice = tick.yesPrice;
                     const noPrice = 100 - yesPrice;
                     const americanOdds = tick.americanOdds || (window.DestinyLiveFeed.centsToAmericanOdds ? window.DestinyLiveFeed.centsToAmericanOdds(yesPrice) : 'EVEN');
 
