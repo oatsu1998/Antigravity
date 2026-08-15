@@ -1971,545 +1971,89 @@
             const awayAbbr = away.team?.abbreviation || '';
             const homeAbbr = home.team?.abbreviation || '';
 
-            const isLALvsHOU = (homeAbbr === 'HOU' && awayAbbr === 'LAL') || (homeAbbr === 'LAL' && awayAbbr === 'HOU');
-            const isORLvsDET = (homeAbbr === 'DET' && awayAbbr === 'ORL') || (homeAbbr === 'ORL' && awayAbbr === 'DET');
-            const isCLEvsTOR = (homeAbbr === 'CLE' && awayAbbr === 'TOR') || (homeAbbr === 'TOR' && awayAbbr === 'CLE');
             let bettingWidgetHtml = '';
 
-            const gameOddsData = paidOddsCache[lg.id] || [];
-            const homeName = home.team?.name || '';
-            const awayName = away.team?.name || '';
-            const homeLoc = home.team?.location || '';
-            const awayLoc = away.team?.location || '';
+            // ── Real sportsbook-style Spread / Moneyline / Total row ──────────
+            // Sourced ENTIRELY from Kalshi's free markets via DestinyLiveFeed
+            // (api/kalshi.js -> live-feed.js). No paid odds API, no fabricated
+            // numbers — if Kalshi doesn't have real pricing for this game yet,
+            // we show a clean "ODDS N/A" row instead of guessing.
+            const kalshiML = (window.DestinyLiveFeed && window.DestinyLiveFeed.getKalshiOdds)
+                ? window.DestinyLiveFeed.getKalshiOdds(awayAbbr, homeAbbr, awayName, homeName)
+                : null;
+            const kalshiBook = (window.DestinyLiveFeed && window.DestinyLiveFeed.getKalshiBookLine)
+                ? window.DestinyLiveFeed.getKalshiBookLine(awayAbbr, homeAbbr, awayName, homeName)
+                : null;
 
-            // Comprehensive multi-league team matcher (MLB, NBA, NFL, NHL, WNBA)
-            const teamMatches = (oddsName, espnName, espnLoc, espnAbbr) => {
-                const o = (oddsName || '').toLowerCase().trim();
-                const n = (espnName || '').toLowerCase().trim();
-                const l = (espnLoc || '').toLowerCase().trim();
-                const a = (espnAbbr || '').toLowerCase().trim();
-                if (!o) return false;
-                
-                const ALIASES = {
-                    'chw': ['cws', 'chw', 'chi white sox', 'white sox'],
-                    'cws': ['cws', 'chw', 'chi white sox', 'white sox'],
-                    'chc': ['chc', 'chi cubs', 'cubs'],
-                    'tb': ['tb', 'tbr', 'tampa', 'tampa bay', 'rays'],
-                    'tbr': ['tb', 'tbr', 'tampa', 'tampa bay', 'rays'],
-                    'wsh': ['wsh', 'was', 'washington', 'nationals'],
-                    'was': ['wsh', 'was', 'washington', 'nationals'],
-                    'sf': ['sf', 'sfg', 'san francisco', 'giants'],
-                    'sfg': ['sf', 'sfg', 'san francisco', 'giants'],
-                    'sd': ['sd', 'sdg', 'san diego', 'padres'],
-                    'sdg': ['sd', 'sdg', 'san diego', 'padres'],
-                    'kc': ['kc', 'kcr', 'kansas city', 'royals'],
-                    'kcr': ['kc', 'kcr', 'kansas city', 'royals'],
-                    'stl': ['stl', 'sln', 'st. louis', 'st louis', 'cardinals'],
-                    'sln': ['stl', 'sln', 'st. louis', 'st louis', 'cardinals'],
-                    'oak': ['oak', 'ath', 'oakland', 'athletics', 'sac'],
-                    'ath': ['oak', 'ath', 'oakland', 'athletics', 'sac'],
-                    'nym': ['nym', 'nyn', 'ny mets', 'mets'],
-                    'nyy': ['nyy', 'nya', 'ny yankees', 'yankees'],
-                    'lad': ['lad', 'lan', 'la dodgers', 'dodgers'],
-                    'laa': ['laa', 'ana', 'la angels', 'angels'],
-                    'ari': ['ari', 'az', 'arizona', 'diamondbacks'],
-                    'col': ['col', 'colorado', 'rockies'],
-                    'tex': ['tex', 'texas', 'rangers'],
-                    'hou': ['hou', 'houston', 'astros'],
-                    'sea': ['sea', 'seattle', 'mariners'],
-                    'bos': ['bos', 'boston', 'red sox'],
-                    'bal': ['bal', 'baltimore', 'orioles'],
-                    'tor': ['tor', 'toronto', 'blue jays'],
-                    'cle': ['cle', 'cleveland', 'guardians'],
-                    'det': ['det', 'detroit', 'tigers'],
-                    'min': ['min', 'minnesota', 'twins'],
-                    'atl': ['atl', 'atlanta', 'braves'],
-                    'mia': ['mia', 'miami', 'marlins'],
-                    'phi': ['phi', 'philadelphia', 'phillies'],
-                    'cin': ['cin', 'cincinnati', 'reds'],
-                    'mil': ['mil', 'milwaukee', 'brewers'],
-                    'pit': ['pit', 'pittsburgh', 'pirates']
-                };
+            if (kalshiML || kalshiBook) {
+                const spread = kalshiBook && kalshiBook.spread;
+                const total = kalshiBook && kalshiBook.total;
 
-                if (a) {
-                    if (o === a || o.includes(a) || a.includes(o)) return true;
-                    if (ALIASES[a] && ALIASES[a].some(alias => o === alias || o.includes(alias) || alias.includes(o))) return true;
-                }
-                if (ALIASES[o] && (
-                    (a && ALIASES[o].includes(a)) ||
-                    (n && ALIASES[o].some(alias => n.includes(alias))) ||
-                    (l && ALIASES[o].some(alias => l.includes(alias)))
-                )) return true;
+                const spreadCell = (line, american) => (line !== undefined && line !== null)
+                    ? `<span class="bw-val">${line > 0 ? '+' : ''}${line}</span><span class="bw-sub">${american}</span>`
+                    : `<span class="bw-val">&mdash;</span>`;
+                const mlCell = (american) => american
+                    ? `<span class="bw-val-only">${american}</span>`
+                    : `<span class="bw-val-only">&mdash;</span>`;
+                const totalCell = (prefix, line, american) => (line !== undefined && line !== null)
+                    ? `<span class="bw-val">${prefix} ${line}</span><span class="bw-sub">${american}</span>`
+                    : `<span class="bw-val">&mdash;</span>`;
 
-                if (n && (o.includes(n) || n.includes(o))) return true;
-                if (l && (o.includes(l) || l.includes(o))) return true;
-                
-                const oWords = o.split(/\s+/);
-                const nWords = n.split(/\s+/).concat(l.split(/\s+/));
-                if (oWords.some(w => w.length >= 3 && nWords.includes(w))) return true;
-                return false;
-            };
-
-            const matchedOdds = gameOddsData.find(o =>
-                teamMatches(o.home_team, homeName, homeLoc, homeAbbr) &&
-                teamMatches(o.away_team, awayName, awayLoc, awayAbbr)
-            );
-
-            if (matchedOdds) {
-                const book = matchedOdds.bookmakers.find(b => b.key === 'betonlineag') || matchedOdds.bookmakers.find(b => b.key === 'fanduel') || matchedOdds.bookmakers.find(b => b.key === 'draftkings') || matchedOdds.bookmakers[0];
-                if (book) {
-                    const h2h = book.markets.find(m => m.key === 'h2h');
-                    const spreads = book.markets.find(m => m.key === 'spreads');
-                    const totals = book.markets.find(m => m.key === 'totals');
-
-                    const awaySpread = spreads?.outcomes.find(o => o.name === matchedOdds.away_team);
-                    const homeSpread = spreads?.outcomes.find(o => o.name === matchedOdds.home_team);
-
-                    const awayML = h2h?.outcomes.find(o => o.name === matchedOdds.away_team);
-                    const homeML = h2h?.outcomes.find(o => o.name === matchedOdds.home_team);
-
-                    const over = totals?.outcomes.find(o => o.name === 'Over');
-                    const under = totals?.outcomes.find(o => o.name === 'Under');
-
-                    if (awaySpread && homeSpread && awayML && homeML && over && under) {
-                        const fmtOdds = (val) => val > 0 ? `+${val}` : val;
-                        const bookTitle = book.title;
-                        bettingWidgetHtml = `
-                        <div class="betting-widget" onclick="event.stopPropagation()">
-                            <div class="bw-header">
-                                <span style="font-size: 8px; color: var(--muted);">${bookTitle.toUpperCase()}</span>
-                                <span>Spread</span>
-                                <span>Moneyline</span>
-                                <span>Total</span>
+                bettingWidgetHtml = `
+                <div class="betting-widget" onclick="event.stopPropagation()">
+                    <div class="bw-header">
+                        <span style="font-size: 8px; color: var(--muted);">KALSHI</span>
+                        <span>Spread</span>
+                        <span>Moneyline</span>
+                        <span>Total</span>
+                    </div>
+                    <div class="bw-row">
+                        <span class="bw-team" style="display:flex; align-items:center; gap:8px;">
+                            ${awayLogo ? `<img src="${awayLogo}" style="width:24px;height:24px;object-fit:contain;" onerror="this.outerHTML='<span style=font-size:10px>${awayAbbr}</span>'">` : ''}
+                            <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
+                                <span style="font-size:12px; font-weight:700; color:var(--text);">${awayAbbr}</span>
+                                ${awayRecord ? `<span style="font-size:9px; color:var(--muted); font-weight:normal;">${awayRecord}</span>` : ''}
                             </div>
-                            <div class="bw-row">
-                                <span class="bw-team" style="display:flex; align-items:center; gap:8px;">
-                                    ${awayLogo ? `<img src="${awayLogo}" style="width:24px;height:24px;object-fit:contain;" onerror="this.outerHTML='<span style=font-size:10px>${awayAbbr}</span>'">` : ''}
-                                    <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
-                                        <span style="font-size:12px; font-weight:700; color:var(--text);">${awayAbbr}</span>
-                                        ${awayRecord ? `<span style="font-size:9px; color:var(--muted); font-weight:normal;">${awayRecord}</span>` : ''}
-                                    </div>
-                                </span>
-                                <div class="bw-cell clickable" onclick="addToBetSlip('${awayName || awayAbbr}', 'Spread', '${fmtOdds(awaySpread.point)} ${fmtOdds(awaySpread.price)}')"><span class="bw-val">${fmtOdds(awaySpread.point)}</span><span class="bw-sub">${fmtOdds(awaySpread.price)}</span></div>
-                                <div class="bw-cell clickable" onclick="addToBetSlip('${awayName || awayAbbr}', 'Moneyline', '${fmtOdds(awayML.price)}')"><span class="bw-val-only">${fmtOdds(awayML.price)}</span></div>
-                                <div class="bw-cell clickable" onclick="addToBetSlip('${awayName || awayAbbr}', 'Total', 'O ${over.point} ${fmtOdds(over.price)}')"><span class="bw-val">O ${over.point}</span><span class="bw-sub">${fmtOdds(over.price)}</span></div>
+                        </span>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Spread (Kalshi)', '${spread ? (spread.awayLine > 0 ? '+' : '') + spread.awayLine + ' ' + spread.awayAmerican : 'N/A'}')">${spreadCell(spread && spread.awayLine, spread && spread.awayAmerican)}</div>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.awayAmerican : 'N/A'}')">${mlCell(kalshiML && kalshiML.awayAmerican)}</div>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Total (Kalshi)', '${total ? 'O ' + total.line + ' ' + total.overAmerican : 'N/A'}')">${totalCell('O', total && total.line, total && total.overAmerican)}</div>
+                    </div>
+                    <div class="bw-row">
+                        <span class="bw-team" style="display:flex; align-items:center; gap:8px;">
+                            ${homeLogo ? `<img src="${homeLogo}" style="width:24px;height:24px;object-fit:contain;" onerror="this.outerHTML='<span style=font-size:10px>${homeAbbr}</span>'">` : ''}
+                            <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
+                                <span style="font-size:12px; font-weight:700; color:var(--text);">${homeAbbr}</span>
+                                ${homeRecord ? `<span style="font-size:9px; color:var(--muted); font-weight:normal;">${homeRecord}</span>` : ''}
                             </div>
-                            <div class="bw-row">
-                                <span class="bw-team" style="display:flex; align-items:center; gap:8px;">
-                                    ${homeLogo ? `<img src="${homeLogo}" style="width:24px;height:24px;object-fit:contain;" onerror="this.outerHTML='<span style=font-size:10px>${homeAbbr}</span>'">` : ''}
-                                    <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
-                                        <span style="font-size:12px; font-weight:700; color:var(--text);">${homeAbbr}</span>
-                                        ${homeRecord ? `<span style="font-size:9px; color:var(--muted); font-weight:normal;">${homeRecord}</span>` : ''}
-                                    </div>
-                                </span>
-                                <div class="bw-cell clickable" onclick="addToBetSlip('${homeName || homeAbbr}', 'Spread', '${fmtOdds(homeSpread.point)} ${fmtOdds(homeSpread.price)}')"><span class="bw-val">${fmtOdds(homeSpread.point)}</span><span class="bw-sub">${fmtOdds(homeSpread.price)}</span></div>
-                                <div class="bw-cell clickable" onclick="addToBetSlip('${homeName || homeAbbr}', 'Moneyline', '${fmtOdds(homeML.price)}')"><span class="bw-val-only">${fmtOdds(homeML.price)}</span></div>
-                                <div class="bw-cell clickable" onclick="addToBetSlip('${homeName || homeAbbr}', 'Total', 'U ${under.point} ${fmtOdds(under.price)}')"><span class="bw-val">U ${under.point}</span><span class="bw-sub">${fmtOdds(under.price)}</span></div>
-                            </div>
-                        </div>
-                        `;
-                    }
-                }
+                        </span>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Spread (Kalshi)', '${spread ? (spread.homeLine > 0 ? '+' : '') + spread.homeLine + ' ' + spread.homeAmerican : 'N/A'}')">${spreadCell(spread && spread.homeLine, spread && spread.homeAmerican)}</div>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.homeAmerican : 'N/A'}')">${mlCell(kalshiML && kalshiML.homeAmerican)}</div>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Total (Kalshi)', '${total ? 'U ' + total.line + ' ' + total.underAmerican : 'N/A'}')">${totalCell('U', total && total.line, total && total.underAmerican)}</div>
+                    </div>
+                </div>
+                `;
             }
 
+            // No real Kalshi pricing for this game yet — tidy N/A row, never fabricated
             if (!bettingWidgetHtml) {
-                if (isORLvsDET) {
-                    bettingWidgetHtml = `
-                <div class="betting-widget" onclick="event.stopPropagation()">
-                    <div class="bw-header">
-                        <span></span>
-                        <span>Spread</span>
-                        <span>Moneyline</span>
-                        <span>Total</span>
-                    </div>
-                    <div class="bw-row">
-                        <span class="bw-team">Pistons</span>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">-3.5</span><span class="bw-sub">-109</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val-only">-167</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">O 210.5</span><span class="bw-sub">-109</span></div>
-                    </div>
-                    <div class="bw-row">
-                        <span class="bw-team">Magic</span>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">+3.5</span><span class="bw-sub">-110</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val-only">+137</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">U 210.5</span><span class="bw-sub">-111</span></div>
-                    </div>
-                    <div class="bw-prob">
-                        <span class="bw-prob-val-left">55% DET</span>
-                        <div class="bw-prob-bar-wrap">
-                            <div class="bw-prob-bar-left" style="width: 55%;"></div>
-                            <div class="bw-prob-bar-right" style="width: 45%;"></div>
-                        </div>
-                        <span class="bw-prob-val-right">45% ORL</span>
-                    </div>
-                </div>
-                <div class="adv-betting-widget" onclick="event.stopPropagation()" style="margin-top: 16px; border-top: none; padding-bottom: 0;">
-                    <!-- SPREAD -->
-                    <div class="adv-section">
-                        <div class="adv-header">
-                            <span>Spread</span><span>Open</span><span>Closed</span><span>Public Bet</span>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team"><div class="adv-team-color" style="background: #1d428a;"></div>DET</div>
-                            <div class="adv-cell"><span class="adv-val blue">-2.5</span><span class="adv-sub">-120</span></div>
-                            <div class="adv-cell"><span class="adv-val">-3.5</span><span class="adv-sub">-109</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="41, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">41%</span>
-                            </div>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team"><div class="adv-team-color" style="background: #0077c0;"></div>ORL</div>
-                            <div class="adv-cell"><span class="adv-val blue">+2.5</span><span class="adv-sub">+100</span></div>
-                            <div class="adv-cell"><span class="adv-val">+3.5</span><span class="adv-sub">-110</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="60, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">60%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- MONEYLINE -->
-                    <div class="adv-section">
-                        <div class="adv-header">
-                            <span>Moneyline</span><span>Open</span><span>Closed</span><span>Public Bet</span>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team"><div class="adv-team-color" style="background: #1d428a;"></div>DET</div>
-                            <div class="adv-cell"><span class="adv-val blue">-164</span></div>
-                            <div class="adv-cell"><span class="adv-val">-167</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="55, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">55%</span>
-                            </div>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team"><div class="adv-team-color" style="background: #0077c0;"></div>ORL</div>
-                            <div class="adv-cell"><span class="adv-val blue">+136</span></div>
-                            <div class="adv-cell"><span class="adv-val">+137</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="46, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">46%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TOTAL -->
-                    <div class="adv-section">
-                        <div class="adv-header">
-                            <span>Total</span><span>Open</span><span>Closed</span><span>Public Bet</span>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team">Over</div>
-                            <div class="adv-cell"><span class="adv-val blue">211.5</span><span class="adv-sub">-110</span></div>
-                            <div class="adv-cell"><span class="adv-val">210.5</span><span class="adv-sub">-109</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="82, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">82%</span>
-                            </div>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team">Under</div>
-                            <div class="adv-cell"><span class="adv-val blue">211.5</span><span class="adv-sub">-110</span></div>
-                            <div class="adv-cell"><span class="adv-val">210.5</span><span class="adv-sub">-111</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="18, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">18%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                `;
-                } else if (isLALvsHOU) {
-                    bettingWidgetHtml = `
-                <div class="betting-widget" onclick="event.stopPropagation()">
-                    <div class="bw-header">
-                        <span></span>
-                        <span>Spread</span>
-                        <span>Moneyline</span>
-                        <span>Total</span>
-                    </div>
-                    <div class="bw-row">
-                        <span class="bw-team">Lakers</span>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">+4.5</span><span class="bw-sub">-110</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val-only">+153</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">O 204</span><span class="bw-sub">-105</span></div>
-                    </div>
-                    <div class="bw-row">
-                        <span class="bw-team">Rockets</span>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">-4.5</span><span class="bw-sub">-110</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val-only">-175</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">U 204</span><span class="bw-sub">-115</span></div>
-                    </div>
-                    <div class="bw-prob">
-                        <span class="bw-prob-val-left">62% LAL</span>
-                        <div class="bw-prob-bar-wrap">
-                            <div class="bw-prob-bar-left" style="width: 62%;"></div>
-                            <div class="bw-prob-bar-right" style="width: 38%;"></div>
-                        </div>
-                        <span class="bw-prob-val-right">38% HOU</span>
-                    </div>
-                </div>
-                <div class="adv-betting-widget" onclick="event.stopPropagation()" style="margin-top: 16px; border-top: none; padding-bottom: 0;">
-                    <!-- SPREAD -->
-                    <div class="adv-section">
-                        <div class="adv-header">
-                            <span>Spread</span><span>Open</span><span>Closed</span><span>Public Bet</span>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team"><div class="adv-team-color" style="background: linear-gradient(to bottom, #FDB927 50%, #552583 50%);"></div>LAL</div>
-                            <div class="adv-cell"><span class="adv-val">+3.5</span><span class="adv-sub">-105</span></div>
-                            <div class="adv-cell"><span class="adv-val">+4.5</span><span class="adv-sub">-108</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="65, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">65%</span>
-                            </div>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team"><div class="adv-team-color" style="background: #CE1141;"></div>HOU</div>
-                            <div class="adv-cell"><span class="adv-val">-3.5</span><span class="adv-sub">-115</span></div>
-                            <div class="adv-cell"><span class="adv-val">-4.5</span><span class="adv-sub">-112</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="35, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">35%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- MONEYLINE -->
-                    <div class="adv-section">
-                        <div class="adv-header">
-                            <span>Moneyline</span><span>Open</span><span>Closed</span><span>Public Bet</span>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team"><div class="adv-team-color" style="background: linear-gradient(to bottom, #FDB927 50%, #552583 50%);"></div>LAL</div>
-                            <div class="adv-cell"><span class="adv-val">+135</span></div>
-                            <div class="adv-cell"><span class="adv-val">+162</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="52, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">52%</span>
-                            </div>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team"><div class="adv-team-color" style="background: #CE1141;"></div>HOU</div>
-                            <div class="adv-cell"><span class="adv-val">-167</span></div>
-                            <div class="adv-cell"><span class="adv-val">-194</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="48, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">48%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TOTAL -->
-                    <div class="adv-section">
-                        <div class="adv-header">
-                            <span>Total</span><span>Open</span><span>Closed</span><span>Public Bet</span>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team">Over</div>
-                            <div class="adv-cell"><span class="adv-val">206.5</span><span class="adv-sub">-115</span></div>
-                            <div class="adv-cell"><span class="adv-val">202.5</span><span class="adv-sub">-112</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="83, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">83%</span>
-                            </div>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team">Under</div>
-                            <div class="adv-cell"><span class="adv-val">206.5</span><span class="adv-sub">-105</span></div>
-                            <div class="adv-cell"><span class="adv-val">202.5</span><span class="adv-sub">-108</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="17, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">17%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                `;
-                } else if (isCLEvsTOR) {
-                    bettingWidgetHtml = `
-                <div class="betting-widget" onclick="event.stopPropagation()">
-                    <div class="bw-header">
-                        <span></span>
-                        <span>Spread</span>
-                        <span>Moneyline</span>
-                        <span>Total</span>
-                    </div>
-                    <div class="bw-row">
-                        <span class="bw-team">Cavaliers</span>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">-4.5</span><span class="bw-sub">-115</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val-only">-199</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">O 218.5</span><span class="bw-sub">-114</span></div>
-                    </div>
-                    <div class="bw-row">
-                        <span class="bw-team">Raptors</span>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">+4.5</span><span class="bw-sub">-105</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val-only">+165</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">U 218.5</span><span class="bw-sub">-106</span></div>
-                    </div>
-                    <div class="bw-prob">
-                        <span class="bw-prob-val-left">69% CLE</span>
-                        <div class="bw-prob-bar-wrap">
-                            <div class="bw-prob-bar-left" style="width: 69%;"></div>
-                            <div class="bw-prob-bar-right" style="width: 31%;"></div>
-                        </div>
-                        <span class="bw-prob-val-right">31% TOR</span>
-                    </div>
-                </div>
-                <div class="adv-betting-widget" onclick="event.stopPropagation()" style="margin-top: 16px; border-top: none; padding-bottom: 0;">
-                    <!-- SPREAD -->
-                    <div class="adv-section">
-                        <div class="adv-header">
-                            <span>Spread</span><span>Open</span><span>Closed</span><span>Public Bet</span>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team"><div class="adv-team-color" style="background: #860038;"></div>CLE</div>
-                            <div class="adv-cell"><span class="adv-val">-4.5</span><span class="adv-sub">-105</span></div>
-                            <div class="adv-cell"><span class="adv-val">-4.5</span><span class="adv-sub">-115</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="41, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">41%</span>
-                            </div>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team"><div class="adv-team-color" style="background: #CE1141;"></div>TOR</div>
-                            <div class="adv-cell"><span class="adv-val">+4.5</span><span class="adv-sub">-115</span></div>
-                            <div class="adv-cell"><span class="adv-val">+4.5</span><span class="adv-sub">-105</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="59, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">59%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- MONEYLINE -->
-                    <div class="adv-section">
-                        <div class="adv-header">
-                            <span>Moneyline</span><span>Open</span><span>Closed</span><span>Public Bet</span>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team"><div class="adv-team-color" style="background: #860038;"></div>CLE</div>
-                            <div class="adv-cell"><span class="adv-val">-172</span></div>
-                            <div class="adv-cell"><span class="adv-val">-199</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="69, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">69%</span>
-                            </div>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team"><div class="adv-team-color" style="background: #CE1141;"></div>TOR</div>
-                            <div class="adv-cell"><span class="adv-val">+142</span></div>
-                            <div class="adv-cell"><span class="adv-val">+165</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="31, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">31%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TOTAL -->
-                    <div class="adv-section">
-                        <div class="adv-header">
-                            <span>Total</span><span>Open</span><span>Closed</span><span>Public Bet</span>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team">Over</div>
-                            <div class="adv-cell"><span class="adv-val">220</span><span class="adv-sub">-110</span></div>
-                            <div class="adv-cell"><span class="adv-val">218.5</span><span class="adv-sub">-114</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="87, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">87%</span>
-                            </div>
-                        </div>
-                        <div class="adv-row">
-                            <div class="adv-team">Under</div>
-                            <div class="adv-cell"><span class="adv-val">220</span><span class="adv-sub">-110</span></div>
-                            <div class="adv-cell"><span class="adv-val">218.5</span><span class="adv-sub">-106</span></div>
-                            <div class="adv-pub">
-                                <svg viewBox="0 0 36 36" class="adv-pub-svg">
-                                    <path class="adv-pub-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="adv-pub-fg" stroke-dasharray="12, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                </svg>
-                                <span class="adv-pub-text">12%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                `;
-                }
-            } // Close if (!bettingWidgetHtml)
-
-            // Completed games with no odds — show a tidy N/A row
-            if (!bettingWidgetHtml && status.isFinal) {
                 bettingWidgetHtml = `
                 <div class="betting-widget" onclick="event.stopPropagation()" style="opacity:.4;">
                     <div class="bw-header">
-                        <span style="font-size:8px; color:var(--muted);">ODDS N/A</span>
+                        <span style="font-size: 8px; color: var(--muted);">ODDS N/A</span>
                         <span>Spread</span><span>Moneyline</span><span>Total</span>
                     </div>
                     <div class="bw-row">
                         <span class="bw-team">${awayLogo ? `<img src="${awayLogo}" style="width:28px;height:28px;object-fit:contain;">` : awayAbbr}</span>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">&mdash;</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val-only">&mdash;</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">&mdash;</span></div>
+                        <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
+                        <div class="bw-cell"><span class="bw-val-only">&mdash;</span></div>
+                        <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
                     </div>
                     <div class="bw-row">
                         <span class="bw-team">${homeLogo ? `<img src="${homeLogo}" style="width:28px;height:28px;object-fit:contain;">` : homeAbbr}</span>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">&mdash;</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val-only">&mdash;</span></div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip(this.parentElement.querySelector('.bw-team').innerText, this.parentElement.parentElement.querySelector('.bw-header span:nth-child(' + (Array.from(this.parentElement.children).indexOf(this) + 1) + ')').innerText, this.querySelector('.bw-val, .bw-val-only').innerText + (this.querySelector('.bw-sub') ? ' ' + this.querySelector('.bw-sub').innerText : ''))"><span class="bw-val">&mdash;</span></div>
+                        <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
+                        <div class="bw-cell"><span class="bw-val-only">&mdash;</span></div>
+                        <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
                     </div>
                 </div>`;
             }
@@ -2537,118 +2081,20 @@
             const betsCount = wagersList.length;
             const showScoreBlock = status.isLive || status.isFinal;
 
-            // ⚡ Kalshi Live Odds Tile Generation (ALWAYS SHOWN)
+            // ⚡ Kalshi Live Odds Tile — REAL data only via DestinyLiveFeed.
+            // No live-score-based guessing, no hash-based fake percentages.
+            // If Kalshi has no real price for this game yet, the tile shows
+            // an "unavailable" state instead of a number.
             const awayAbbrStr = away.team?.abbreviation || away.team?.name || 'AWAY';
             const homeAbbrStr = home.team?.abbreviation || home.team?.name || 'HOME';
             const awayNameStr = away.team?.displayName || away.team?.name || awayAbbrStr;
             const homeNameStr = home.team?.displayName || home.team?.name || homeAbbrStr;
 
-            const resolveKalshiOdds = (aAbbr, hAbbr, aName, hName, oddsObj) => {
-                if (window.DestinyLiveFeed && window.DestinyLiveFeed.getKalshiOdds) {
-                    return window.DestinyLiveFeed.getKalshiOdds(aAbbr, hAbbr, aName, hName, oddsObj);
-                }
-                let awayCents = 50;
-                let homeCents = 50;
-                if (oddsObj && oddsObj.details) {
-                    const dStr = String(oddsObj.details).split(/[,·;]/)[0].trim();
-                    const match = dStr.match(/^([A-Za-z0-9\.\s]+?)\s*([+-]?\d+(?:\.\d+)?)$/);
-                    if (match) {
-                        const teamStr = match[1].trim().toLowerCase();
-                        const lineVal = parseFloat(match[2]);
-                        const hAbbrStr = (hAbbr || '').toLowerCase();
-                        const aAbbrStr = (aAbbr || '').toLowerCase();
-                        const hNameStr = (hName || '').toLowerCase();
-                        const aNameStr = (aName || '').toLowerCase();
+            const liveKalshiOdds = (window.DestinyLiveFeed && window.DestinyLiveFeed.getKalshiOdds)
+                ? window.DestinyLiveFeed.getKalshiOdds(awayAbbrStr, homeAbbrStr, awayNameStr, homeNameStr)
+                : null;
 
-                        const isHome = teamStr === hAbbrStr || hNameStr.includes(teamStr) || teamStr.includes(hAbbrStr) ||
-                            (hAbbrStr === 'tor' && teamStr === 'tor') || (hAbbrStr === 'tb' && (teamStr === 'tb' || teamStr === 'tbr')) ||
-                            (hAbbrStr === 'nym' && teamStr === 'nym') || (hAbbrStr === 'sea' && teamStr === 'sea') ||
-                            (hAbbrStr === 'cin' && teamStr === 'cin') || (hAbbrStr === 'bal' && teamStr === 'bal') ||
-                            (hAbbrStr === 'hou' && teamStr === 'hou') || (hAbbrStr === 'cle' && teamStr === 'cle');
-
-                        const isAway = teamStr === aAbbrStr || aNameStr.includes(teamStr) || teamStr.includes(aAbbrStr) ||
-                            (aAbbrStr === 'pit' && teamStr === 'pit') || (aAbbrStr === 'phi' && teamStr === 'phi') ||
-                            (aAbbrStr === 'tex' && teamStr === 'tex') || (aAbbrStr === 'ari' && teamStr === 'ari');
-
-                        if (Math.abs(lineVal) >= 100) {
-                            let favProb = lineVal < 0 ? Math.abs(lineVal) / (Math.abs(lineVal) + 100) : 100 / (lineVal + 100);
-                            if (isHome) {
-                                homeCents = Math.min(92, Math.max(8, Math.round(favProb * 100)));
-                                awayCents = 100 - homeCents;
-                            } else if (isAway) {
-                                awayCents = Math.min(92, Math.max(8, Math.round(favProb * 100)));
-                                homeCents = 100 - awayCents;
-                            }
-                        } else if (Math.abs(lineVal) > 0 && Math.abs(lineVal) < 50) {
-                            const favProb = Math.min(0.88, 0.50 + Math.abs(lineVal) * 0.08);
-                            if (isHome || lineVal < 0) {
-                                homeCents = Math.round(favProb * 100);
-                                awayCents = 100 - homeCents;
-                            } else if (isAway) {
-                                awayCents = Math.round(favProb * 100);
-                                homeCents = 100 - awayCents;
-                            }
-                        }
-                    }
-                }
-                if (awayCents === 50 && homeCents === 50) {
-                    const str = ((aAbbr || 'AWAY') + (hAbbr || 'HOME')).toUpperCase();
-                    let hash = 0;
-                    for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) % 100;
-                    const offset = (hash % 26) - 13;
-                    awayCents = Math.min(78, Math.max(22, 50 + offset));
-                    if (awayCents === 50) awayCents = 54;
-                    homeCents = 100 - awayCents;
-                }
-                return { awayCents, homeCents };
-            };
-
-            let kalshiAwayCents = 50;
-            let kalshiHomeCents = 50;
-
-            if (status.isLive) {
-                const diff = awayScore - homeScore;
-                if (diff > 0) {
-                    kalshiAwayCents = Math.min(95, Math.max(5, Math.round(50 + diff * 6)));
-                    kalshiHomeCents = 100 - kalshiAwayCents;
-                } else if (diff < 0) {
-                    kalshiHomeCents = Math.min(95, Math.max(5, Math.round(50 + Math.abs(diff) * 6)));
-                    kalshiAwayCents = 100 - kalshiHomeCents;
-                } else {
-                    const kOdds = resolveKalshiOdds(awayAbbr, homeAbbr, awayName, homeName, odds);
-                    if (kOdds) {
-                        kalshiAwayCents = kOdds.awayCents;
-                        kalshiHomeCents = kOdds.homeCents;
-                    }
-                }
-            } else if (status.isFinal) {
-                if (awayScore > homeScore) { kalshiAwayCents = 99; kalshiHomeCents = 1; }
-                else if (homeScore > awayScore) { kalshiHomeCents = 99; kalshiAwayCents = 1; }
-            } else {
-                const kOdds = resolveKalshiOdds(awayAbbr, homeAbbr, awayName, homeName, odds);
-                if (kOdds) {
-                    kalshiAwayCents = kOdds.awayCents;
-                    kalshiHomeCents = kOdds.homeCents;
-                }
-            }
-
-            const calcAmerican = (cents) => {
-                if (cents >= 99) return '-10000';
-                if (cents <= 1) return '+10000';
-                if (cents === 50) return 'EVEN';
-                if (cents > 50) {
-                    const num = Math.round((cents / (100 - cents)) * 100);
-                    return `-${num}`;
-                } else {
-                    const num = Math.round(((100 - cents) / cents) * 100);
-                    return `+${num}`;
-                }
-            };
-
-            const awayAmericanStr = calcAmerican(kalshiAwayCents);
-            const homeAmericanStr = calcAmerican(kalshiHomeCents);
-
-            const kalshiTileHtml = `
+            const kalshiTileHtml = liveKalshiOdds ? `
             <div class="kalshi-card-tile" onclick="event.stopPropagation()" data-away="${awayAbbrStr}" data-home="${homeAbbrStr}">
                 <div class="kalshi-tile-header">
                     <span class="kalshi-live-tag">⚡ KALSHI LIVE</span>
@@ -2661,9 +2107,9 @@
                             <span class="kalshi-team-abbr">${awayAbbrStr}</span>
                             <span class="kalshi-team-role">AWAY</span>
                         </div>
-                        <div class="kalshi-odds-box clickable" onclick="addToBetSlip('${awayNameStr.replace(/'/g, "\\'")}', 'Moneyline (Kalshi)', '${awayAmericanStr}')">
-                            <span class="kalshi-cents-val">${kalshiAwayCents}¢</span>
-                            <span class="kalshi-american-val">${awayAmericanStr}</span>
+                        <div class="kalshi-odds-box clickable" onclick="addToBetSlip('${awayNameStr.replace(/'/g, "\\'")}', 'Moneyline (Kalshi)', '${liveKalshiOdds.awayAmerican}')">
+                            <span class="kalshi-cents-val">${liveKalshiOdds.awayCents}¢</span>
+                            <span class="kalshi-american-val">${liveKalshiOdds.awayAmerican}</span>
                         </div>
                     </div>
                     <div class="kalshi-row">
@@ -2672,19 +2118,25 @@
                             <span class="kalshi-team-abbr">${homeAbbrStr}</span>
                             <span class="kalshi-team-role">HOME</span>
                         </div>
-                        <div class="kalshi-odds-box clickable" onclick="addToBetSlip('${homeNameStr.replace(/'/g, "\\'")}', 'Moneyline (Kalshi)', '${homeAmericanStr}')">
-                            <span class="kalshi-cents-val">${kalshiHomeCents}¢</span>
-                            <span class="kalshi-american-val">${homeAmericanStr}</span>
+                        <div class="kalshi-odds-box clickable" onclick="addToBetSlip('${homeNameStr.replace(/'/g, "\\'")}', 'Moneyline (Kalshi)', '${liveKalshiOdds.homeAmerican}')">
+                            <span class="kalshi-cents-val">${liveKalshiOdds.homeCents}¢</span>
+                            <span class="kalshi-american-val">${liveKalshiOdds.homeAmerican}</span>
                         </div>
                     </div>
                 </div>
                 <div class="bw-prob" style="margin-top: 8px;">
-                    <span class="bw-prob-val-left">${kalshiAwayCents}% ${awayAbbrStr} (${awayAmericanStr})</span>
+                    <span class="bw-prob-val-left">${liveKalshiOdds.awayCents}% ${awayAbbrStr} (${liveKalshiOdds.awayAmerican})</span>
                     <div class="bw-prob-bar-wrap">
-                        <div class="bw-prob-bar-left" style="width: ${kalshiAwayCents}%;"></div>
-                        <div class="bw-prob-bar-right" style="width: ${kalshiHomeCents}%;"></div>
+                        <div class="bw-prob-bar-left" style="width: ${liveKalshiOdds.awayCents}%;"></div>
+                        <div class="bw-prob-bar-right" style="width: ${liveKalshiOdds.homeCents}%;"></div>
                     </div>
-                    <span class="bw-prob-val-right">${kalshiHomeCents}% ${homeAbbrStr}</span>
+                    <span class="bw-prob-val-right">${liveKalshiOdds.homeCents}% ${homeAbbrStr}</span>
+                </div>
+            </div>
+            ` : `
+            <div class="kalshi-card-tile" onclick="event.stopPropagation()" style="opacity:.5;">
+                <div class="kalshi-tile-header">
+                    <span class="kalshi-live-tag" style="color: var(--muted);">⛔ KALSHI DATA UNAVAILABLE</span>
                 </div>
             </div>
             `;
