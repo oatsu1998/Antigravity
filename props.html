@@ -598,13 +598,10 @@
 
                 <div
                     style="display: flex; align-items: center; gap: 8px; margin-left: 16px; border-left: 1px solid var(--border); padding-left: 16px;">
-                    <span
-                        style="font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Select
-                        Game:</span>
-                    <select id="apiGameSelect" onchange="handleGameSelectChange()"
-                        style="background: var(--surface2); border: 1px solid var(--border2); color: var(--text); font-family: var(--font-mono); font-size: 11px; padding: 6px 12px; border-radius: 4px; outline: none; cursor: pointer; max-width: 250px;">
-                        <option value="default_mock">-- Live NBA Events (Mock) --</option>
-                    </select>
+                    <button onclick="fetchKalshiPlayerProps()"
+                        style="background: var(--surface2); border: 1px solid var(--border2); color: var(--text); font-family: var(--font-mono); font-size: 11px; padding: 6px 12px; border-radius: 4px; outline: none; cursor: pointer;">
+                        ↻ Refresh Kalshi Props
+                    </button>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 16px;">
@@ -612,7 +609,7 @@
                     style="font-size: 9px; font-weight: 700; display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 4px; background: rgba(255,255,255,0.03); border: 1px solid var(--border2); color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s;">
                     <span
                         style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--muted);"></span>
-                    OFFLINE FALLBACK
+                    LOADING KALSHI...
                 </div>
                 <input type="text" id="playerSearch" class="search-input" placeholder="Search players by name..."
                     oninput="handleSearch()">
@@ -661,273 +658,22 @@
 
     <!-- Dynamic Player Props Data & Interaction Script -->
     <script>
-        // API Configuration
-        // Requests now go through /api/odds (server-side proxy) so the API key
-        // never appears in this page's source. Key lives in Vercel's
-        // ODDS_API_KEY environment variable.
-        const SPORT = 'basketball_nba';
-
-        // Default Backup / Mock Sportsbook Props Data Structure
-        const DEFAULT_PLAYERS = [
-            {
-                id: "p1",
-                name: "LeBron James",
-                teamMatchup: "LAL @ DEN",
-                league: "NBA",
-                props: {
-                    "Points": {
-                        line: 25.5,
-                        books: {
-                            "FanDuel": { over: -110, under: -115 },
-                            "DraftKings": { over: -105, under: -120 },
-                            "BetMGM": { over: -115, under: -110 }
-                        }
-                    },
-                    "Rebounds": {
-                        line: 7.5,
-                        books: {
-                            "FanDuel": { over: 105, under: -130 },
-                            "DraftKings": { over: -110, under: -110 },
-                            "BetMGM": { over: 110, under: -135 }
-                        }
-                    },
-                    "Assists": {
-                        line: 8.5,
-                        books: {
-                            "FanDuel": { over: -120, under: -105 },
-                            "DraftKings": { over: -115, under: -115 },
-                            "BetMGM": { over: -125, under: 100 }
-                        }
-                    },
-                    "3-Pointers": {
-                        line: 2.5,
-                        books: {
-                            "FanDuel": { over: 120, under: -150 },
-                            "DraftKings": { over: 125, under: -160 },
-                            "BetMGM": { over: 115, under: -145 }
-                        }
-                    }
-                }
-            },
-            {
-                id: "p2",
-                name: "Luka Doncic",
-                teamMatchup: "DAL @ MIN",
-                league: "NBA",
-                props: {
-                    "Points": {
-                        line: 32.5,
-                        books: {
-                            "FanDuel": { over: -115, under: -115 },
-                            "DraftKings": { over: -120, under: -105 },
-                            "BetMGM": { over: -110, under: -120 }
-                        }
-                    },
-                    "Rebounds": {
-                        line: 9.5,
-                        books: {
-                            "FanDuel": { over: -110, under: -110 },
-                            "DraftKings": { over: -105, under: -120 },
-                            "BetMGM": { over: -115, under: -110 }
-                        }
-                    },
-                    "Assists": {
-                        line: 9.5,
-                        books: {
-                            "FanDuel": { over: 100, under: -130 },
-                            "DraftKings": { over: -110, under: -110 },
-                            "BetMGM": { over: 105, under: -135 }
-                        }
-                    },
-                    "3-Pointers": {
-                        line: 3.5,
-                        books: {
-                            "FanDuel": { over: -135, under: 105 },
-                            "DraftKings": { over: -140, under: 110 },
-                            "BetMGM": { over: -130, under: -105 }
-                        }
-                    }
-                }
-            },
-            {
-                id: "p3",
-                name: "Stephen Curry",
-                teamMatchup: "GSW @ SAC",
-                league: "NBA",
-                props: {
-                    "Points": {
-                        line: 27.5,
-                        books: {
-                            "FanDuel": { over: -105, under: -120 },
-                            "DraftKings": { over: -110, under: -110 },
-                            "BetMGM": { over: 100, under: -130 }
-                        }
-                    },
-                    "Rebounds": {
-                        line: 4.5,
-                        books: {
-                            "FanDuel": { over: -115, under: -115 },
-                            "DraftKings": { over: -120, under: -105 },
-                            "BetMGM": { over: -110, under: -120 }
-                        }
-                    },
-                    "Assists": {
-                        line: 5.5,
-                        books: {
-                            "FanDuel": { over: 110, under: -140 },
-                            "DraftKings": { over: 105, under: -135 },
-                            "BetMGM": { over: 115, under: -150 }
-                        }
-                    },
-                    "3-Pointers": {
-                        line: 4.5,
-                        books: {
-                            "FanDuel": { over: -110, under: -120 },
-                            "DraftKings": { over: -105, under: -125 },
-                            "BetMGM": { over: -115, under: -110 }
-                        }
-                    }
-                }
-            },
-            {
-                id: "p4",
-                name: "Caitlin Clark",
-                teamMatchup: "IND @ CON",
-                league: "WNBA",
-                props: {
-                    "Points": {
-                        line: 20.5,
-                        books: {
-                            "FanDuel": { over: -110, under: -110 },
-                            "DraftKings": { over: -105, under: -115 },
-                            "BetMGM": { over: -115, under: -105 }
-                        }
-                    },
-                    "Rebounds": {
-                        line: 5.5,
-                        books: {
-                            "FanDuel": { over: 100, under: -130 },
-                            "DraftKings": { over: 105, under: -135 },
-                            "BetMGM": { over: -105, under: -120 }
-                        }
-                    },
-                    "Assists": {
-                        line: 7.5,
-                        books: {
-                            "FanDuel": { over: -115, under: -115 },
-                            "DraftKings": { over: -120, under: -110 },
-                            "BetMGM": { over: -110, under: -120 }
-                        }
-                    },
-                    "3-Pointers": {
-                        line: 3.5,
-                        books: {
-                            "FanDuel": { over: 110, under: -140 },
-                            "DraftKings": { over: 120, under: -155 },
-                            "BetMGM": { over: 105, under: -135 }
-                        }
-                    }
-                }
-            },
-            {
-                id: "p5",
-                name: "A'ja Wilson",
-                teamMatchup: "LVA @ NYL",
-                league: "WNBA",
-                props: {
-                    "Points": {
-                        line: 26.5,
-                        books: {
-                            "FanDuel": { over: -115, under: -115 },
-                            "DraftKings": { over: -120, under: -110 },
-                            "BetMGM": { over: -110, under: -120 }
-                        }
-                    },
-                    "Rebounds": {
-                        line: 11.5,
-                        books: {
-                            "FanDuel": { over: -110, under: -120 },
-                            "DraftKings": { over: -105, under: -125 },
-                            "BetMGM": { over: -115, under: -110 }
-                        }
-                    },
-                    "Assists": {
-                        line: 2.5,
-                        books: {
-                            "FanDuel": { over: 115, under: -150 },
-                            "DraftKings": { over: 125, under: -160 },
-                            "BetMGM": { over: 110, under: -140 }
-                        }
-                    },
-                    "3-Pointers": {
-                        line: 0.5,
-                        books: {
-                            "FanDuel": { over: 220, under: -300 },
-                            "DraftKings": { over: 235, under: -320 },
-                            "BetMGM": { over: 210, under: -280 }
-                        }
-                    }
-                }
-            },
-            {
-                id: "p6",
-                name: "Jayson Tatum",
-                teamMatchup: "BOS @ MIA",
-                league: "NBA",
-                props: {
-                    "Points": {
-                        line: 26.5,
-                        books: {
-                            "FanDuel": { over: -115, under: -115 },
-                            "DraftKings": { over: -110, under: -120 },
-                            "BetMGM": { over: -120, under: -110 }
-                        }
-                    },
-                    "Rebounds": {
-                        line: 8.5,
-                        books: {
-                            "FanDuel": { over: 105, under: -135 },
-                            "DraftKings": { over: -105, under: -125 },
-                            "BetMGM": { over: 100, under: -130 }
-                        }
-                    },
-                    "Assists": {
-                        line: 4.5,
-                        books: {
-                            "FanDuel": { over: -130, under: 100 },
-                            "DraftKings": { over: -125, under: -105 },
-                            "BetMGM": { over: -135, under: 105 }
-                        }
-                    },
-                    "3-Pointers": {
-                        line: 3.5,
-                        books: {
-                            "FanDuel": { over: 125, under: -160 },
-                            "DraftKings": { over: 115, under: -145 },
-                            "BetMGM": { over: 130, under: -170 }
-                        }
-                    }
-                }
-            }
-        ];
+        // Player props are pulled entirely from Kalshi's free markets via
+        // /api/kalshi-props (server-side proxy — no paid odds API, no
+        // fabricated / mock data). Covers NBA + WNBA: Points, Rebounds,
+        // Assists, 3-Pointers.
 
         // System states
-        let players = [];
+        let players = [];          // combined = kalshiPlayers + customPlayers, rebuilt on every change
+        let kalshiPlayers = [];    // live real data from Kalshi (never persisted — always re-fetched)
+        let customPlayers = [];    // user-added manual cards (persisted)
         let trackedPicks = [];
         let activeLeagueFilter = 'ALL';
         let searchQuery = '';
-        let liveEventsList = [];
 
-        // Convert American odds string/number to decimal payout for comparison
-        function getOddsPayoutValue(odds) {
-            if (odds === null || odds === undefined || odds === '') return 0;
-            const num = parseInt(odds);
-            if (isNaN(num)) return 0;
-            if (num > 0) {
-                return 1 + (num / 100);
-            } else {
-                return 1 + (100 / Math.abs(num));
-            }
+        function rebuildPlayers() {
+            players = [...customPlayers, ...kalshiPlayers];
+            renderPropsGrid();
         }
 
         // Initialize state
@@ -945,217 +691,138 @@
             }
             renderTrackerTable();
 
-            // Load backup player props initially
-            const localPlayers = localStorage.getItem('destiny_custom_players');
-            if (localPlayers) {
-                players = JSON.parse(localPlayers);
-            } else {
-                players = [...DEFAULT_PLAYERS];
-                localStorage.setItem('destiny_custom_players', JSON.stringify(players));
-            }
-            renderPropsGrid();
+            // Custom (manually-entered) cards persist across visits
+            const savedCustom = localStorage.getItem('destiny_custom_players');
+            customPlayers = savedCustom ? JSON.parse(savedCustom) : [];
+            rebuildPlayers();
 
-            // Try to load active NBA events from the live API
-            fetchLiveNBAEvents();
+            // Real player props, live from Kalshi
+            fetchKalshiPlayerProps();
         });
 
-        // 1. Fetch live NBA events scheduled for today/tomorrow
-        async function fetchLiveNBAEvents() {
-            const selectEl = document.getElementById('apiGameSelect');
+        function setStatusBadge(state, text) {
             const statusEl = document.getElementById('apiStatusBadge');
-
-            try {
-                selectEl.innerHTML = '<option value="">Loading live events...</option>';
-                const res = await fetch(`/api/odds?path=${SPORT}/events`);
-                if (!res.ok) throw new Error(`Events fetch returned ${res.status}`);
-
-                const events = await res.json();
-                liveEventsList = events;
-
-                selectEl.innerHTML = '';
-
-                // Always add a fallback option at the top
-                const optMock = document.createElement('option');
-                optMock.value = 'default_mock';
-                optMock.textContent = '-- View Offline Mock Profiles --';
-                selectEl.appendChild(optMock);
-
-                if (events.length === 0) {
-                    const optEmpty = document.createElement('option');
-                    optEmpty.value = '';
-                    optEmpty.disabled = true;
-                    optEmpty.textContent = 'No upcoming games found';
-                    selectEl.appendChild(optEmpty);
-                    return;
-                }
-
-                // Add active games to dropdown list
-                events.forEach(ev => {
-                    const opt = document.createElement('option');
-                    opt.value = ev.id;
-                    opt.textContent = `${ev.away_team} @ ${ev.home_team}`;
-                    selectEl.appendChild(opt);
-                });
-
-                // Auto-select the first live game and fetch props
-                selectEl.value = events[0].id;
-                fetchPlayerPropsForEvent(events[0].id, events[0].home_team, events[0].away_team);
-
-            } catch (e) {
-                console.error("Failed to load NBA live events list:", e);
-                selectEl.innerHTML = `
-                    <option value="default_mock">-- Offline Mock Profiles (Default) --</option>
-                `;
-                statusEl.innerHTML = `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--pending);"></span> API OFFLINE`;
-                statusEl.style.color = 'var(--muted)';
-            }
-        }
-
-        // 2. Game dropdown select switch listener
-        function handleGameSelectChange() {
-            const selectEl = document.getElementById('apiGameSelect');
-            const val = selectEl.value;
-
-            if (val === 'default_mock' || !val) {
-                // Restore standard mock players list
-                const localPlayers = localStorage.getItem('destiny_custom_players');
-                players = localPlayers ? JSON.parse(localPlayers) : [...DEFAULT_PLAYERS];
-                renderPropsGrid();
-
-                const statusEl = document.getElementById('apiStatusBadge');
-                statusEl.innerHTML = `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--pending);"></span> OFFLINE FALLBACK`;
-                statusEl.style.color = 'var(--muted)';
-                statusEl.style.borderColor = 'var(--border2)';
-                statusEl.style.background = 'rgba(255,255,255,0.03)';
-            } else {
-                // Fetch the selected game's live props
-                const selectedEvent = liveEventsList.find(e => e.id === val);
-                if (selectedEvent) {
-                    fetchPlayerPropsForEvent(selectedEvent.id, selectedEvent.home_team, selectedEvent.away_team);
-                }
-            }
-        }
-
-        // 3. Fetch Player Props for the selected Game ID
-        async function fetchPlayerPropsForEvent(eventId, homeTeam, awayTeam) {
-            const statusEl = document.getElementById('apiStatusBadge');
-
-            statusEl.innerHTML = `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 1s infinite;"></span> LOADING PROPS...`;
-            statusEl.style.color = 'var(--accent)';
-            statusEl.style.borderColor = 'rgba(245, 158, 11, 0.4)';
-            statusEl.style.background = 'rgba(245, 158, 11, 0.08)';
-
-            try {
-                const markets = 'player_points,player_rebounds,player_assists,player_threes';
-                const url = `/api/odds?path=${SPORT}/events/${eventId}/odds&regions=us&markets=${markets}&oddsFormat=american`;
-
-                const res = await fetch(url);
-                if (!res.ok) throw new Error(`Props API returned ${res.status}`);
-
-                const data = await res.json();
-
-                // Parse outcomes to UI standard player profiles
-                const mappedPlayers = parseOddsApiProps(data, homeTeam, awayTeam);
-
-                if (mappedPlayers.length === 0) {
-                    alert(`Odds are loaded, but no Player Prop books (Points/Rebounds/Assists/Threes) are released for this event yet! Fallback profiles are active.`);
-                    statusEl.innerHTML = `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--pending);"></span> LIVE ACTIVE (NO PROPS)`;
-                    statusEl.style.color = 'var(--muted)';
-                    statusEl.style.borderColor = 'var(--border2)';
-                    statusEl.style.background = 'rgba(255,255,255,0.03)';
-                    return;
-                }
-
-                players = mappedPlayers;
-                renderPropsGrid();
-
-                statusEl.innerHTML = `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--win); box-shadow: 0 0 6px var(--win);"></span> LIVE ACTIVE`;
-                statusEl.style.color = 'var(--win)';
-                statusEl.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-                statusEl.style.background = 'rgba(16, 185, 129, 0.08)';
-
-            } catch (e) {
-                console.error("Failed to load live player props details:", e);
-                statusEl.innerHTML = `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--pending);"></span> ERROR LOADING`;
-                statusEl.style.color = 'var(--live)';
-                statusEl.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-                statusEl.style.background = 'rgba(239, 68, 68, 0.08)';
-            }
-        }
-
-        // 4. Parse Odds API player props schema into our neat comparison structure
-        function parseOddsApiProps(data, homeTeam, awayTeam) {
-            const playersMap = {};
-            const bookmakers = data.bookmakers || [];
-
-            const marketKeyMapping = {
-                'player_points': 'Points',
-                'player_rebounds': 'Rebounds',
-                'player_assists': 'Assists',
-                'player_threes': '3-Pointers'
+            if (!statusEl) return;
+            const colors = {
+                loading: 'var(--accent)', live: 'var(--win)', error: 'var(--live)', off: 'var(--muted)'
             };
+            const col = colors[state] || 'var(--muted)';
+            statusEl.innerHTML = `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: ${col}; ${state === 'loading' ? 'box-shadow: 0 0 6px ' + col + '; animation: pulse 1s infinite;' : ''}"></span> ${text}`;
+            statusEl.style.color = col;
+        }
 
-            bookmakers.forEach(bk => {
-                const bookTitle = bk.title;
+        function americanFromCents(cents) {
+            const p = parseFloat(cents);
+            if (isNaN(p) || p <= 0 || p >= 100) return null;
+            if (p === 50) return 100;
+            return p > 50 ? -Math.round((p / (100 - p)) * 100) : Math.round(((100 - p) / p) * 100);
+        }
 
-                bk.markets.forEach(m => {
-                    const statName = marketKeyMapping[m.key];
-                    if (!statName) return;
+        function realPriceCents(m) {
+            const bid = parseFloat(m.yes_bid_dollars);
+            const last = parseFloat(m.last_price_dollars);
+            const raw = (!isNaN(bid) && bid > 0) ? bid : ((!isNaN(last) && last > 0) ? last : null);
+            return raw === null ? null : Math.round(raw * 100);
+        }
 
-                    const outcomes = m.outcomes || [];
-                    outcomes.forEach(out => {
-                        // In The Odds API player props, out.description is the athlete name (e.g. "Josh Hart")
-                        // and out.name is the selection choice ("Over" or "Under")
-                        const playerName = out.description || out.name;
-                        const type = (out.description ? out.name : "OVER").toUpperCase();
-                        const lineVal = out.point; // e.g. 26.5
-                        const price = out.price; // American format (e.g. -115)
+        // Pull matchup ("New York vs Connecticut") out of Kalshi's own rules
+        // text — every player market includes it, so no separate game lookup
+        // is needed.
+        function extractMatchup(market) {
+            const text = market.rules_primary || '';
+            // Kalshi phrases this two different ways depending on market
+            // ("...in the X vs Y..." or "...in the X at Y...") — handle both.
+            const m = text.match(/in the (.+?) (?:vs|at) (.+?) (?:women's )?Pro (?:Basketball|Football|Baseball|Hockey) game/);
+            if (!m) return '';
+            return `${m[1]} @ ${m[2]}`;
+        }
 
-                        if (!playersMap[playerName]) {
-                            playersMap[playerName] = {
-                                id: 'live-' + playerName.replace(/\s+/g, '-'),
-                                name: playerName,
-                                teamMatchup: `${awayTeam} @ ${homeTeam}`,
-                                league: 'NBA',
-                                props: {}
-                            };
-                        }
+        // 1. Fetch real player prop markets from Kalshi (NBA + WNBA), no
+        //    paid odds API, never fabricated — only real, currently-priced
+        //    markets are shown.
+        async function fetchKalshiPlayerProps() {
+            setStatusBadge('loading', 'LOADING KALSHI...');
+            try {
+                const res = await fetch('/api/kalshi-props');
+                if (!res.ok) throw new Error(`Proxy returned ${res.status}`);
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
 
-                        const pObj = playersMap[playerName];
+                const markets = data.markets || [];
+                kalshiPlayers = buildPlayersFromKalshiMarkets(markets);
+                rebuildPlayers();
 
-                        if (!pObj.props[statName]) {
-                            pObj.props[statName] = {
-                                line: lineVal,
-                                books: {}
-                            };
-                        }
+                if (kalshiPlayers.length === 0) {
+                    setStatusBadge('off', 'NO LIVE PROPS PRICED YET');
+                } else {
+                    setStatusBadge('live', `LIVE ACTIVE · ${kalshiPlayers.length} PLAYERS`);
+                }
+            } catch (e) {
+                console.error('Failed to load Kalshi player props:', e);
+                kalshiPlayers = [];
+                rebuildPlayers();
+                setStatusBadge('error', 'KALSHI DATA UNAVAILABLE');
+            }
+        }
 
-                        const propDetail = pObj.props[statName];
+        // 2. Group raw Kalshi markets into the player-card schema the grid
+        //    renderer expects. For each player+stat, several threshold
+        //    markets exist (e.g. 15+, 20+, 25+ points) — we pick the one
+        //    priced closest to 50/50 as "the line", the same way a
+        //    sportsbook settles on one number.
+        function buildPlayersFromKalshiMarkets(markets) {
+            const groups = {}; // key: league||player||stat -> { player, league, matchup, entries: [] }
 
-                        // Keep lines aligned. If another bookmaker lists a slightly different line (e.g. 25.5 vs 26.5), 
-                        // we display the line value for our outcomes
-                        if (!propDetail.books[bookTitle]) {
-                            propDetail.books[bookTitle] = {
-                                over: null,
-                                under: null
-                            };
-                        }
+            markets.forEach(m => {
+                const yesPrice = realPriceCents(m);
+                if (yesPrice === null) return; // no real liquidity yet — skip, never guess
 
-                        if (type === 'OVER') {
-                            propDetail.books[bookTitle].over = price;
-                        } else if (type === 'UNDER') {
-                            propDetail.books[bookTitle].under = price;
-                        }
-                    });
-                });
+                const label = m.yes_sub_title || '';
+                const playerName = label.includes(':') ? label.split(':')[0].trim() : label.trim();
+                if (!playerName) return;
+
+                const key = `${m._league}||${playerName}||${m._stat}`;
+                if (!groups[key]) {
+                    groups[key] = {
+                        player: playerName,
+                        league: m._league,
+                        stat: m._stat,
+                        matchup: extractMatchup(m),
+                        entries: []
+                    };
+                }
+                groups[key].entries.push({ line: m.floor_strike, yesPrice });
             });
 
-            // Convert parsed collection to clean rendering array
-            const result = Object.values(playersMap);
+            const playersMap = {};
+            Object.values(groups).forEach(g => {
+                if (g.entries.length === 0) return;
+                const closest = g.entries.reduce((best, e) =>
+                    Math.abs(e.yesPrice - 50) < Math.abs(best.yesPrice - 50) ? e : best
+                );
+                const overAm = americanFromCents(closest.yesPrice);
+                const underAm = americanFromCents(100 - closest.yesPrice);
+                if (overAm === null || underAm === null) return;
 
-            // Sort by Player Name
-            result.sort((a, b) => a.name.localeCompare(b.name));
-            return result;
+                const pKey = `${g.league}||${g.player}`;
+                if (!playersMap[pKey]) {
+                    playersMap[pKey] = {
+                        id: 'kalshi-' + pKey.replace(/\s+/g, '-').toLowerCase(),
+                        name: g.player,
+                        teamMatchup: g.matchup,
+                        league: g.league,
+                        props: {}
+                    };
+                }
+                playersMap[pKey].props[g.stat] = {
+                    line: closest.line,
+                    books: {
+                        'Kalshi': { over: overAm, under: underAm }
+                    }
+                };
+            });
+
+            return Object.values(playersMap).sort((a, b) => a.name.localeCompare(b.name));
         }
 
         // Loop through sportsbooks to locate the best (highest payout) American odds
@@ -1425,8 +1092,8 @@
             const oOdds = parseInt(parts[0]) || -110;
             const uOdds = parseInt(parts[1] || parts[0]) || -110;
 
-            // See if player card already exists
-            let player = players.find(p => p.name.toLowerCase() === name.toLowerCase());
+            // See if a custom card for this player already exists
+            let player = customPlayers.find(p => p.name.toLowerCase() === name.toLowerCase());
 
             if (!player) {
                 player = {
@@ -1436,32 +1103,29 @@
                     league: league,
                     props: {}
                 };
-                players.unshift(player);
+                customPlayers.unshift(player);
             }
 
-            // Inject the new stat line comparison
+            // Single "Custom" book — this is the number you typed in, not a
+            // real sportsbook quote, so it's never shown as one.
             player.props[stat] = {
                 line: line,
                 books: {
-                    "FanDuel": { over: oOdds, under: uOdds },
-                    "DraftKings": { over: oOdds + 5, under: uOdds - 5 },
-                    "BetMGM": { over: oOdds - 5, under: uOdds + 5 }
+                    'Custom': { over: oOdds, under: uOdds }
                 }
             };
 
-            localStorage.setItem('destiny_custom_players', JSON.stringify(players));
+            localStorage.setItem('destiny_custom_players', JSON.stringify(customPlayers));
 
-            // Reset inputs & dropdown selection to fallback mode
-            document.getElementById('apiGameSelect').value = 'default_mock';
             document.getElementById('customPropForm').reset();
-            renderPropsGrid();
+            rebuildPlayers();
         }
 
         // Delete a custom card
         function deletePropCard(id) {
-            players = players.filter(p => p.id !== id);
-            localStorage.setItem('destiny_custom_players', JSON.stringify(players));
-            renderPropsGrid();
+            customPlayers = customPlayers.filter(p => p.id !== id);
+            localStorage.setItem('destiny_custom_players', JSON.stringify(customPlayers));
+            rebuildPlayers();
         }
 
         // Filters controls
