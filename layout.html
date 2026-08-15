@@ -110,23 +110,6 @@
         .clb-row{position:relative;padding:5px 16px 5px 8px;border:1px dashed rgba(255,255,255,0.25);border-radius:6px;touch-action:none;background:#181c22;}
         .clb-row.dragging{opacity:0.35;}
         .clb-del{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:#ef4444;color:#fff;font-size:11px;line-height:16px;text-align:center;cursor:pointer;font-weight:700;}
-        .clb-team-name{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
-        .clb-team-record{font-size:10px;color:#6b7280;}
-        .clb-team-score{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:#e8eaed;}
-        .clb-kalshi-live-tag{font-size:9px;font-weight:800;color:#06B6D4;letter-spacing:0.8px;}
-        .clb-kalshi-market-type{font-size:8px;color:#6b7280;letter-spacing:0.5px;}
-        .clb-kalshi-team-abbr{font-size:13px;font-weight:700;color:#e8eaed;}
-        .clb-kalshi-team-role{font-size:8px;color:#6b7280;}
-        .clb-kalshi-odds-box{display:flex;align-items:center;gap:8px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.25);padding:3px 8px;border-radius:4px;}
-        .clb-kalshi-cents-val{font-size:13px;font-weight:800;color:#06B6D4;}
-        .clb-kalshi-american-val{font-size:10px;font-weight:700;color:#e8eaed;opacity:0.85;}
-        .clb-probstat{color:#e8eaed;font-weight:600;font-size:10px;}
-        .clb-probbar{width:80px;height:4px;background:#181c22;border-radius:2px;overflow:hidden;display:flex;}
-        .clb-bwlabel{font-size:10px;color:#6b7280;width:70px;}
-        .clb-bw-cell{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.13);border-radius:4px;padding:6px 10px;text-align:center;min-width:70px;}
-        .clb-bw-val{font-size:12px;font-weight:600;color:#e8eaed;}
-        .clb-bw-sub{font-size:10px;color:#3b82f6;}
-        .clb-bw-val-only{color:#3b82f6;font-size:12px;font-weight:600;}
         .clb-ghost{position:fixed;pointer-events:none;z-index:9999;opacity:0.85;}
     </style>
 </head>
@@ -140,21 +123,27 @@
 
     <main class="main">
         <p class="desc">
-            Starts arranged like the current site. Drag any piece onto an empty square to redesign the layout.
-            Tap the red &times; to remove a piece,
-            or drag it into the trash strip. Your layout saves automatically.
+            Pulled straight from the live Command Center — same CSS, same markup, a real game card.
+            Drag any piece onto an empty square to redesign the layout.
+            Tap the red &times; to remove a piece, or drag it into the trash strip. Your layout saves automatically.
         </p>
 
-        <div class="clb-palette-label">Set aside (drag pieces here to park them)</div>
-        <div class="clb-palette clb-dz" data-zone="palette"></div>
+        <div id="clb-status" style="font-size:12px;color:var(--muted);margin-bottom:16px;">Loading a real game card from index.html&hellip;</div>
 
-        <div class="clb-palette-label" style="margin-top:20px;">Grid &mdash; drop anywhere</div>
-        <div class="clb-grid" id="clb-grid"></div>
+        <div id="clb-content" style="display:none;">
+            <div class="clb-palette-label">Set aside (drag pieces here to park them)</div>
+            <div class="clb-palette clb-dz" data-zone="palette"></div>
 
-        <div class="clb-list clb-dz clb-trash" data-zone="trash" style="margin-top:12px;">
-            <span style="font-size:9px;color:var(--muted);">drop here to remove</span>
+            <div class="clb-palette-label" style="margin-top:20px;">Grid &mdash; drop anywhere</div>
+            <div class="clb-grid" id="clb-grid"></div>
+
+            <div class="clb-list clb-dz clb-trash" data-zone="trash" style="margin-top:12px;">
+                <span style="font-size:9px;color:var(--muted);">drop here to remove</span>
+            </div>
+            <button class="reset-btn" onclick="clbReset()">&#8635; Reset to current site layout</button>
         </div>
-        <button class="reset-btn" onclick="clbReset()">&#8635; Reset to current site layout</button>
+
+        <iframe id="clb-source-frame" src="index.html" style="position:fixed;left:-9999px;top:0;width:500px;height:1500px;border:0;opacity:0;"></iframe>
     </main>
 
     <script>
@@ -165,32 +154,96 @@
         // it works on touch too. Arrangement persists in localStorage.
         const CLB_STORAGE_KEY = 'destiny_card_layout_v1';
 
-        const CLB_DEFAULT_ITEMS = {
-            jaxinfo: { zone: 'cell-0', html: '<span class="clb-team-name">JAX <span class="clb-team-record">0-0</span></span>' },
-            jaxscore: { zone: 'cell-2', html: '<span class="clb-team-score">14</span>' },
-            noinfo: { zone: 'cell-6', html: '<span class="clb-team-name">NO <span class="clb-team-record">0-0</span></span>' },
-            noscore: { zone: 'cell-8', html: '<span class="clb-team-score" style="color:#f59e0b;">20</span>' },
-            kalshitag: { zone: 'cell-12', html: '<span class="clb-kalshi-live-tag">&#9889; KALSHI LIVE</span>' },
-            markettype: { zone: 'cell-14', html: '<span class="clb-kalshi-market-type">WIN PROBABILITY</span>' },
-            jaxrole: { zone: 'cell-18', html: '<span class="clb-kalshi-team-abbr">JAX <span class="clb-kalshi-team-role">AWAY</span></span>' },
-            jaxodds: { zone: 'cell-19', html: '<span class="clb-kalshi-odds-box"><span class="clb-kalshi-cents-val">19&cent;</span><span class="clb-kalshi-american-val">+426</span></span>' },
-            norole: { zone: 'cell-24', html: '<span class="clb-kalshi-team-abbr">NO <span class="clb-kalshi-team-role">HOME</span></span>' },
-            noodds: { zone: 'cell-25', html: '<span class="clb-kalshi-odds-box"><span class="clb-kalshi-cents-val">80&cent;</span><span class="clb-kalshi-american-val">-400</span></span>' },
-            probleft: { zone: 'cell-30', html: '<span class="clb-probstat">19% JAX (+426)</span>' },
-            probbar: { zone: 'cell-31', html: '<div class="clb-probbar"><div style="width:19%;background:#3b82f6;"></div><div style="width:81%;background:#6b7280;opacity:0.3;"></div></div>' },
-            probright: { zone: 'cell-32', html: '<span class="clb-probstat">80% NO</span>' },
-            lblspread: { zone: 'cell-37', html: '<span class="clb-bwlabel">Spread</span>' },
-            lblml: { zone: 'cell-38', html: '<span class="clb-bwlabel">Moneyline</span>' },
-            lbltotal: { zone: 'cell-39', html: '<span class="clb-bwlabel">Total</span>' },
-            jaxlabel: { zone: 'cell-42', html: '<span class="clb-bwlabel">JAX</span>' },
-            jaxspread: { zone: 'cell-43', html: '<div class="clb-bw-cell"><span class="clb-bw-val">&mdash;</span></div>' },
-            jaxml: { zone: 'cell-44', html: '<div class="clb-bw-cell"><span class="clb-bw-val-only">+426</span></div>' },
-            jaxtotal: { zone: 'cell-45', html: '<div class="clb-bw-cell"><span class="clb-bw-val">O 41.5</span> <span class="clb-bw-sub">-133</span></div>' },
-            nolabel: { zone: 'cell-48', html: '<span class="clb-bwlabel">NO</span>' },
-            nospread: { zone: 'cell-49', html: '<div class="clb-bw-cell"><span class="clb-bw-val">&mdash;</span></div>' },
-            noml: { zone: 'cell-50', html: '<div class="clb-bw-cell"><span class="clb-bw-val-only">-400</span></div>' },
-            nototal: { zone: 'cell-51', html: '<div class="clb-bw-cell"><span class="clb-bw-val">U 41.5</span> <span class="clb-bw-sub">+133</span></div>' }
-        };
+        // CLB_DEFAULT_ITEMS is populated at runtime by clbExtractRealCard()
+        // below, pulling actual DOM nodes out of a live game card in
+        // index.html (loaded in a hidden iframe) rather than a hand-typed
+        // approximation. Each entry: { zone, html } where html is the
+        // real node's outerHTML.
+        let CLB_DEFAULT_ITEMS = {};
+        let CLB_PIECE_ORDER = [];
+
+        // Cell positions mirroring the real card's visual layout, used
+        // once real pieces are extracted.
+        const CLB_ZONE_PLAN = [
+            'status', 'awaymybets',
+            'awayinfo', 'awayscore',
+            'homeinfo', 'homescore',
+            'kalshitag', 'markettype',
+            'awayrole', 'awayodds',
+            'homerole', 'homeodds',
+            'probleft', 'probbar', 'probright',
+            'sourcelabel', 'lblspread', 'lblml', 'lbltotal',
+            'awaybwteam', 'awaybwspread', 'awaybwml', 'awaybwtotal',
+            'homebwteam', 'homebwspread', 'homebwml', 'homebwtotal'
+        ];
+
+        function clbCellForIndex(i) {
+            const row = Math.floor(i / 4);
+            const col = i % 4;
+            return 'cell-' + (row * CLB_GRID_COLS + col);
+        }
+
+        function clbExtractRealCard() {
+            const frame = document.getElementById('clb-source-frame');
+            let doc;
+            try { doc = frame.contentDocument; } catch (e) { doc = null; }
+            if (!doc) return false;
+
+            const cards = Array.from(doc.querySelectorAll('.game-card'));
+            const card = cards.find(c => c.querySelector('.teams'));
+            if (!card) return false;
+
+            const pick = (root, sel) => root ? root.querySelector(sel) : null;
+            const teamRows = card.querySelectorAll('.teams .team-row');
+            const kalshiRows = card.querySelectorAll('.kalshi-card-tile .kalshi-row');
+            const bwRows = card.querySelectorAll('.betting-widget .bw-row');
+            const bwHeader = card.querySelector('.betting-widget .bw-header');
+            const bwHeaderSpans = bwHeader ? bwHeader.querySelectorAll('span') : [];
+
+            const found = {
+                status: pick(card, '.card-top-bar .game-status'),
+                awaymybets: pick(card, '.card-my-bets-btn'),
+                awayinfo: teamRows[0] ? teamRows[0].querySelector('div') : null,
+                awayscore: teamRows[0] ? teamRows[0].querySelector('.team-score') : null,
+                homeinfo: teamRows[1] ? teamRows[1].querySelector('div') : null,
+                homescore: teamRows[1] ? teamRows[1].querySelector('.team-score') : null,
+                kalshitag: pick(card, '.kalshi-live-tag'),
+                markettype: pick(card, '.kalshi-market-type'),
+                awayrole: kalshiRows[0] ? kalshiRows[0].querySelector('.kalshi-team-label') : null,
+                awayodds: kalshiRows[0] ? kalshiRows[0].querySelector('.kalshi-odds-box') : null,
+                homerole: kalshiRows[1] ? kalshiRows[1].querySelector('.kalshi-team-label') : null,
+                homeodds: kalshiRows[1] ? kalshiRows[1].querySelector('.kalshi-odds-box') : null,
+                probleft: pick(card, '.bw-prob-val-left'),
+                probbar: pick(card, '.bw-prob-bar-wrap'),
+                probright: pick(card, '.bw-prob-val-right'),
+                sourcelabel: bwHeaderSpans[0] || null,
+                lblspread: bwHeaderSpans[1] || null,
+                lblml: bwHeaderSpans[2] || null,
+                lbltotal: bwHeaderSpans[3] || null,
+                awaybwteam: bwRows[0] ? bwRows[0].querySelector('.bw-team') : null,
+                awaybwspread: bwRows[0] ? bwRows[0].querySelectorAll('.bw-cell')[0] : null,
+                awaybwml: bwRows[0] ? bwRows[0].querySelectorAll('.bw-cell')[1] : null,
+                awaybwtotal: bwRows[0] ? bwRows[0].querySelectorAll('.bw-cell')[2] : null,
+                homebwteam: bwRows[1] ? bwRows[1].querySelector('.bw-team') : null,
+                homebwspread: bwRows[1] ? bwRows[1].querySelectorAll('.bw-cell')[0] : null,
+                homebwml: bwRows[1] ? bwRows[1].querySelectorAll('.bw-cell')[1] : null,
+                homebwtotal: bwRows[1] ? bwRows[1].querySelectorAll('.bw-cell')[2] : null
+            };
+
+            const items = {};
+            const order = [];
+            CLB_ZONE_PLAN.forEach((id, i) => {
+                const node = found[id];
+                if (!node) return;
+                items[id] = { zone: clbCellForIndex(order.length), html: node.outerHTML };
+                order.push(id);
+            });
+
+            CLB_DEFAULT_ITEMS = items;
+            CLB_PIECE_ORDER = order;
+            return true;
+        }
+
 
         function clbMakeRow(id, html) {
             const el = document.createElement('div');
@@ -348,8 +401,50 @@
             clbActivePointerId = null;
         }
 
-        clbBuildGrid();
-        clbLoadLayout();
+        // ── Boot sequence ──────────────────────────────────────────────
+        // 1. Inject index.html's real <style> block so cloned pieces are
+        //    styled identically to the live site (auto-stays in sync if
+        //    the site's CSS changes later).
+        // 2. Wait for the hidden iframe to render a real game card with
+        //    live/final data (the score block only renders for those).
+        // 3. Extract real pieces from it, then build the grid.
+        async function clbInjectRealCSS() {
+            try {
+                const res = await fetch('index.html');
+                const text = await res.text();
+                const match = text.match(/<style>([\s\S]*?)<\/style>/);
+                if (match) {
+                    const styleEl = document.createElement('style');
+                    styleEl.textContent = match[1];
+                    document.head.appendChild(styleEl);
+                }
+            } catch (e) {
+                console.error('Could not load real CSS from index.html:', e);
+            }
+        }
+
+        function clbBoot(attempt) {
+            attempt = attempt || 0;
+            if (clbExtractRealCard()) {
+                clbBuildGrid();
+                clbLoadLayout();
+                document.getElementById('clb-status').style.display = 'none';
+                document.getElementById('clb-content').style.display = 'block';
+                return;
+            }
+            if (attempt > 40) {
+                document.getElementById('clb-status').textContent =
+                    "Couldn't find a live or final game on the Command Center right now " +
+                    "(the score block only shows for those) — try again once one's live.";
+                return;
+            }
+            setTimeout(() => clbBoot(attempt + 1), 500);
+        }
+
+        clbInjectRealCSS();
+        document.getElementById('clb-source-frame').addEventListener('load', () => {
+            clbBoot();
+        });
     </script>
     <script src="nav.js"></script>
 </body>
