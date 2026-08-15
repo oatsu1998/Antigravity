@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destiny — Layout Builder</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0c0f;
+            --surface: #111418;
+            --surface2: #181c22;
+            --border: rgba(255, 255, 255, 0.07);
+            --border2: rgba(255, 255, 255, 0.13);
+            --text: #e8eaed;
+            --muted: #6b7280;
+            --accent: #f59e0b;
+            --accent2: #3b82f6;
+            --font-head: 'Barlow Condensed', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-mono);
+            min-height: 100vh;
+        }
+
+        .nav-spacer {
+            height: 48px;
+        }
+
+        header {
+            padding: 18px 28px;
+            border-bottom: 1px solid var(--border2);
+            background: var(--surface);
+        }
+
+        .logo {
+            font-family: var(--font-head);
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        .logo span {
+            color: var(--text);
+            opacity: 0.4;
+            font-weight: 400;
+        }
+
+        .main {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 24px 28px 60px;
+        }
+
+        .desc {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .reset-btn {
+            margin-top: 16px;
+            background: none;
+            border: 1px solid var(--border2);
+            color: var(--muted);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .reset-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .clb-card{background:#111418;border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:16px 18px;font-family:'JetBrains Mono',monospace;color:#e8eaed;display:flex;flex-direction:column;gap:8px;user-select:none;max-width:460px;}
+        .clb-teams-row{display:flex;justify-content:space-between;align-items:center;}
+        .clb-kalshi-box{background:rgba(15,23,34,0.75);border:1px solid rgba(6,182,212,0.3);border-radius:6px;padding:10px 12px;}
+        .clb-kalshi-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.06);}
+        .clb-kalshi-oddsrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+        .clb-bw-box{border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;}
+        .clb-bw-headerrow{display:flex;gap:6px;margin-bottom:8px;}
+        .clb-bw-datarow{display:flex;gap:6px;margin-bottom:6px;}
+        .clb-list{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:26px;touch-action:none;}
+        .clb-dz{border:1px dashed transparent;border-radius:6px;transition:border-color .15s;}
+        .clb-dz.over{border-color:#3b82f6;background:rgba(59,130,246,0.08);}
+        .clb-trash{border:1px dashed rgba(239,68,68,0.4)!important;border-radius:6px;padding:6px;min-height:20px;}
+        .clb-row{position:relative;padding:5px 16px 5px 8px;border:1px dashed rgba(255,255,255,0.25);border-radius:6px;touch-action:none;background:#181c22;}
+        .clb-row.dragging{opacity:0.35;}
+        .clb-del{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:#ef4444;color:#fff;font-size:11px;line-height:16px;text-align:center;cursor:pointer;font-weight:700;}
+        .clb-team-name{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+        .clb-team-record{font-size:10px;color:#6b7280;}
+        .clb-team-score{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:#e8eaed;}
+        .clb-kalshi-live-tag{font-size:9px;font-weight:800;color:#06B6D4;letter-spacing:0.8px;}
+        .clb-kalshi-market-type{font-size:8px;color:#6b7280;letter-spacing:0.5px;}
+        .clb-kalshi-team-abbr{font-size:13px;font-weight:700;color:#e8eaed;}
+        .clb-kalshi-team-role{font-size:8px;color:#6b7280;}
+        .clb-kalshi-odds-box{display:flex;align-items:center;gap:8px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.25);padding:3px 8px;border-radius:4px;}
+        .clb-kalshi-cents-val{font-size:13px;font-weight:800;color:#06B6D4;}
+        .clb-kalshi-american-val{font-size:10px;font-weight:700;color:#e8eaed;opacity:0.85;}
+        .clb-probstat{color:#e8eaed;font-weight:600;font-size:10px;}
+        .clb-probbar{width:80px;height:4px;background:#181c22;border-radius:2px;overflow:hidden;display:flex;}
+        .clb-bwlabel{font-size:10px;color:#6b7280;width:70px;}
+        .clb-bw-cell{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.13);border-radius:4px;padding:6px 10px;text-align:center;min-width:70px;}
+        .clb-bw-val{font-size:12px;font-weight:600;color:#e8eaed;}
+        .clb-bw-sub{font-size:10px;color:#3b82f6;}
+        .clb-bw-val-only{color:#3b82f6;font-size:12px;font-weight:600;}
+        .clb-ghost{position:fixed;pointer-events:none;z-index:9999;opacity:0.85;}
+    </style>
+</head>
+
+<body>
+    <div class="nav-spacer"></div>
+
+    <header>
+        <div class="logo">DESTINY <span>// LAYOUT BUILDER</span></div>
+    </header>
+
+    <main class="main">
+        <p class="desc">
+            Drag any piece of the Command Center game card into a new spot to design a combined layout.
+            Tap the red &times; to remove a piece, or drag it into the trash strip. Your arrangement saves automatically.
+        </p>
+
+        <div class="clb-card" id="clb-card">
+            <div class="clb-teams-row">
+                <div class="clb-list clb-dz" data-zone="jaxinfo"></div>
+                <div class="clb-list clb-dz" data-zone="jaxscore"></div>
+            </div>
+            <div class="clb-teams-row">
+                <div class="clb-list clb-dz" data-zone="noinfo"></div>
+                <div class="clb-list clb-dz" data-zone="noscore"></div>
+            </div>
+            <div class="clb-kalshi-box">
+                <div class="clb-kalshi-header-row">
+                    <div class="clb-list clb-dz" data-zone="kalshitag"></div>
+                    <div class="clb-list clb-dz" data-zone="markettype"></div>
+                </div>
+                <div class="clb-kalshi-oddsrow">
+                    <div class="clb-list clb-dz" data-zone="jaxrole"></div>
+                    <div class="clb-list clb-dz" data-zone="jaxodds"></div>
+                </div>
+                <div class="clb-kalshi-oddsrow">
+                    <div class="clb-list clb-dz" data-zone="norole"></div>
+                    <div class="clb-list clb-dz" data-zone="noodds"></div>
+                </div>
+                <div class="clb-teams-row">
+                    <div class="clb-list clb-dz" data-zone="probleft"></div>
+                    <div class="clb-list clb-dz" data-zone="probbar"></div>
+                    <div class="clb-list clb-dz" data-zone="probright"></div>
+                </div>
+            </div>
+            <div class="clb-bw-box">
+                <div class="clb-bw-headerrow">
+                    <div style="width:70px;"></div>
+                    <div class="clb-list clb-dz" data-zone="lblspread"></div>
+                    <div class="clb-list clb-dz" data-zone="lblml"></div>
+                    <div class="clb-list clb-dz" data-zone="lbltotal"></div>
+                </div>
+                <div class="clb-bw-datarow">
+                    <div class="clb-list clb-dz" data-zone="jaxlabel"></div>
+                    <div class="clb-list clb-dz" data-zone="jaxspread"></div>
+                    <div class="clb-list clb-dz" data-zone="jaxml"></div>
+                    <div class="clb-list clb-dz" data-zone="jaxtotal"></div>
+                </div>
+                <div class="clb-bw-datarow">
+                    <div class="clb-list clb-dz" data-zone="nolabel"></div>
+                    <div class="clb-list clb-dz" data-zone="nospread"></div>
+                    <div class="clb-list clb-dz" data-zone="noml"></div>
+                    <div class="clb-list clb-dz" data-zone="nototal"></div>
+                </div>
+            </div>
+            <div class="clb-list clb-dz clb-trash" data-zone="trash">
+                <span style="font-size:9px;color:var(--muted);">drop here to remove</span>
+            </div>
+        </div>
+        <button class="reset-btn" onclick="clbReset()">&#8635; Reset to current site layout</button>
+    </main>
+
+    <script>
+        // ── Game Card Layout Builder ──────────────────────────────────
+        // Real drag-and-drop editor for the Command Center's Kalshi tile
+        // + Spread/Moneyline/Total row, using the exact colors/fonts from
+        // index.html. Uses Pointer Events (not the old HTML5 drag API) so
+        // it works on touch too. Arrangement persists in localStorage.
+        const CLB_STORAGE_KEY = 'destiny_card_layout_v1';
+
+        const CLB_DEFAULT_ITEMS = {
+            jaxinfo: { zone: 'jaxinfo', html: '<span class="clb-team-name">JAX <span class="clb-team-record">0-0</span></span>' },
+            jaxscore: { zone: 'jaxscore', html: '<span class="clb-team-score">14</span>' },
+            noinfo: { zone: 'noinfo', html: '<span class="clb-team-name">NO <span class="clb-team-record">0-0</span></span>' },
+            noscore: { zone: 'noscore', html: '<span class="clb-team-score" style="color:#f59e0b;">20</span>' },
+            kalshitag: { zone: 'kalshitag', html: '<span class="clb-kalshi-live-tag">&#9889; KALSHI LIVE</span>' },
+            markettype: { zone: 'markettype', html: '<span class="clb-kalshi-market-type">WIN PROBABILITY</span>' },
+            jaxrole: { zone: 'jaxrole', html: '<span class="clb-kalshi-team-abbr">JAX <span class="clb-kalshi-team-role">AWAY</span></span>' },
+            jaxodds: { zone: 'jaxodds', html: '<span class="clb-kalshi-odds-box"><span class="clb-kalshi-cents-val">19&cent;</span><span class="clb-kalshi-american-val">+426</span></span>' },
+            norole: { zone: 'norole', html: '<span class="clb-kalshi-team-abbr">NO <span class="clb-kalshi-team-role">HOME</span></span>' },
+            noodds: { zone: 'noodds', html: '<span class="clb-kalshi-odds-box"><span class="clb-kalshi-cents-val">80&cent;</span><span class="clb-kalshi-american-val">-400</span></span>' },
+            probleft: { zone: 'probleft', html: '<span class="clb-probstat">19% JAX (+426)</span>' },
+            probbar: { zone: 'probbar', html: '<div class="clb-probbar"><div style="width:19%;background:#3b82f6;"></div><div style="width:81%;background:#6b7280;opacity:0.3;"></div></div>' },
+            probright: { zone: 'probright', html: '<span class="clb-probstat">80% NO</span>' },
+            lblspread: { zone: 'lblspread', html: '<span class="clb-bwlabel">Spread</span>' },
+            lblml: { zone: 'lblml', html: '<span class="clb-bwlabel">Moneyline</span>' },
+            lbltotal: { zone: 'lbltotal', html: '<span class="clb-bwlabel">Total</span>' },
+            jaxlabel: { zone: 'jaxlabel', html: '<span class="clb-bwlabel">JAX</span>' },
+            jaxspread: { zone: 'jaxspread', html: '<div class="clb-bw-cell"><span class="clb-bw-val">&mdash;</span></div>' },
+            jaxml: { zone: 'jaxml', html: '<div class="clb-bw-cell"><span class="clb-bw-val-only">+426</span></div>' },
+            jaxtotal: { zone: 'jaxtotal', html: '<div class="clb-bw-cell"><span class="clb-bw-val">O 41.5</span> <span class="clb-bw-sub">-133</span></div>' },
+            nolabel: { zone: 'nolabel', html: '<span class="clb-bwlabel">NO</span>' },
+            nospread: { zone: 'nospread', html: '<div class="clb-bw-cell"><span class="clb-bw-val">&mdash;</span></div>' },
+            noml: { zone: 'noml', html: '<div class="clb-bw-cell"><span class="clb-bw-val-only">-400</span></div>' },
+            nototal: { zone: 'nototal', html: '<div class="clb-bw-cell"><span class="clb-bw-val">U 41.5</span> <span class="clb-bw-sub">+133</span></div>' }
+        };
+
+        function clbMakeRow(id, html) {
+            const el = document.createElement('div');
+            el.dataset.id = id;
+            el.className = 'clb-row';
+            el.innerHTML = html;
+            const del = document.createElement('div');
+            del.className = 'clb-del';
+            del.textContent = '\u00d7';
+            del.addEventListener('pointerdown', (e) => e.stopPropagation());
+            del.addEventListener('click', (e) => {
+                e.stopPropagation();
+                el.remove();
+                clbSaveLayout();
+            });
+            el.appendChild(del);
+            el.addEventListener('pointerdown', clbOnPointerDown);
+            return el;
+        }
+
+        function clbSaveLayout() {
+            const layout = {};
+            document.querySelectorAll('#clb-card .clb-dz').forEach(zone => {
+                const ids = Array.from(zone.querySelectorAll('.clb-row')).map(r => r.dataset.id);
+                if (ids.length) layout[zone.dataset.zone] = ids;
+            });
+            localStorage.setItem(CLB_STORAGE_KEY, JSON.stringify(layout));
+        }
+
+        function clbLoadLayout() {
+            const saved = localStorage.getItem(CLB_STORAGE_KEY);
+            let layout = null;
+            if (saved) {
+                try { layout = JSON.parse(saved); } catch (e) { layout = null; }
+            }
+
+            document.querySelectorAll('#clb-card .clb-dz').forEach(z => { z.innerHTML = ''; });
+            const trashLabel = document.querySelector('[data-zone="trash"]');
+            if (trashLabel) trashLabel.innerHTML = '<span style="font-size:9px;color:var(--muted);">drop here to remove</span>';
+
+            if (layout) {
+                Object.entries(layout).forEach(([zoneName, ids]) => {
+                    const zoneEl = document.querySelector('#clb-card [data-zone="' + zoneName + '"]');
+                    if (!zoneEl) return;
+                    ids.forEach(id => {
+                        const item = CLB_DEFAULT_ITEMS[id];
+                        if (item) zoneEl.appendChild(clbMakeRow(id, item.html));
+                    });
+                });
+            } else {
+                Object.entries(CLB_DEFAULT_ITEMS).forEach(([id, item]) => {
+                    const zoneEl = document.querySelector('#clb-card [data-zone="' + item.zone + '"]');
+                    if (zoneEl) zoneEl.appendChild(clbMakeRow(id, item.html));
+                });
+            }
+        }
+
+        function clbReset() {
+            localStorage.removeItem(CLB_STORAGE_KEY);
+            clbLoadLayout();
+        }
+
+        let clbDragging = null;
+        let clbGhost = null;
+        let clbCurrentZone = null;
+        let clbActivePointerId = null;
+
+        function clbFindZoneAt(x, y) {
+            if (clbGhost) clbGhost.style.display = 'none';
+            const el = document.elementFromPoint(x, y);
+            if (clbGhost) clbGhost.style.display = '';
+            if (!el) return null;
+            return el.closest('.clb-dz');
+        }
+
+        function clbOnPointerDown(e) {
+            if (e.target.classList.contains('clb-del')) return;
+            const row = e.currentTarget;
+            e.preventDefault();
+            clbDragging = row;
+            clbActivePointerId = e.pointerId;
+            row.classList.add('dragging');
+            row.setPointerCapture(e.pointerId);
+
+            clbGhost = row.cloneNode(true);
+            clbGhost.classList.remove('dragging');
+            clbGhost.classList.add('clb-ghost');
+            const rect = row.getBoundingClientRect();
+            clbGhost.style.width = rect.width + 'px';
+            clbGhost.style.left = rect.left + 'px';
+            clbGhost.style.top = rect.top + 'px';
+            document.body.appendChild(clbGhost);
+
+            row.addEventListener('pointermove', clbOnPointerMove);
+            row.addEventListener('pointerup', clbOnPointerUp);
+            row.addEventListener('pointercancel', clbOnPointerUp);
+        }
+
+        function clbOnPointerMove(e) {
+            if (!clbGhost || e.pointerId !== clbActivePointerId) return;
+            const rect = clbDragging.getBoundingClientRect();
+            clbGhost.style.left = (e.clientX - rect.width / 2) + 'px';
+            clbGhost.style.top = (e.clientY - rect.height / 2) + 'px';
+
+            const zone = clbFindZoneAt(e.clientX, e.clientY);
+            if (zone !== clbCurrentZone) {
+                if (clbCurrentZone) clbCurrentZone.classList.remove('over');
+                clbCurrentZone = zone;
+                if (clbCurrentZone) clbCurrentZone.classList.add('over');
+            }
+        }
+
+        function clbOnPointerUp(e) {
+            if (e.pointerId !== clbActivePointerId) return;
+            clbDragging.removeEventListener('pointermove', clbOnPointerMove);
+            clbDragging.removeEventListener('pointerup', clbOnPointerUp);
+            clbDragging.removeEventListener('pointercancel', clbOnPointerUp);
+            if (clbGhost) clbGhost.remove();
+            clbGhost = null;
+
+            if (clbCurrentZone && clbDragging) {
+                if (clbCurrentZone.dataset.zone === 'trash') {
+                    clbDragging.remove();
+                } else {
+                    clbCurrentZone.appendChild(clbDragging);
+                }
+                clbCurrentZone.classList.remove('over');
+                clbSaveLayout();
+            }
+            if (clbDragging) clbDragging.classList.remove('dragging');
+            clbDragging = null;
+            clbCurrentZone = null;
+            clbActivePointerId = null;
+        }
+
+        clbLoadLayout();
+    </script>
+    <script src="nav.js"></script>
+</body>
+
+</html>
