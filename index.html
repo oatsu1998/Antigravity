@@ -965,7 +965,7 @@
 
         .bw-header {
             display: grid;
-            grid-template-columns: 80px 1fr 1fr 1fr;
+            grid-template-columns: 80px 1fr 1fr 1fr 1.1fr;
             font-size: 10px;
             color: var(--muted);
             text-align: center;
@@ -977,7 +977,7 @@
 
         .bw-row {
             display: grid;
-            grid-template-columns: 80px 1fr 1fr 1fr;
+            grid-template-columns: 80px 1fr 1fr 1fr 1.1fr;
             gap: 6px;
             align-items: center;
         }
@@ -1975,11 +1975,13 @@
 
             let bettingWidgetHtml = '';
 
-            // ── Real sportsbook-style Spread / Moneyline / Total row ──────────
-            // Sourced ENTIRELY from Kalshi's free markets via DestinyLiveFeed
-            // (api/kalshi.js -> live-feed.js). No paid odds API, no fabricated
-            // numbers — if Kalshi doesn't have real pricing for this game yet,
-            // we show a clean "ODDS N/A" row instead of guessing.
+            // ── Merged Kalshi widget: Spread / Moneyline / Total / Win% ───────
+            // One combined table instead of two separate boxes. Sourced
+            // ENTIRELY from Kalshi's free markets via DestinyLiveFeed
+            // (api/kalshi.js -> live-feed.js). No paid odds API, no
+            // fabricated numbers — if Kalshi doesn't have real pricing for
+            // this game yet, we show a clean "ODDS N/A" row instead of
+            // guessing.
             const kalshiML = (window.DestinyLiveFeed && window.DestinyLiveFeed.getKalshiOdds)
                 ? window.DestinyLiveFeed.getKalshiOdds(awayAbbr, homeAbbr, awayName, homeName)
                 : null;
@@ -2000,14 +2002,18 @@
                 const totalCell = (prefix, line, american) => (line !== undefined && line !== null)
                     ? `<span class="bw-val">${prefix} ${line}</span><span class="bw-sub">${american}</span>`
                     : `<span class="bw-val">&mdash;</span>`;
+                const winProbCell = (abbr, cents, american) => (cents !== undefined && cents !== null)
+                    ? `<span class="bw-val" style="color:#06B6D4;">${cents}% ${abbr}</span><span class="bw-sub" style="color:#06B6D4;">(${american})</span>`
+                    : `<span class="bw-val">&mdash;</span>`;
 
                 bettingWidgetHtml = `
                 <div class="betting-widget" onclick="event.stopPropagation()">
                     <div class="bw-header">
-                        <span style="font-size: 8px; color: var(--muted);">KALSHI</span>
+                        <span style="font-size: 8px; color: #06B6D4;">⚡ KALSHI LIVE</span>
                         <span>Spread</span>
                         <span>Moneyline</span>
                         <span>Total</span>
+                        <span>Win probability</span>
                     </div>
                     <div class="bw-row">
                         <span class="bw-team" style="display:flex; align-items:center; gap:8px;">
@@ -2017,9 +2023,10 @@
                                 ${awayRecord ? `<span style="font-size:9px; color:var(--muted); font-weight:normal;">${awayRecord}</span>` : ''}
                             </div>
                         </span>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Spread (Kalshi)', '${spread ? (spread.awayLine > 0 ? '+' : '') + spread.awayLine + ' ' + spread.awayAmerican : 'N/A'}')">${spreadCell(spread && spread.awayLine, spread && spread.awayAmerican)}</div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.awayAmerican : 'N/A'}')">${mlCell(kalshiML && kalshiML.awayAmerican)}</div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Total (Kalshi)', '${total ? 'O ' + total.line + ' ' + total.overAmerican : 'N/A'}')">${totalCell('O', total && total.line, total && total.overAmerican)}</div>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Spread (Kalshi)', '${spread ? (spread.awayLine > 0 ? '+' : '') + spread.awayLine + ' ' + spread.awayAmerican : 'N/A'}')">${spreadCell(spread && spread.awayLine, spread && spread.awayAmerican)}</div>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.awayAmerican : 'N/A'}')">${mlCell(kalshiML && kalshiML.awayAmerican)}</div>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Total (Kalshi)', '${total ? 'O ' + total.line + ' ' + total.overAmerican : 'N/A'}')">${totalCell('O', total && total.line, total && total.overAmerican)}</div>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.awayAmerican : 'N/A'}')">${winProbCell(awayAbbr, kalshiML && kalshiML.awayCents, kalshiML && kalshiML.awayAmerican)}</div>
                     </div>
                     <div class="bw-row">
                         <span class="bw-team" style="display:flex; align-items:center; gap:8px;">
@@ -2029,10 +2036,21 @@
                                 ${homeRecord ? `<span style="font-size:9px; color:var(--muted); font-weight:normal;">${homeRecord}</span>` : ''}
                             </div>
                         </span>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Spread (Kalshi)', '${spread ? (spread.homeLine > 0 ? '+' : '') + spread.homeLine + ' ' + spread.homeAmerican : 'N/A'}')">${spreadCell(spread && spread.homeLine, spread && spread.homeAmerican)}</div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.homeAmerican : 'N/A'}')">${mlCell(kalshiML && kalshiML.homeAmerican)}</div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Total (Kalshi)', '${total ? 'U ' + total.line + ' ' + total.underAmerican : 'N/A'}')">${totalCell('U', total && total.line, total && total.underAmerican)}</div>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Spread (Kalshi)', '${spread ? (spread.homeLine > 0 ? '+' : '') + spread.homeLine + ' ' + spread.homeAmerican : 'N/A'}')">${spreadCell(spread && spread.homeLine, spread && spread.homeAmerican)}</div>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.homeAmerican : 'N/A'}')">${mlCell(kalshiML && kalshiML.homeAmerican)}</div>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Total (Kalshi)', '${total ? 'U ' + total.line + ' ' + total.underAmerican : 'N/A'}')">${totalCell('U', total && total.line, total && total.underAmerican)}</div>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.homeAmerican : 'N/A'}')">${winProbCell(homeAbbr, kalshiML && kalshiML.homeCents, kalshiML && kalshiML.homeAmerican)}</div>
                     </div>
+                    ${kalshiML ? `
+                    <div class="bw-prob" style="margin-top: 4px;">
+                        <span class="bw-prob-val-left">${kalshiML.awayCents}% ${awayAbbr} (${kalshiML.awayAmerican})</span>
+                        <div class="bw-prob-bar-wrap">
+                            <div class="bw-prob-bar-left" style="width: ${kalshiML.awayCents}%;"></div>
+                            <div class="bw-prob-bar-right" style="width: ${kalshiML.homeCents}%;"></div>
+                        </div>
+                        <span class="bw-prob-val-right">${kalshiML.homeCents}% ${homeAbbr}</span>
+                    </div>
+                    ` : ''}
                 </div>
                 `;
             }
@@ -2043,12 +2061,13 @@
                 <div class="betting-widget" onclick="event.stopPropagation()" style="opacity:.4;">
                     <div class="bw-header">
                         <span style="font-size: 8px; color: var(--muted);">ODDS N/A</span>
-                        <span>Spread</span><span>Moneyline</span><span>Total</span>
+                        <span>Spread</span><span>Moneyline</span><span>Total</span><span>Win probability</span>
                     </div>
                     <div class="bw-row">
                         <span class="bw-team">${awayLogo ? `<img src="${awayLogo}" style="width:28px;height:28px;object-fit:contain;">` : awayAbbr}</span>
                         <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
                         <div class="bw-cell"><span class="bw-val-only">&mdash;</span></div>
+                        <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
                         <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
                     </div>
                     <div class="bw-row">
@@ -2056,9 +2075,12 @@
                         <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
                         <div class="bw-cell"><span class="bw-val-only">&mdash;</span></div>
                         <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
+                        <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
                     </div>
                 </div>`;
             }
+
+            const kalshiTileHtml = '';
 
             const wagersList = (() => {
                 const saved = localStorage.getItem('destiny_game_wagers');
@@ -2082,66 +2104,6 @@
             })();
             const betsCount = wagersList.length;
             const showScoreBlock = status.isLive || status.isFinal;
-
-            // ⚡ Kalshi Live Odds Tile — REAL data only via DestinyLiveFeed.
-            // No live-score-based guessing, no hash-based fake percentages.
-            // If Kalshi has no real price for this game yet, the tile shows
-            // an "unavailable" state instead of a number.
-            const awayAbbrStr = away.team?.abbreviation || away.team?.name || 'AWAY';
-            const homeAbbrStr = home.team?.abbreviation || home.team?.name || 'HOME';
-            const awayNameStr = away.team?.displayName || away.team?.name || awayAbbrStr;
-            const homeNameStr = home.team?.displayName || home.team?.name || homeAbbrStr;
-
-            const liveKalshiOdds = (window.DestinyLiveFeed && window.DestinyLiveFeed.getKalshiOdds)
-                ? window.DestinyLiveFeed.getKalshiOdds(awayAbbrStr, homeAbbrStr, awayNameStr, homeNameStr)
-                : null;
-
-            const kalshiTileHtml = liveKalshiOdds ? `
-            <div class="kalshi-card-tile" onclick="event.stopPropagation()" data-away="${awayAbbrStr}" data-home="${homeAbbrStr}" data-away-name="${awayNameStr.replace(/"/g, '&quot;')}" data-home-name="${homeNameStr.replace(/"/g, '&quot;')}">
-                <div class="kalshi-tile-header">
-                    <span class="kalshi-live-tag">⚡ KALSHI LIVE</span>
-                    <span class="kalshi-market-type">WIN PROBABILITY</span>
-                </div>
-                <div class="kalshi-tile-rows">
-                    <div class="kalshi-row">
-                        <div class="kalshi-team-label">
-                            ${awayLogo ? `<img src="${awayLogo}" class="kalshi-mini-logo">` : ''}
-                            <span class="kalshi-team-abbr">${awayAbbrStr}</span>
-                            <span class="kalshi-team-role">AWAY</span>
-                        </div>
-                        <div class="kalshi-odds-box clickable" onclick="addToBetSlip('${awayNameStr.replace(/'/g, "\\'")}', 'Moneyline (Kalshi)', '${liveKalshiOdds.awayAmerican}')">
-                            <span class="kalshi-cents-val">${liveKalshiOdds.awayCents}¢</span>
-                            <span class="kalshi-american-val">${liveKalshiOdds.awayAmerican}</span>
-                        </div>
-                    </div>
-                    <div class="kalshi-row">
-                        <div class="kalshi-team-label">
-                            ${homeLogo ? `<img src="${homeLogo}" class="kalshi-mini-logo">` : ''}
-                            <span class="kalshi-team-abbr">${homeAbbrStr}</span>
-                            <span class="kalshi-team-role">HOME</span>
-                        </div>
-                        <div class="kalshi-odds-box clickable" onclick="addToBetSlip('${homeNameStr.replace(/'/g, "\\'")}', 'Moneyline (Kalshi)', '${liveKalshiOdds.homeAmerican}')">
-                            <span class="kalshi-cents-val">${liveKalshiOdds.homeCents}¢</span>
-                            <span class="kalshi-american-val">${liveKalshiOdds.homeAmerican}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bw-prob" style="margin-top: 8px;">
-                    <span class="bw-prob-val-left">${liveKalshiOdds.awayCents}% ${awayAbbrStr} (${liveKalshiOdds.awayAmerican})</span>
-                    <div class="bw-prob-bar-wrap">
-                        <div class="bw-prob-bar-left" style="width: ${liveKalshiOdds.awayCents}%;"></div>
-                        <div class="bw-prob-bar-right" style="width: ${liveKalshiOdds.homeCents}%;"></div>
-                    </div>
-                    <span class="bw-prob-val-right">${liveKalshiOdds.homeCents}% ${homeAbbrStr}</span>
-                </div>
-            </div>
-            ` : `
-            <div class="kalshi-card-tile" onclick="event.stopPropagation()" style="opacity:.5;">
-                <div class="kalshi-tile-header">
-                    <span class="kalshi-live-tag" style="color: var(--muted);">⛔ KALSHI DATA UNAVAILABLE</span>
-                </div>
-            </div>
-            `;
 
             return `
     <div class="game-card ${status.isLive ? 'live' : ''} ${espnPinned.has(event.id) ? 'pinned' : ''}" id="card-${panelType}-${event.id}" data-eid="${event.id}"
