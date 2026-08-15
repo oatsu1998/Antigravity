@@ -101,7 +101,7 @@
         .clb-bw-headerrow{display:flex;gap:6px;margin-bottom:8px;}
         .clb-bw-datarow{display:flex;gap:6px;margin-bottom:6px;}
         .clb-list{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:26px;touch-action:none;}
-        .clb-dz{border:1px dashed transparent;border-radius:6px;transition:border-color .15s;}
+        .clb-dz{border:1px dashed rgba(255,255,255,0.15);border-radius:6px;transition:border-color .15s,background .15s;min-width:32px;min-height:26px;}
         .clb-dz.over{border-color:#3b82f6;background:rgba(59,130,246,0.08);}
         .clb-trash{border:1px dashed rgba(239,68,68,0.4)!important;border-radius:6px;padding:6px;min-height:20px;}
         .clb-row{position:relative;padding:5px 16px 5px 8px;border:1px dashed rgba(255,255,255,0.25);border-radius:6px;touch-action:none;background:#181c22;}
@@ -298,11 +298,14 @@
         let clbActivePointerId = null;
 
         function clbFindZoneAt(x, y) {
-            if (clbGhost) clbGhost.style.display = 'none';
-            const el = document.elementFromPoint(x, y);
-            if (clbGhost) clbGhost.style.display = '';
-            if (!el) return null;
-            return el.closest('.clb-dz');
+            const zones = document.querySelectorAll('.clb-dz');
+            for (const zone of zones) {
+                const r = zone.getBoundingClientRect();
+                if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+                    return zone;
+                }
+            }
+            return null;
         }
 
         function clbOnPointerDown(e) {
