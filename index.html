@@ -1970,6 +1970,8 @@
 
             const awayAbbr = away.team?.abbreviation || '';
             const homeAbbr = home.team?.abbreviation || '';
+            const awayName = away.team?.displayName || away.team?.name || awayAbbr;
+            const homeName = home.team?.displayName || home.team?.name || homeAbbr;
 
             let bettingWidgetHtml = '';
 
