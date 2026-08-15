@@ -103,6 +103,7 @@ function initGlobalNav() {
     const isKalshi = currentPath.toLowerCase().includes('kalshi');
     const isSandbox = currentPath.toLowerCase().includes('sandbox');
     const isPortfolio = currentPath.toLowerCase().includes('portfolio');
+    const isLayout = currentPath.toLowerCase().includes('layout');
 
     // Get current bankroll from localStorage or state manager
     const savedBankroll = parseFloat(localStorage.getItem('bankroll')) || 10000.00;
@@ -115,7 +116,7 @@ function initGlobalNav() {
         <div style="display:flex; align-items:center;">
             <div class="global-nav-brand">DESTINY NETWORK</div>
             <div class="global-nav-links">
-                <a href="index.html" class="global-nav-link ${(!isLineTracker && !isProps && !isMyBets && !isHistory && !isKalshi && !isSandbox && !isPortfolio) ? 'active' : ''}">Command Center</a>
+                <a href="index.html" class="global-nav-link ${(!isLineTracker && !isProps && !isMyBets && !isHistory && !isKalshi && !isSandbox && !isPortfolio && !isLayout) ? 'active' : ''}">Command Center</a>
                 <a href="line-tracker.html" class="global-nav-link ${isLineTracker ? 'active' : ''}">Line Tracker</a>
                 <a href="history.html" class="global-nav-link ${isHistory ? 'active' : ''}">History</a>
                 <a href="props.html" class="global-nav-link ${isProps ? 'active' : ''}">Props</a>
@@ -123,6 +124,7 @@ function initGlobalNav() {
                 <a href="kalshi.html" class="global-nav-link ${isKalshi ? 'active' : ''}">Kalshi</a>
                 <a href="sandbox.html" class="global-nav-link ${isSandbox ? 'active' : ''}">Sandbox</a>
                 <a href="portfolio.html" class="global-nav-link ${isPortfolio ? 'active' : ''}">Portfolio</a>
+                <a href="layout.html" class="global-nav-link ${isLayout ? 'active' : ''}">Layout</a>
             </div>
         </div>
         <div class="nav-bankroll-pill">
