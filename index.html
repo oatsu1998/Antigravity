@@ -3628,10 +3628,10 @@
                                 if (homeAmEl) homeAmEl.innerText = homeAm;
                             }
 
-                            // Flash card container green/red based on tick direction
-                            card.classList.remove('flash-green', 'flash-red');
-                            void card.offsetWidth;
-                            card.classList.add(tick.direction === 'UP' ? 'flash-green' : 'flash-red');
+                            // Numbers update live above — no flash animation
+                            // (it was firing on every poll, not just real
+                            // price changes, which was more distracting than
+                            // useful).
                         }
                     });
                 });
