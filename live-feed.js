@@ -164,13 +164,6 @@
                         this.kalshiCache[m.ticker] = payload;
                         listeners.kalshi.forEach(cb => cb(payload));
                         listeners.momentum.forEach(cb => cb(payload));
-
-                        const flashEls = document.querySelectorAll(`[data-team="${payload.team}"]`);
-                        flashEls.forEach(el => {
-                            el.classList.remove('flash-green', 'flash-red');
-                            void el.offsetWidth;
-                            el.classList.add('flash-green');
-                        });
                     });
 
                     this.gameIndex = newGameIndex;
