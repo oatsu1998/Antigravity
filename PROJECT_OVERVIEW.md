@@ -175,10 +175,10 @@ Provides the unified dark-mode styling variables and keyframe animations:
 ## 4. 📡 External Integrations & Data Feeds
 
 ### 1. The Odds API Integration
-* **API Key:** `9827845ff1d9a1467dae344761f2db23`
-* **Endpoints Used:**
-  * `https://api.the-odds-api.com/v4/sports/{sport}/odds/?apiKey={key}&regions=us&markets=h2h,spreads,totals&oddsFormat=american`
-  * `https://api.the-odds-api.com/v4/sports/{sport}/scores/?apiKey={key}&daysFrom=1`
+* **API Key:** stored server-side only, in Vercel's `ODDS_API_KEY` environment variable (no longer hardcoded in any client file)
+* **Endpoints Used (via `/api/odds` server proxy, key never reaches the browser):**
+  * `/api/odds?path={sport}/odds&regions=us&markets=h2h,spreads,totals&oddsFormat=american`
+  * `/api/odds?path={sport}/scores&daysFrom=1`
 * **Sports Supported:** `baseball_mlb`, `basketball_nba`, `icehockey_nhl`, `basketball_wnba`, `basketball_ncaa_mens`, `soccer_usa_mls`.
 * **Bookmakers Parsed:** FanDuel, DraftKings, BetMGM, BetOnline, Bovada, Caesars, PointsBet.
 

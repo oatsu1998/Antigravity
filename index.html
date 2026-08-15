@@ -1763,7 +1763,9 @@
         };
 
         // THE ODDS API INTEGRATION
-        const ODDS_API_KEY = "9827845ff1d9a1467dae344761f2db23";
+        // Requests now go through /api/odds (server-side proxy) so the API key
+        // never appears in this page's source. Key lives in Vercel's
+        // ODDS_API_KEY environment variable.
         let paidOddsCache = {};
         const ODDS_SPORT_MAP = {
             'nba': 'basketball_nba',
@@ -1784,7 +1786,7 @@
 
             console.log(`[Odds API] Fetching ${lg.id} from network due to score/status change.`);
 
-            const url = `https://api.the-odds-api.com/v4/sports/${oddsSport}/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=h2h,spreads,totals&oddsFormat=american&eventStatus=pre,in`;
+            const url = `/api/odds?path=${oddsSport}/odds&regions=us&markets=h2h,spreads,totals&oddsFormat=american&eventStatus=pre,in`;
             try {
                 const res = await fetch(url, { cache: 'no-store' });
 
@@ -3849,91 +3851,13 @@
         // ── My Bets Modal Logic ───────────────────────────────────────────
         let activeWagerGame = null;
 
+        // NOTE: this used to force-inject two hardcoded demo wagers (a Red Sox/
+        // Dodgers total and a Thunder spread) into your real bet ledger every
+        // time it ran — which is why they kept reappearing even after being
+        // removed. That's gone; this is now a no-op kept only so the two call
+        // sites below don't need to change.
         function seedWagersIfEmpty() {
-            const KEY = 'destiny_game_wagers';
-            const saved = localStorage.getItem(KEY);
-            let wagers = [];
-            if (saved) {
-                try { wagers = JSON.parse(saved); } catch(e) { wagers = []; }
-            }
-            
-            // Clear Timberwolves bets safely
-            wagers = wagers.filter(w => {
-                const target = w.target || '';
-                const matchup = w.matchup || '';
-                return !target.toLowerCase().includes('timberwolves') && 
-                       !matchup.toLowerCase().includes('minnesota') && 
-                       !matchup.toLowerCase().includes('timberwolves');
-            });
-
-            // Clear any Knicks/Cavaliers wagers to keep the user's ledger perfectly clean and matching their expectation!
-            wagers = wagers.filter(w => {
-                const t = (w.target || '').toLowerCase();
-                const m = (w.matchup || '').toLowerCase();
-                return !t.includes('cavaliers') && !t.includes('knicks') && !t.includes('cavs') &&
-                       !m.includes('cavaliers') && !m.includes('knicks') && !m.includes('cavs');
-            });
-            
-            // Seed Red Sox @ Dodgers Over 13.5 (-155, $155 to win $100)
-            const hasRedSoxOver = wagers.some(w => {
-                const target = (w.target || '').toLowerCase();
-                const matchup = (w.matchup || '').toLowerCase();
-                return (target.includes('over 13.5') || target.includes('13.5')) && (matchup.includes('red sox') || matchup.includes('dodgers') || matchup.includes('bos'));
-            });
-            if (!hasRedSoxOver) {
-                wagers.unshift({
-                    id: 'active-redsox-dodgers-over13.5-live',
-                    matchup: 'Boston Red Sox @ Los Angeles Dodgers',
-                    target: 'Total — Over 13.5',
-                    type: 'Total',
-                    detail: 'Over 13.5 (-155)',
-                    wager: 155.00,
-                    stake: 155.00,
-                    placedOdds: '-155',
-                    currentOdds: '-155',
-                    sportsbook: 'Kalshi (Live)',
-                    status: 'PENDING',
-                    history: ['-150', '-155'],
-                    betType: 'GAME',
-                    toWin: 100.00
-                });
-            }
-
-            // Seed Thunder +7 Spread safely
-            const hasThunderSpread = wagers.some(w => {
-                const target = w.target || '';
-                const detail = w.detail || '';
-                return target.toLowerCase().includes('thunder') && (detail.includes('+7') || target.includes('+7'));
-            });
-            if (!hasThunderSpread) {
-                wagers.push({
-                    id: 'seed-thunder-spread-1779498596559',
-                    matchup: 'Oklahoma City Thunder @ San Antonio Spurs',
-                    target: 'Spread — Oklahoma City Thunder +7.0',
-                    type: 'Spread',
-                    detail: '+7',
-                    wager: 25.00,
-                    stake: 25.00,
-                    placedOdds: '-115',
-                    currentOdds: '-115',
-                    sportsbook: 'DraftKings',
-                    status: 'PENDING',
-                    history: ['-110', '-112', '-115'],
-                    betType: 'GAME',
-                    toWin: 21.74
-                });
-            }
-            
-            // Only preserve this Thunder spread bet, and clear out other extra bets (like seeded ML) to ensure they have exactly 1 active bet
-            wagers = wagers.filter(w => {
-                const id = w.id || '';
-                const target = (w.target || '').toLowerCase();
-                // Keep the seeded spread, any props synced, or any newly placed bets, but remove extra seeded Moneyline
-                if (id.includes('seed-thunder-ml')) return false;
-                return true;
-            });
-
-            localStorage.setItem(KEY, JSON.stringify(wagers));
+            // Intentionally empty — no more fake wager injection.
         }
 
         function getWagersForGame(awayAbbr, awayName, homeAbbr, homeName) {

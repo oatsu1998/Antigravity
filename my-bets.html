@@ -942,7 +942,7 @@
 
                     <!-- Active feeds log -->
                     <div class="live-log-box" id="liveFeedsLog">
-                        <!-- Simulated real-time odds changes render here -->
+                        <!-- Real odds changes (via /api/odds and real Kalshi ticks) render here -->
                     </div>
 
                 </div>
@@ -1031,7 +1031,11 @@
             return cappedCash;
         }
 
-        // Prepopulate active wagers on load if nothing exists
+        // Load real wagers from storage and merge in synced player props.
+        // (Previously this also force-injected two hardcoded demo wagers —
+        // Red Sox/Dodgers Over 13.5 and a Thunder +7 spread — every time this
+        // ran, so they kept reappearing in the ledger even after being
+        // "removed". That's gone; only real data lands here now.)
         function seedInitialWagers() {
             const savedWagers = localStorage.getItem('destiny_game_wagers');
             const savedProps = localStorage.getItem('destiny_tracked_picks');
@@ -1074,75 +1078,15 @@
                 };
             });
 
-            const liveUserWagers = [
-                {
-                    id: 'active-redsox-dodgers-over13.5-live',
-                    matchup: 'Boston Red Sox @ Los Angeles Dodgers',
-                    target: 'Total — Over 13.5',
-                    type: 'Total',
-                    detail: 'Over 13.5 (-155)',
-                    wager: 155.00,
-                    stake: 155.00,
-                    placedOdds: '-155',
-                    currentOdds: '-155',
-                    sportsbook: 'Kalshi (Live)',
-                    status: 'PENDING',
-                    history: ['-150', '-155'],
-                    betType: 'GAME',
-                    toWin: 100.00
-                },
-                {
-                    id: 'seed-thunder-spread-1779498596559',
-                    matchup: 'Oklahoma City Thunder @ San Antonio Spurs',
-                    target: 'Spread — Oklahoma City Thunder +7.0',
-                    type: 'Spread',
-                    detail: '+7',
-                    wager: 25.00,
-                    stake: 25.00,
-                    placedOdds: '-115',
-                    currentOdds: '-115',
-                    sportsbook: 'DraftKings',
-                    status: 'PENDING',
-                    history: ['-110', '-112', '-115'],
-                    betType: 'GAME',
-                    toWin: 21.74
+            // Merge in any synced player props that aren't already in the ledger
+            const combined = [...wagers];
+            syncedPropWagers.forEach(sp => {
+                if (!combined.some(c => c.id === sp.id)) {
+                    combined.push(sp);
                 }
-            ];
-
-            // Merge and keep custom/seeded wagers
-            if (wagers.length === 0 && syncedPropWagers.length === 0) {
-                wagers = [...liveUserWagers];
-                localStorage.setItem('destiny_game_wagers', JSON.stringify(wagers));
-            } else {
-                const combined = [...wagers];
-
-                // Ensure the Thunder +7 spread is unshifted if not present, and clear extra Knicks wagers
-                liveUserWagers.forEach(uw => {
-                    const existingIdx = combined.findIndex(c => c.id === uw.id || (c.target && c.target.includes('Thunder') && c.target.includes('+7')));
-                    if (existingIdx !== -1) {
-                        combined[existingIdx].stake = uw.stake;
-                        combined[existingIdx].target = uw.target;
-                    } else {
-                        combined.unshift(uw);
-                    }
-                });
-
-                syncedPropWagers.forEach(sp => {
-                    if (!combined.some(c => c.id === sp.id)) {
-                        combined.push(sp);
-                    }
-                });
-
-                // Filter out any Knicks/Cavaliers wagers to keep the user's ledger perfectly clean and matching their expectation!
-                wagers = combined.filter(w => {
-                    const t = (w.target || '').toLowerCase();
-                    const m = (w.matchup || '').toLowerCase();
-                    return !t.includes('cavaliers') && !t.includes('knicks') && !t.includes('cavs') &&
-                           !m.includes('cavaliers') && !m.includes('knicks') && !m.includes('cavs');
-                }).map(normalizeWager);
-
-                localStorage.setItem('destiny_game_wagers', JSON.stringify(wagers));
-            }
+            });
+            wagers = combined.map(normalizeWager);
+            localStorage.setItem('destiny_game_wagers', JSON.stringify(wagers));
         }
 
         // Render Positions Ledger List
@@ -1558,63 +1502,87 @@
             }
         }
 
-        // Real-Time Simulator: Randomly fluctuate current odds and trigger graph re-render
-        function startRealTimeSimulator() {
-            setInterval(() => {
-                if (wagers.length === 0) return;
+        // ── Real live odds refresh for pending GAME wagers ──────────────────
+        // NO SIMULATED DATA. Pulls real current lines via our own /api/odds
+        // proxy (The Odds API) and matches them to your wagers by team name.
+        // If a wager's game can't be confidently matched, or the API call
+        // fails, that wager's odds simply stay at their last known real value
+        // — nothing here is ever randomly generated.
+        //
+        // NOTE: this needs your ODDS_API_KEY set in Vercel (and a working key)
+        // to actually return data — verify once that's active.
+        const ODDS_REFRESH_SPORTS = ['basketball_nba', 'baseball_mlb', 'icehockey_nhl', 'americanfootball_nfl', 'basketball_wnba', 'americanfootball_ncaaf'];
+        const ODDS_REFRESH_INTERVAL_MS = 5 * 60 * 1000; // conservative — respects your Odds API quota
 
-                // Pick a random pending wager
-                const pendings = wagers.filter(w => w.status === 'PENDING');
-                if (pendings.length === 0) return;
+        function teamNickname(fullName) {
+            const words = (fullName || '').trim().split(/\s+/);
+            return words.length ? words[words.length - 1].toLowerCase() : '';
+        }
 
-                const targetWager = pendings[Math.floor(Math.random() * pendings.length)];
+        function findMatchingOddsEvent(matchupText, events) {
+            if (!matchupText) return null;
+            const text = matchupText.toLowerCase();
+            return events.find(ev => {
+                const homeNick = teamNickname(ev.home_team);
+                const awayNick = teamNickname(ev.away_team);
+                return homeNick && awayNick && text.includes(homeNick) && text.includes(awayNick);
+            }) || null;
+        }
 
-                // Fluctuate American Odds (e.g. shift by -10 or +10 points)
-                const currentOddsNum = parseInt(targetWager.currentOdds);
-                const shift = Math.random() > 0.52 ? 10 : -10; // Slight positive bias for fun trading
-                let newOddsNum = currentOddsNum + shift;
+        function extractRealOddsPrice(event, wagerType) {
+            if (!event || !Array.isArray(event.bookmakers) || event.bookmakers.length === 0) return null;
+            const book = event.bookmakers.find(b => b.key === 'draftkings')
+                || event.bookmakers.find(b => b.key === 'fanduel')
+                || event.bookmakers[0];
+            const marketKey = wagerType === 'Spread' ? 'spreads' : (wagerType === 'Total' ? 'totals' : 'h2h');
+            const market = book.markets && book.markets.find(m => m.key === marketKey);
+            if (!market || !Array.isArray(market.outcomes) || market.outcomes.length === 0) return null;
+            const outcome = market.outcomes[0];
+            return typeof outcome.price === 'number' ? outcome.price : null;
+        }
 
-                // Avoid zero cross problems
-                if (newOddsNum === 0) newOddsNum = shift > 0 ? 10 : -10;
+        async function refreshLiveOddsForWagers() {
+            const pendingGames = wagers.filter(w => w.status === 'PENDING' && w.betType === 'GAME' && w.matchup);
+            if (pendingGames.length === 0) return;
 
-                const newOddsStr = newOddsNum > 0 ? `+${newOddsNum}` : `${newOddsNum}`;
+            let anyUpdated = false;
 
-                // Save old odds for comparison flash
-                const oldOddsNum = currentOddsNum;
-                targetWager.currentOdds = newOddsStr;
+            for (const sport of ODDS_REFRESH_SPORTS) {
+                try {
+                    const res = await fetch(`/api/odds?path=${sport}/odds&regions=us&markets=h2h,spreads,totals&oddsFormat=american`);
+                    if (!res.ok) continue; // skip this sport — never fabricate on failure
+                    const events = await res.json();
+                    if (!Array.isArray(events)) continue;
 
-                // Append to time-series history (cap time history to 8 points)
-                targetWager.history.push(newOddsStr);
-                if (targetWager.history.length > 8) {
-                    targetWager.history.shift();
+                    pendingGames.forEach(w => {
+                        const event = findMatchingOddsEvent(w.matchup, events);
+                        if (!event) return;
+                        const realPrice = extractRealOddsPrice(event, w.type);
+                        if (realPrice == null) return;
+
+                        const newOddsStr = realPrice > 0 ? `+${realPrice}` : `${realPrice}`;
+                        if (newOddsStr === w.currentOdds) return;
+
+                        const oldOddsStr = w.currentOdds;
+                        w.currentOdds = newOddsStr;
+                        w.history = w.history || [];
+                        w.history.push(newOddsStr);
+                        if (w.history.length > 8) w.history.shift();
+                        anyUpdated = true;
+
+                        addLiveFeedLog(`Live Odds: ${(w.target || '').split('—')[0]} moved from ${oldOddsStr} to ${newOddsStr} (real, via The Odds API)`);
+                    });
+                } catch (err) {
+                    console.error('[Odds Refresh] Failed for', sport, err);
+                    // never fabricate on failure — just skip this sport this round
                 }
+            }
 
-                // Update localStorage
+            if (anyUpdated) {
                 localStorage.setItem('destiny_game_wagers', JSON.stringify(wagers));
-
-                // Re-render Ledger List
                 renderWagersLedger();
-
-                // If this wager is currently active in the analytics terminal, re-select to animate graph!
-                if (selectedWagerId === targetWager.id) {
-                    selectWager(targetWager.id);
-
-                    // Add flash indicators in card
-                    const cardEl = document.getElementById(`wager-card-${targetWager.id}`);
-                    if (cardEl) {
-                        cardEl.classList.add(shift < 0 ? 'flash-green' : 'flash-red');
-                        setTimeout(() => {
-                            cardEl.classList.remove('flash-green', 'flash-red');
-                        }, 1000);
-                    }
-
-                    // Log Feed
-                    const direction = shift < 0 ? 'UP (Live Line Improving)' : 'DOWN (Live Line Decreasing)';
-                    const style = shift < 0 ? 'up' : 'down';
-                    addLiveFeedLog(`Line Shift: ${targetWager.target.split('—')[0]} Live Odds moved from ${oldOddsNum > 0 ? '+' : ''}${oldOddsNum} to ${newOddsStr} (${direction})`, style);
-                }
-
-            }, 4000); // Trigger fluctuation every 4 seconds!
+                if (selectedWagerId) selectWager(selectedWagerId);
+            }
         }
 
         // Initialize Page
@@ -1670,8 +1638,9 @@
                 });
             }
 
-            // Start Fluctuation Simulator
-            startRealTimeSimulator();
+            // Real odds refresh (replaces the old fake fluctuation simulator)
+            refreshLiveOddsForWagers();
+            setInterval(refreshLiveOddsForWagers, ODDS_REFRESH_INTERVAL_MS);
         });
     </script>
     <!-- Global Nav script injected at bottom -->

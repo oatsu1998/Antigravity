@@ -1357,7 +1357,7 @@
 
             <!-- Global Activity Ticker -->
             <div class="ticker-card">
-                <span class="ticker-title">DESTINY TRADE FEED</span>
+                <span class="ticker-title">LIVE KALSHI PRICE FEED</span>
                 <div class="ticker-feed" id="ticker-feed-el">
                     <!-- Dynamic live trading rows -->
                 </div>
@@ -1398,284 +1398,135 @@
             }
         }
 
-        // Sample initial markets data with featured Sports & NCAAF College Football markets
-        const marketsData = [
-            {
-                id: 201,
-                title: "Will Georgia Bulldogs Win the College Football National Championship?",
-                category: "sports",
-                yesPrice: 36,
-                noPrice: 64,
-                history: [28, 30, 32, 34, 35, 36],
-                volume: "$5.4M",
-                expiration: "Jan 18, 2027",
+        // Real markets, loaded from /api/kalshi (your own Kalshi proxy) — see loadRealMarkets() below.
+        // NO SIMULATED DATA. Real prices only, or a visible error.
+        let marketsData = [];
+
+        function formatKalshiVolume(volumeFp) {
+            const v = Math.round(volumeFp || 0);
+            if (v >= 1000) return `$${(v / 1000).toFixed(1)}K`;
+            return `$${v}`;
+        }
+
+        function formatKalshiExpiration(closeTimeIso) {
+            if (!closeTimeIso) return 'TBD';
+            const d = new Date(closeTimeIso);
+            if (isNaN(d.getTime())) return 'TBD';
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        // Map one raw Kalshi market object into the shape this page's UI expects.
+        // Every number here comes straight from Kalshi — nothing invented.
+        function mapKalshiMarket(m) {
+            const yesBid = parseFloat(m.yes_bid_dollars) || 0;
+            const yesAsk = parseFloat(m.yes_ask_dollars) || 0;
+            const noBid = parseFloat(m.no_bid_dollars) || 0;
+            const noAsk = parseFloat(m.no_ask_dollars) || 0;
+            const lastPrice = parseFloat(m.last_price_dollars) || 0;
+
+            // Prefer the real last traded price; fall back to the resting yes bid
+            // if nothing has traded yet. Clamp so a market never shows 0¢/100¢
+            // (which would just mean "no data" rather than a real price).
+            const yesPriceRaw = lastPrice > 0 ? lastPrice : yesBid;
+            const yesPrice = Math.max(1, Math.min(99, Math.round(yesPriceRaw * 100)));
+            const noPrice = 100 - yesPrice;
+
+            const yesBidSize = Math.round(parseFloat(m.yes_bid_size_fp) || 0);
+            const yesAskSize = Math.round(parseFloat(m.yes_ask_size_fp) || 0);
+
+            return {
+                id: m.ticker,
+                ticker: m.ticker,
+                // yes_sub_title is the specific team this "yes" side represents;
+                // m.title is the full matchup ("Team A vs Team B Winner?")
+                title: `${m.yes_sub_title || m.title} — Moneyline`,
+                matchup: m.title,
+                category: 'sports',
+                yesPrice,
+                noPrice,
+                history: [yesPrice], // real ticks (via live-feed.js) extend this over time
+                volume: formatKalshiVolume(parseFloat(m.volume_fp)),
+                expiration: formatKalshiExpiration(m.close_time),
                 orderbook: {
-                    yes: { bid: [35, 7800], ask: [36, 3100] },
-                    no: { bid: [63, 4200], ask: [64, 8500] }
+                    yes: {
+                        bid: [Math.round(yesBid * 100) || Math.max(1, yesPrice - 1), yesBidSize],
+                        ask: [Math.round(yesAsk * 100) || Math.min(99, yesPrice + 1), yesAskSize]
+                    },
+                    // Kalshi's list endpoint doesn't return "no"-side size directly —
+                    // the no-side liquidity mirrors the yes-side from the other
+                    // direction, so we reuse those real size figures rather than
+                    // inventing new ones.
+                    no: {
+                        bid: [Math.round(noBid * 100) || Math.max(1, noPrice - 1), yesAskSize],
+                        ask: [Math.round(noAsk * 100) || Math.min(99, noPrice + 1), yesBidSize]
+                    }
                 }
-            },
-            {
-                id: 202,
-                title: "Will Ohio State Buckeyes Win the College Football National Championship?",
-                category: "sports",
-                yesPrice: 32,
-                noPrice: 68,
-                history: [24, 26, 28, 30, 31, 32],
-                volume: "$4.1M",
-                expiration: "Jan 18, 2027",
-                orderbook: {
-                    yes: { bid: [31, 6500], ask: [32, 2800] },
-                    no: { bid: [67, 3900], ask: [68, 7200] }
+            };
+        }
+
+        // Fetch real sports markets from our own /api/kalshi proxy.
+        // On failure, we show a visible error — we never fall back to fake data.
+        async function loadRealMarkets() {
+            const listEl = document.getElementById('markets-list-el');
+            try {
+                const res = await fetch('/api/kalshi');
+                if (!res.ok) throw new Error('Proxy returned status ' + res.status);
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                const raw = data.markets || [];
+                const mapped = raw.map(mapKalshiMarket);
+
+                // Preserve any live-tick price history already accumulated for
+                // markets we've already loaded, rather than resetting it.
+                const prevById = {};
+                marketsData.forEach(m => { prevById[m.id] = m; });
+                marketsData = mapped.map(m => {
+                    const prev = prevById[m.id];
+                    return prev ? { ...m, history: prev.history } : m;
+                });
+
+                if (marketsData.length === 0 && listEl) {
+                    listEl.innerHTML = `
+                        <div style="text-align: center; padding: 40px 20px; color: var(--muted); border: 1px dashed var(--border); border-radius: 6px;">
+                            ⛔ KALSHI DATA UNAVAILABLE — no open sports markets returned.
+                        </div>
+                    `;
                 }
-            },
-            {
-                id: 203,
-                title: "Will Texas Longhorns Win the College Football National Championship?",
-                category: "sports",
-                yesPrice: 25,
-                noPrice: 75,
-                history: [18, 20, 22, 24, 24, 25],
-                volume: "$3.8M",
-                expiration: "Jan 18, 2027",
-                orderbook: {
-                    yes: { bid: [24, 8200], ask: [25, 4100] },
-                    no: { bid: [74, 4900], ask: [75, 9400] }
-                }
-            },
-            {
-                id: 204,
-                title: "Will Oregon Ducks Make the College Football Playoff Finals?",
-                category: "sports",
-                yesPrice: 48,
-                noPrice: 52,
-                history: [40, 42, 45, 46, 47, 48],
-                volume: "$2.6M",
-                expiration: "Jan 18, 2027",
-                orderbook: {
-                    yes: { bid: [47, 5100], ask: [48, 2300] },
-                    no: { bid: [51, 3400], ask: [52, 6100] }
-                }
-            },
-            {
-                id: 101,
-                title: "Will the Boston Celtics Win the 2026 NBA Championship?",
-                category: "sports",
-                yesPrice: 38,
-                noPrice: 62,
-                history: [30, 32, 35, 36, 37, 38],
-                volume: "$4.8M",
-                expiration: "Jun 22, 2026",
-                orderbook: {
-                    yes: { bid: [37, 6200], ask: [38, 2400] },
-                    no: { bid: [61, 3100], ask: [62, 4500] }
-                }
-            },
-            {
-                id: 102,
-                title: "Will Oklahoma City Thunder Win 58+ Regular Season Games?",
-                category: "sports",
-                yesPrice: 65,
-                noPrice: 35,
-                history: [55, 58, 60, 62, 64, 65],
-                volume: "$3.2M",
-                expiration: "Apr 15, 2026",
-                orderbook: {
-                    yes: { bid: [64, 4100], ask: [65, 1800] },
-                    no: { bid: [34, 2100], ask: [35, 3800] }
-                }
-            },
-            {
-                id: 103,
-                title: "Will Kansas City Chiefs Win Super Bowl LXI?",
-                category: "sports",
-                yesPrice: 28,
-                noPrice: 72,
-                history: [22, 24, 25, 27, 26, 28],
-                volume: "$6.5M",
-                expiration: "Feb 14, 2027",
-                orderbook: {
-                    yes: { bid: [27, 8500], ask: [28, 3900] },
-                    no: { bid: [71, 4200], ask: [72, 9100] }
-                }
-            },
-            {
-                id: 104,
-                title: "Will Los Angeles Dodgers Win the 2026 World Series?",
-                category: "sports",
-                yesPrice: 42,
-                noPrice: 58,
-                history: [38, 39, 40, 41, 40, 42],
-                volume: "$5.1M",
-                expiration: "Nov 05, 2026",
-                orderbook: {
-                    yes: { bid: [41, 5400], ask: [42, 2200] },
-                    no: { bid: [57, 3100], ask: [58, 4800] }
-                }
-            },
-            {
-                id: 105,
-                title: "Will Shai Gilgeous-Alexander Win NBA Regular Season MVP?",
-                category: "sports",
-                yesPrice: 54,
-                noPrice: 46,
-                history: [46, 48, 50, 52, 53, 54],
-                volume: "$2.9M",
-                expiration: "May 10, 2026",
-                orderbook: {
-                    yes: { bid: [53, 3800], ask: [54, 1900] },
-                    no: { bid: [45, 2600], ask: [46, 3200] }
-                }
-            },
-            {
-                id: 106,
-                title: "Will Real Madrid Win the UEFA Champions League Title?",
-                category: "sports",
-                yesPrice: 31,
-                noPrice: 69,
-                history: [25, 27, 28, 30, 29, 31],
-                volume: "$3.7M",
-                expiration: "May 30, 2026",
-                orderbook: {
-                    yes: { bid: [30, 4900], ask: [31, 2100] },
-                    no: { bid: [68, 3400], ask: [69, 5800] }
-                }
-            },
-            {
-                id: 1,
-                title: "Federal Reserve to Cut Rates in June 2026?",
-                category: "economics",
-                yesPrice: 58,
-                noPrice: 42,
-                history: [52, 54, 53, 56, 55, 58],
-                volume: "$2.4M",
-                expiration: "Jun 30, 2026",
-                orderbook: {
-                    yes: { bid: [57, 4500], ask: [58, 1200] },
-                    no: { bid: [41, 2800], ask: [42, 3400] }
-                }
-            },
-            {
-                id: 2,
-                title: "SpaceX Starship Flight 5 Launches Successfully before July?",
-                category: "tech",
-                yesPrice: 72,
-                noPrice: 28,
-                history: [65, 68, 70, 71, 69, 72],
-                volume: "$1.8M",
-                expiration: "Jul 15, 2026",
-                orderbook: {
-                    yes: { bid: [71, 1500], ask: [72, 800] },
-                    no: { bid: [27, 4100], ask: [28, 1900] }
-                }
-            },
-            {
-                id: 3,
-                title: "Will a US Federal AI Regulation Bill Pass in 2026?",
-                category: "politics",
-                yesPrice: 34,
-                noPrice: 66,
-                history: [45, 42, 38, 36, 35, 34],
-                volume: "$980K",
-                expiration: "Dec 31, 2026",
-                orderbook: {
-                    yes: { bid: [33, 900], ask: [34, 1500] },
-                    no: { bid: [65, 3400], ask: [66, 1200] }
-                }
-            },
-            {
-                id: 4,
-                title: "GTA VI Scheduled Release Date Remains in 2026?",
-                category: "culture",
-                yesPrice: 81,
-                noPrice: 19,
-                history: [85, 83, 82, 80, 80, 81],
-                volume: "$3.1M",
-                expiration: "Dec 31, 2026",
-                orderbook: {
-                    yes: { bid: [80, 5200], ask: [81, 2100] },
-                    no: { bid: [18, 900], ask: [19, 4300] }
-                }
-            },
-            {
-                id: 5,
-                title: "Will the US President Issue a Crypto Executive Order by Sept?",
-                category: "politics",
-                yesPrice: 49,
-                noPrice: 51,
-                history: [40, 42, 45, 47, 48, 49],
-                volume: "$1.5M",
-                expiration: "Sep 30, 2026",
-                orderbook: {
-                    yes: { bid: [48, 1100], ask: [49, 1300] },
-                    no: { bid: [50, 2200], ask: [51, 800] }
-                }
-            },
-            {
-                id: 6,
-                title: "Global Average Temperature in 2026 Breaks 2024 Record?",
-                category: "tech",
-                yesPrice: 67,
-                noPrice: 33,
-                history: [60, 62, 63, 65, 66, 67],
-                volume: "$1.1M",
-                expiration: "Dec 31, 2026",
-                orderbook: {
-                    yes: { bid: [66, 2100], ask: [67, 1400] },
-                    no: { bid: [32, 1700], ask: [33, 2500] }
-                }
-            },
-            {
-                id: 7,
-                title: "Will Apple Announce an 'Apple GPT' Device at WWDC?",
-                category: "tech",
-                yesPrice: 85,
-                noPrice: 15,
-                history: [78, 80, 82, 83, 84, 85],
-                volume: "$2.2M",
-                expiration: "Jun 15, 2026",
-                orderbook: {
-                    yes: { bid: [84, 4300], ask: [85, 3000] },
-                    no: { bid: [14, 500], ask: [15, 3800] }
-                }
-            },
-            {
-                id: 8,
-                title: "Will the S&P 500 Close Above 5,800 at the End of Q2?",
-                category: "economics",
-                yesPrice: 61,
-                noPrice: 39,
-                history: [55, 57, 56, 59, 60, 61],
-                volume: "$4.5M",
-                expiration: "Jun 30, 2026",
-                orderbook: {
-                    yes: { bid: [60, 3100], ask: [61, 2400] },
-                    no: { bid: [38, 1200], ask: [39, 4100] }
+            } catch (err) {
+                console.error('[Kalshi] Failed to load real markets:', err);
+                if (listEl && marketsData.length === 0) {
+                    listEl.innerHTML = `
+                        <div style="text-align: center; padding: 40px 20px; color: var(--muted); border: 1px dashed var(--border); border-radius: 6px;">
+                            ⛔ KALSHI DATA UNAVAILABLE — ${err.message}
+                        </div>
+                    `;
                 }
             }
-        ];
+        }
 
-        // Ticker Usernames for real-time trade updates
-        const simulatedUsers = [
-            "Trader_Edge", "AlphaBet", "PredictorPro", "MacroBull", "DestinyPrime",
-            "Polymarketeer", "KalshiKing", "QuantTradr", "OptionSniper", "HedgeFundGuy",
-            "WhaleWatcher", "SpeculatorX", "TrendRider", "NoCapBets", "ContractWhale"
-        ];
 
         // Initialize App
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             initClock();
             loadBankroll();
             loadPositions();
-            renderMarkets();
-            selectMarket(selectedMarketId);
             initSearchAndFilters();
-            
-            // Start simulated real-time ticks & activity feed
-            setInterval(simulateMarketTicks, 4000);
-            setInterval(generateSimulatedFeedItem, 5000);
-            for (let i = 0; i < 4; i++) {
-                generateSimulatedFeedItem(true); // Pre-fill activity feed
+
+            await loadRealMarkets();
+            renderMarkets();
+            if (marketsData.length > 0) {
+                selectMarket(marketsData[0].id);
             }
+
+            // Real live price ticks (via /api/kalshi, polled every 5s in live-feed.js)
+            if (window.DestinyLiveFeed) {
+                window.DestinyLiveFeed.onKalshiTick(handleKalshiTick);
+            }
+
+            // Refresh the market list itself periodically to pick up newly-listed
+            // games and drop ones that have closed.
+            setInterval(loadRealMarkets, 60000);
         });
 
         // Sync and Load Bankroll from Destiny LocalStorage
@@ -1691,44 +1542,8 @@
                 bankroll = saved !== null ? parseFloat(saved) : 10000.00;
             }
             updateBankrollUI();
-
-            if (window.DestinyLiveFeed) {
-                window.DestinyLiveFeed.connectKalshiWebhook();
-                window.DestinyLiveFeed.onKalshiTick((tick) => {
-                    if (!tick || !tick.yesPrice) return;
-                    
-                    const m = markets.find(mk => mk.id === selectedMarketId);
-                    if (m) {
-                        m.yesPrice = tick.yesPrice;
-                        m.noPrice = 100 - tick.yesPrice;
-                        m.history.push(tick.yesPrice);
-                        if (m.history.length > 20) m.history.shift();
-
-                        // Dynamic Orderbook Simulation
-                        m.orderbook.yes.bid = [tick.yesPrice, Math.floor(1000 + Math.random() * 4000)];
-                        m.orderbook.yes.ask = [tick.yesPrice + 1, Math.floor(800 + Math.random() * 3000)];
-                        m.orderbook.no.bid = [100 - tick.yesPrice - 1, Math.floor(1000 + Math.random() * 4000)];
-                        m.orderbook.no.ask = [100 - tick.yesPrice, Math.floor(800 + Math.random() * 3000)];
-
-                        // Re-render Graph & Order Book Live
-                        drawMainChart(m.history);
-                        renderOrderbook(m.orderbook);
-                        
-                        const yesPriceVal = document.getElementById('term-yes-price-box');
-                        if (yesPriceVal) yesPriceVal.textContent = `${tick.yesPrice}¢`;
-                        
-                        const noPriceVal = document.getElementById('term-no-price-box');
-                        if (noPriceVal) noPriceVal.textContent = `${100 - tick.yesPrice}¢`;
-                        
-                        const marketCard = document.querySelector(`.market-card[data-id="${selectedMarketId}"]`);
-                        if (marketCard) {
-                            marketCard.classList.remove('flash-green', 'flash-red');
-                            void marketCard.offsetWidth;
-                            marketCard.classList.add(tick.yesPrice > 60 ? 'flash-green' : 'flash-red');
-                        }
-                    }
-                });
-            }
+            // Real Kalshi price ticks are handled by the single handleKalshiTick()
+            // subscription set up in the DOMContentLoaded init below.
         }
 
         function updateBankrollUI() {
@@ -1798,7 +1613,8 @@
                 const card = document.createElement('div');
                 card.className = `market-card ${isSelected ? 'selected' : ''}`;
                 card.id = `market-card-${m.id}`;
-                card.setAttribute('onclick', `selectMarket(${m.id})`);
+                card.setAttribute('data-id', m.id);
+                card.setAttribute('onclick', `selectMarket('${m.id}')`);
 
                 card.innerHTML = `
                     <div class="market-info-section">
@@ -1810,6 +1626,7 @@
                             <span>Ends ${m.expiration}</span>
                         </div>
                         <h3 class="market-title">${m.title}</h3>
+                        ${m.matchup ? `<div style="font-size:10px; color:var(--muted); margin-top:2px;">${m.matchup}</div>` : ''}
                     </div>
                     <div class="market-sparkline-section">
                         <svg class="sparkline-svg" viewBox="0 0 100 30">
@@ -1817,11 +1634,11 @@
                         </svg>
                     </div>
                     <div class="market-buttons-section">
-                        <div class="price-box yes" id="yes-box-${m.id}" onclick="event.stopPropagation(); selectMarket(${m.id}); selectContractType('YES');">
+                        <div class="price-box yes" id="yes-box-${m.id}" onclick="event.stopPropagation(); selectMarket('${m.id}'); selectContractType('YES');">
                             <span class="price-box-label">YES</span>
                             <span class="price-box-value">${m.yesPrice}¢ <span style="font-size:9px; opacity:0.8; font-weight:normal;">(${centsToAmericanOdds(m.yesPrice)})</span></span>
                         </div>
-                        <div class="price-box no" id="no-box-${m.id}" onclick="event.stopPropagation(); selectMarket(${m.id}); selectContractType('NO');">
+                        <div class="price-box no" id="no-box-${m.id}" onclick="event.stopPropagation(); selectMarket('${m.id}'); selectContractType('NO');">
                             <span class="price-box-label">NO</span>
                             <span class="price-box-value">${m.noPrice}¢ <span style="font-size:9px; opacity:0.8; font-weight:normal;">(${centsToAmericanOdds(m.noPrice)})</span></span>
                         </div>
@@ -1950,7 +1767,13 @@
             const svg = document.getElementById('chart-svg');
             const pathLine = svg.querySelector('.chart-line');
             const pathArea = svg.querySelector('.chart-area');
-            
+
+            // A freshly-loaded real market starts with just one price point (no
+            // fake historical trend invented to fill this in) — pad it to two
+            // identical points so the chart math below doesn't divide by zero.
+            if (!history || history.length === 0) history = [50];
+            if (history.length === 1) history = [history[0], history[0]];
+
             const w = svg.clientWidth || 360;
             const h = 160;
             const padding = 20;
@@ -2256,9 +2079,11 @@
             });
         }
 
-        // Ticker Activity Ticker logic
+        // Logs the user's OWN real actions in this feed (e.g. "You bought/sold
+        // N contracts..."), called from executeTrade()/sellToClose() below.
         function addFeedItem(user, action, price, type) {
             const feedEl = document.getElementById('ticker-feed-el');
+            if (!feedEl) return;
             const item = document.createElement('div');
             item.className = 'ticker-item';
             item.innerHTML = `
@@ -2266,123 +2091,71 @@
                 <span class="ticker-item-price ${type.toLowerCase()}">${price}¢</span>
             `;
             feedEl.insertBefore(item, feedEl.firstChild);
-
-            // Cap items
-            if (feedEl.children.length > 5) {
+            if (feedEl.children.length > 8) {
                 feedEl.removeChild(feedEl.lastChild);
             }
         }
 
-        function generateSimulatedFeedItem(prefill = false) {
-            const user = simulatedUsers[Math.floor(Math.random() * simulatedUsers.length)];
-            const market = marketsData[Math.floor(Math.random() * marketsData.length)];
-            const type = Math.random() > 0.5 ? 'YES' : 'NO';
-            const price = type === 'YES' ? market.yesPrice : market.noPrice;
-            const contracts = (Math.floor(Math.random() * 8) + 1) * 50;
+        // Live Price Feed — logs REAL Kalshi price ticks only. No fake usernames,
+        // no fake trades. NO SIMULATED DATA, ever.
+        function logRealActivity(market, tick, isUp) {
+            const feedEl = document.getElementById('ticker-feed-el');
+            if (!feedEl) return;
 
-            const action = `bought ${contracts} contracts of ${market.title.substring(0, 16)}...`;
+            const item = document.createElement('div');
+            item.className = 'ticker-item';
+            const arrow = isUp ? '▲' : '▼';
+            const label = (market.matchup || market.title).substring(0, 28);
+            item.innerHTML = `
+                <span><span class="ticker-item-user">${market.title.replace(' — Moneyline', '')}</span> <span class="ticker-item-action">${arrow} ${label}</span></span>
+                <span class="ticker-item-price ${isUp ? 'yes' : 'no'}">${tick.yesPrice}¢</span>
+            `;
+            feedEl.insertBefore(item, feedEl.firstChild);
 
-            if (prefill) {
-                // Just insert straight
-                const feedEl = document.getElementById('ticker-feed-el');
-                const item = document.createElement('div');
-                item.className = 'ticker-item';
-                item.innerHTML = `
-                    <span><span class="ticker-item-user">${user}</span> <span class="ticker-item-action">${action}</span></span>
-                    <span class="ticker-item-price ${type.toLowerCase()}">${price}¢</span>
-                `;
-                feedEl.appendChild(item);
-            } else {
-                addFeedItem(user, action, price, type);
+            if (feedEl.children.length > 8) {
+                feedEl.removeChild(feedEl.lastChild);
             }
         }
 
-        // Live Simulated Ticks
-        function simulateMarketTicks() {
-            // Pick a random market
-            const marketIdx = Math.floor(Math.random() * marketsData.length);
-            const market = marketsData[marketIdx];
+        // Real Kalshi Price Tick Handler — one consolidated subscription.
+        // Only ever updates the specific market a tick actually belongs to
+        // (matched by ticker), never whatever market happens to be open on screen.
+        function handleKalshiTick(tick) {
+            if (!tick || tick.yesPrice == null || !tick.ticker) return;
 
-            // Tick Yes price up or down by 1¢ or 2¢
-            const change = Math.random() > 0.5 ? 1 : -1;
-            const tick = change * (Math.random() > 0.6 ? 2 : 1);
+            const market = marketsData.find(m => m.ticker === tick.ticker);
+            if (!market) return; // tick for a market we're not currently tracking
 
-            let newYes = market.yesPrice + tick;
-            if (newYes < 5) newYes = 5;
-            if (newYes > 95) newYes = 95;
+            const isUp = tick.yesPrice > market.yesPrice;
+            market.yesPrice = tick.yesPrice;
+            market.noPrice = tick.noPrice != null ? tick.noPrice : (100 - tick.yesPrice);
+            market.history.push(tick.yesPrice);
+            if (market.history.length > 20) market.history.shift();
 
-            const isUp = newYes > market.yesPrice;
-            
-            market.yesPrice = newYes;
-            market.noPrice = 100 - newYes;
-
-            // Shift history array
-            market.history.push(newYes);
-            if (market.history.length > 10) {
-                market.history.shift();
+            market.orderbook.yes.bid[0] = tick.yesPrice;
+            if (tick.yesAsk != null) {
+                market.orderbook.yes.ask[0] = tick.yesAsk;
+                market.orderbook.no.bid[0] = 100 - tick.yesAsk;
             }
+            market.orderbook.no.ask[0] = 100 - tick.yesPrice;
 
-            // Adjust simulated Order Book spreads slightly
-            market.orderbook.yes.bid[0] = market.yesPrice - 1;
-            market.orderbook.yes.ask[0] = market.yesPrice;
-            market.orderbook.no.bid[0] = market.noPrice - 1;
-            market.orderbook.no.ask[0] = market.noPrice;
-
-            // Random sizes
-            market.orderbook.yes.bid[1] = Math.floor(Math.random() * 45 + 5) * 100;
-            market.orderbook.yes.ask[1] = Math.floor(Math.random() * 45 + 5) * 100;
-            market.orderbook.no.bid[1] = Math.floor(Math.random() * 45 + 5) * 100;
-            market.orderbook.no.ask[1] = Math.floor(Math.random() * 45 + 5) * 100;
-
-            // Update UI list cards
+            logRealActivity(market, tick, isUp);
             renderMarkets();
+            renderPortfolio();
 
-            // Highlight box element with blinking effect
-            const yesBox = document.getElementById(`yes-box-${market.id}`);
-            const noBox = document.getElementById(`no-box-${market.id}`);
-            
-            if (yesBox && noBox) {
-                const animationClass = isUp ? 'blink-up' : 'blink-down';
-                
-                yesBox.classList.add(animationClass);
-                noBox.classList.add(isUp ? 'blink-down' : 'blink-up');
-
-                setTimeout(() => {
-                    yesBox.classList.remove('blink-up', 'blink-down');
-                    noBox.classList.remove('blink-up', 'blink-down');
-                }, 800);
-            }
-
-            // If selected, update Terminal UI and Chart
             if (market.id === selectedMarketId) {
                 updateTerminalPricesUI(market);
                 drawMainChart(market.history);
                 updateOrderBookUI(market);
                 calculateTrade();
-            }
 
-            // Update portfolio calculations to reflect live prices
-            renderPortfolio();
-        }
-
-        // Sub-Second Kalshi WebSocket Tick Handler
-        if (window.DestinyLiveFeed) {
-            window.DestinyLiveFeed.onKalshiTick((tickData) => {
-                if (!tickData) return;
-                const activeMarket = marketsData.find(m => m.id === selectedMarketId || m.ticker === tickData.ticker);
-                if (activeMarket && tickData.yesPrice) {
-                    activeMarket.yesPrice = tickData.yesPrice;
-                    activeMarket.noPrice = 100 - tickData.yesPrice;
-                    activeMarket.history.push(tickData.yesPrice);
-                    if (activeMarket.history.length > 12) activeMarket.history.shift();
-
-                    updateTerminalPricesUI(activeMarket);
-                    drawMainChart(activeMarket.history);
-                    updateOrderBookUI(activeMarket);
-                    calculateTrade();
-                    renderMarkets();
+                const marketCard = document.getElementById(`market-card-${selectedMarketId}`);
+                if (marketCard) {
+                    marketCard.classList.remove('flash-green', 'flash-red');
+                    void marketCard.offsetWidth;
+                    marketCard.classList.add(isUp ? 'flash-green' : 'flash-red');
                 }
-            });
+            }
         }
     </script>
     <!-- Include dynamically injected global navbar -->

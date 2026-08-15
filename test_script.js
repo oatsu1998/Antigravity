@@ -1,6 +1,5 @@
 
-        const API_KEY = "9827845ff1d9a1467dae344761f2db23";
-        const SPORT = "basketball_nba";
+        const SPORT = "basketball_nba"; // scratch file — API_KEY removed, calls now go through /api/odds
 
         var BOOKS = [
             { prefix: 'bol', key: 'betonlineag', name: 'BetOnline' },

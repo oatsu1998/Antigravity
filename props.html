@@ -662,7 +662,9 @@
     <!-- Dynamic Player Props Data & Interaction Script -->
     <script>
         // API Configuration
-        const API_KEY = '9827845ff1d9a1467dae344761f2db23';
+        // Requests now go through /api/odds (server-side proxy) so the API key
+        // never appears in this page's source. Key lives in Vercel's
+        // ODDS_API_KEY environment variable.
         const SPORT = 'basketball_nba';
 
         // Default Backup / Mock Sportsbook Props Data Structure
@@ -964,7 +966,7 @@
 
             try {
                 selectEl.innerHTML = '<option value="">Loading live events...</option>';
-                const res = await fetch(`https://api.the-odds-api.com/v4/sports/${SPORT}/events?apiKey=${API_KEY}`);
+                const res = await fetch(`/api/odds?path=${SPORT}/events`);
                 if (!res.ok) throw new Error(`Events fetch returned ${res.status}`);
 
                 const events = await res.json();
@@ -1045,7 +1047,7 @@
 
             try {
                 const markets = 'player_points,player_rebounds,player_assists,player_threes';
-                const url = `https://api.the-odds-api.com/v4/sports/${SPORT}/events/${eventId}/odds?apiKey=${API_KEY}&regions=us&markets=${markets}&oddsFormat=american`;
+                const url = `/api/odds?path=${SPORT}/events/${eventId}/odds&regions=us&markets=${markets}&oddsFormat=american`;
 
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`Props API returned ${res.status}`);

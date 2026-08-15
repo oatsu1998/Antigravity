@@ -66,18 +66,38 @@
                         return;
                     }
 
-                    this._updateBadge(true, '⚡ KALSHI SPORTS LIVE');
+                    let pricedCount = 0;
 
                     markets.forEach(m => {
-                        if (m.yes_bid == null && m.last_price == null) return; // skip incomplete data, never guess
-                        const yesPrice = m.yes_bid ?? m.last_price;
+                        // Kalshi's market objects report prices as dollar strings
+                        // ("0.6400"), not the old cents-integer fields (yes_bid,
+                        // last_price) this used to read — those no longer exist in
+                        // the API response, which silently dropped every market here.
+                        const yesBid = parseFloat(m.yes_bid_dollars);
+                        const yesAsk = parseFloat(m.yes_ask_dollars);
+                        const lastPrice = parseFloat(m.last_price_dollars);
+
+                        const rawPrice = !isNaN(yesBid) && yesBid > 0 ? yesBid
+                            : (!isNaN(lastPrice) && lastPrice > 0 ? lastPrice : null);
+
+                        if (rawPrice === null) return; // no real liquidity yet — skip, never guess
+
+                        pricedCount++;
+                        const yesPrice = Math.round(rawPrice * 100); // dollars -> cents (0-100)
+                        const team = m.yes_sub_title || m.title; // the specific team this "yes" side represents
+                        const prevPayload = this.kalshiCache[m.ticker];
+                        const direction = prevPayload ? (yesPrice > prevPayload.yesPrice ? 'UP' : (yesPrice < prevPayload.yesPrice ? 'DOWN' : prevPayload.direction || 'FLAT')) : 'FLAT';
                         const payload = {
                             ticker: m.ticker,
-                            team: m.title,
+                            team: team,
+                            matchup: m.title,
                             yesPrice: yesPrice,
                             noPrice: 100 - yesPrice,
+                            yesAsk: !isNaN(yesAsk) ? Math.round(yesAsk * 100) : null,
                             americanOdds: centsToAmericanOdds(yesPrice),
-                            volume: m.volume || 0,
+                            direction: direction,
+                            volume: parseFloat(m.volume_fp) || 0,
+                            closeTime: m.close_time || null,
                             timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
                         };
 
@@ -85,13 +105,20 @@
                         listeners.kalshi.forEach(cb => cb(payload));
                         listeners.momentum.forEach(cb => cb(payload));
 
-                        const matches = document.querySelectorAll(`[data-team="${m.title}"]`);
+                        const matches = document.querySelectorAll(`[data-team="${team}"]`);
                         matches.forEach(el => {
                             el.classList.remove('flash-green', 'flash-red');
                             void el.offsetWidth;
                             el.classList.add('flash-green');
                         });
                     });
+
+                    if (pricedCount === 0) {
+                        this._setError('Kalshi markets are open but none have real pricing yet');
+                        return;
+                    }
+
+                    this._updateBadge(true, '⚡ KALSHI SPORTS LIVE');
                 })
                 .catch(err => {
                     consecutiveFailures++;
