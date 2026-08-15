@@ -1,9 +1,7 @@
-
-Kalshi props · JS
 // /api/kalshi-props.js — real player prop markets from Kalshi (free), for
 // NBA + WNBA Points / Rebounds / Assists / Threes. Runs server-side so CORS
 // doesn't apply. No paid odds API involved.
- 
+
 const SERIES_LIST = [
   { ticker: 'KXNBAPTS',   league: 'NBA',  stat: 'Points' },
   { ticker: 'KXNBAREB',   league: 'NBA',  stat: 'Rebounds' },
@@ -14,7 +12,7 @@ const SERIES_LIST = [
   { ticker: 'KXWNBAAST',  league: 'WNBA', stat: 'Assists' },
   { ticker: 'KXWNBA3PT',  league: 'WNBA', stat: '3-Pointers' },
 ];
- 
+
 async function fetchSeries(ticker) {
   try {
     const r = await fetch(
@@ -27,7 +25,7 @@ async function fetchSeries(ticker) {
     return [];
   }
 }
- 
+
 export default async function handler(req, res) {
   try {
     const results = await Promise.all(
@@ -36,13 +34,12 @@ export default async function handler(req, res) {
         return markets.map((m) => ({ ...m, _league: league, _stat: stat }));
       })
     );
- 
+
     const markets = results.flat();
- 
+
     res.setHeader('Cache-Control', 's-maxage=10, stale-while-revalidate=20');
     res.status(200).json({ markets });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 }
- 
