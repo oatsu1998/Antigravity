@@ -2097,7 +2097,7 @@
                 : null;
 
             const kalshiTileHtml = liveKalshiOdds ? `
-            <div class="kalshi-card-tile" onclick="event.stopPropagation()" data-away="${awayAbbrStr}" data-home="${homeAbbrStr}">
+            <div class="kalshi-card-tile" onclick="event.stopPropagation()" data-away="${awayAbbrStr}" data-home="${homeAbbrStr}" data-away-name="${awayNameStr.replace(/"/g, '&quot;')}" data-home-name="${homeNameStr.replace(/"/g, '&quot;')}">
                 <div class="kalshi-tile-header">
                     <span class="kalshi-live-tag">⚡ KALSHI LIVE</span>
                     <span class="kalshi-market-type">WIN PROBABILITY</span>
@@ -3553,85 +3553,54 @@
             updateActiveBetsCountGlobal();
             setTimeout(updateAllCardBetsCounts, 1200); // Allow scoreboard to load before counting wagers
 
-            // ⚡ Sub-Second Kalshi WebSocket Real-Time Listener
+            // ⚡ Live Kalshi tick listener — on every tick, re-pull each
+            // card's numbers from window.DestinyLiveFeed's own (correct)
+            // matching logic instead of guessing team assignment from the
+            // tick payload itself. That guesswork used to compare ESPN
+            // abbreviations (e.g. "JAX") against Kalshi's team labels (e.g.
+            // "Jacksonville") with plain substring checks, which silently
+            // fails whenever the two don't share letters in the right
+            // order — flipping the away/home numbers. getKalshiOdds/
+            // getKalshiBookLine already check the full team name too, so
+            // reusing them here keeps this in sync with the values shown
+            // when the card was first rendered.
             if (window.DestinyLiveFeed) {
-                window.DestinyLiveFeed.onKalshiTick((tick) => {
-                    if (!tick || typeof tick.yesPrice !== 'number' || isNaN(tick.yesPrice) || tick.yesPrice <= 0 || tick.yesPrice >= 100) return;
-                    if (!tick.team && !tick.ticker) return;
-                    const rawTeam = (tick.team || tick.ticker || '').toUpperCase();
-                    const yesPrice = tick.yesPrice;
-                    const noPrice = 100 - yesPrice;
-                    const americanOdds = tick.americanOdds || (window.DestinyLiveFeed.centsToAmericanOdds ? window.DestinyLiveFeed.centsToAmericanOdds(yesPrice) : 'EVEN');
-
-                    const centsToAmerican = (cents) => {
-                        if (cents >= 99) return '-10000';
-                        if (cents <= 1) return '+10000';
-                        if (cents === 50) return 'EVEN';
-                        if (cents > 50) return `-${Math.round((cents / (100 - cents)) * 100)}`;
-                        return `+${Math.round(((100 - cents) / cents) * 100)}`;
-                    };
-
-                    const oppAmerican = centsToAmerican(noPrice);
-
-                    // Find game cards matching team
-                    const cards = document.querySelectorAll('.game-card');
-                    cards.forEach(card => {
+                window.DestinyLiveFeed.onKalshiTick(() => {
+                    document.querySelectorAll('.game-card').forEach(card => {
                         const tile = card.querySelector('.kalshi-card-tile');
                         if (!tile) return;
-                        const awayAbbr = (tile.dataset.away || '').toUpperCase();
-                        const homeAbbr = (tile.dataset.home || '').toUpperCase();
-                        const cardText = card.innerText.toUpperCase();
+                        const awayAbbr = tile.dataset.away || '';
+                        const homeAbbr = tile.dataset.home || '';
+                        const awayName = tile.dataset.awayName || awayAbbr;
+                        const homeName = tile.dataset.homeName || homeAbbr;
+                        if (!awayAbbr || !homeAbbr) return;
 
-                        if (cardText.includes(rawTeam) || awayAbbr.includes(rawTeam) || homeAbbr.includes(rawTeam) || rawTeam.includes(awayAbbr) || rawTeam.includes(homeAbbr)) {
-                            // Update live scores and game period from Kalshi feed
-                            if (tick.aScore !== undefined && tick.hScore !== undefined) {
-                                const scores = card.querySelectorAll('.team-score');
-                                if (scores.length >= 2) {
-                                    scores[0].innerText = tick.aScore;
-                                    scores[1].innerText = tick.hScore;
-                                }
-                            }
-                            if (tick.status_label) {
-                                const statusTag = card.querySelector('.game-status span:first-child');
-                                if (statusTag) statusTag.innerText = tick.status_label;
-                            }
+                        const odds = window.DestinyLiveFeed.getKalshiOdds
+                            ? window.DestinyLiveFeed.getKalshiOdds(awayAbbr, homeAbbr, awayName, homeName)
+                            : null;
+                        if (!odds) return;
 
-                            const isAwayMatch = awayAbbr.includes(rawTeam) || rawTeam.includes(awayAbbr);
-                            const awayCents = isAwayMatch ? yesPrice : noPrice;
-                            const homeCents = isAwayMatch ? noPrice : yesPrice;
-                            const awayAm = isAwayMatch ? americanOdds : oppAmerican;
-                            const homeAm = isAwayMatch ? oppAmerican : americanOdds;
+                        const probLeft = tile.querySelector('.bw-prob-bar-left');
+                        const probRight = tile.querySelector('.bw-prob-bar-right');
+                        const valLeft = tile.querySelector('.bw-prob-val-left');
+                        const valRight = tile.querySelector('.bw-prob-val-right');
+                        if (probLeft && probRight && valLeft && valRight) {
+                            probLeft.style.width = odds.awayCents + '%';
+                            probRight.style.width = odds.homeCents + '%';
+                            valLeft.innerText = `${odds.awayCents}% ${awayAbbr} (${odds.awayAmerican})`;
+                            valRight.innerText = `${odds.homeCents}% ${homeAbbr}`;
+                        }
 
-                            // Update probability bar instantly
-                            const probLeft = tile.querySelector('.bw-prob-bar-left');
-                            const probRight = tile.querySelector('.bw-prob-bar-right');
-                            const valLeft = tile.querySelector('.bw-prob-val-left');
-                            const valRight = tile.querySelector('.bw-prob-val-right');
-
-                            if (probLeft && probRight && valLeft && valRight) {
-                                probLeft.style.width = awayCents + '%';
-                                probRight.style.width = homeCents + '%';
-                                valLeft.innerText = `${awayCents}% ${awayAbbr} (${awayAm})`;
-                                valRight.innerText = `${homeCents}% ${homeAbbr}`;
-                            }
-
-                            // Update cents and american values in the tile boxes
-                            const boxes = tile.querySelectorAll('.kalshi-odds-box');
-                            if (boxes.length >= 2) {
-                                const awayCentsEl = boxes[0].querySelector('.kalshi-cents-val');
-                                const awayAmEl = boxes[0].querySelector('.kalshi-american-val');
-                                const homeCentsEl = boxes[1].querySelector('.kalshi-cents-val');
-                                const homeAmEl = boxes[1].querySelector('.kalshi-american-val');
-                                if (awayCentsEl) awayCentsEl.innerText = `${awayCents}¢`;
-                                if (awayAmEl) awayAmEl.innerText = awayAm;
-                                if (homeCentsEl) homeCentsEl.innerText = `${homeCents}¢`;
-                                if (homeAmEl) homeAmEl.innerText = homeAm;
-                            }
-
-                            // Numbers update live above — no flash animation
-                            // (it was firing on every poll, not just real
-                            // price changes, which was more distracting than
-                            // useful).
+                        const boxes = tile.querySelectorAll('.kalshi-odds-box');
+                        if (boxes.length >= 2) {
+                            const awayCentsEl = boxes[0].querySelector('.kalshi-cents-val');
+                            const awayAmEl = boxes[0].querySelector('.kalshi-american-val');
+                            const homeCentsEl = boxes[1].querySelector('.kalshi-cents-val');
+                            const homeAmEl = boxes[1].querySelector('.kalshi-american-val');
+                            if (awayCentsEl) awayCentsEl.innerText = `${odds.awayCents}¢`;
+                            if (awayAmEl) awayAmEl.innerText = odds.awayAmerican;
+                            if (homeCentsEl) homeCentsEl.innerText = `${odds.homeCents}¢`;
+                            if (homeAmEl) homeAmEl.innerText = odds.homeAmerican;
                         }
                     });
                 });
