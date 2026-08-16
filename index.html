@@ -1895,13 +1895,17 @@
         }
 
         function clockTick() {
-            const now = new Date();
-            document.getElementById('clock').textContent =
-                now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
-                '  ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            const clockEl = document.getElementById('clock');
+            if (clockEl) {
+                const now = new Date();
+                clockEl.textContent =
+                    now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
+                    '  ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            }
             
             const badge = document.getElementById('today-date-badge');
             if (badge) {
+                const now = new Date();
                 badge.textContent = '📅 TODAY: ' + now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
             }
         }
