@@ -2019,27 +2019,51 @@
 
             const down = parseInt(sit.down || 1);
             const dist = parseInt(sit.distance || 10);
-            let yardLine = parseInt(sit.yardLine || 50);
-            if (isNaN(yardLine) || yardLine < 1) yardLine = 50;
+            let rawYardLine = parseInt(sit.yardLine || 50);
+            if (isNaN(rawYardLine) || rawYardLine < 1) rawYardLine = 50;
+
+            const posText = String(sit.possessionText || '');
+            let ballPosPct = 50;
+
+            if (isAwayPossession) {
+                // Away team (PHI) drives RIGHT towards Home (BAL)
+                if (posText.includes(awayAbbr)) {
+                    ballPosPct = rawYardLine; // e.g. PHI 34 = 34% (own territory)
+                } else if (posText.includes(homeAbbr)) {
+                    ballPosPct = 100 - rawYardLine; // e.g. BAL 34 = 66% (opponent territory)
+                } else {
+                    ballPosPct = rawYardLine;
+                }
+            } else {
+                // Home team (BAL) drives LEFT towards Away (PHI)
+                if (posText.includes(homeAbbr)) {
+                    ballPosPct = 100 - rawYardLine; // e.g. BAL 34 = 66% (own territory)
+                } else if (posText.includes(awayAbbr)) {
+                    ballPosPct = rawYardLine; // e.g. PHI 34 = 34% (opponent territory)
+                } else {
+                    ballPosPct = 100 - rawYardLine;
+                }
+            }
+            ballPosPct = Math.max(3, Math.min(97, ballPosPct));
+
+            let firstDownPct = isAwayPossession ? (ballPosPct + dist) : (ballPosPct - dist);
+            firstDownPct = Math.max(2, Math.min(98, firstDownPct));
 
             let downText = sit.downDistanceText;
             if (!downText && down > 0) {
                 const ord = down === 1 ? '1st' : down === 2 ? '2nd' : down === 3 ? '3rd' : '4th';
                 const distStr = dist === 0 ? 'Goal' : dist;
-                const posStr = sit.possessionText || (isAwayPossession ? `${awayAbbr} ${yardLine}` : `${homeAbbr} ${100 - yardLine}`);
+                const posStr = posText || (isAwayPossession ? `${awayAbbr} ${rawYardLine}` : `${homeAbbr} ${rawYardLine}`);
                 downText = `${ord} & ${distStr}, ${posStr}`;
             }
             if (!downText) downText = 'Live Possession';
 
-            const lineOfScrimmagePct = Math.max(5, Math.min(95, yardLine));
-            
-            let targetPct = isHomePossession ? (lineOfScrimmagePct - (dist * 0.8)) : (lineOfScrimmagePct + (dist * 0.8));
-            targetPct = Math.max(5, Math.min(95, targetPct));
-
-            const driveDirection = isHomePossession ? 'left' : 'right';
+            const driveLength = Math.min(20, isAwayPossession ? ballPosPct : (100 - ballPosPct));
+            const arrowStartPct = isAwayPossession ? (ballPosPct - driveLength) : (ballPosPct + driveLength);
 
             return `
             <div class="football-possession-card" style="background:#111923; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px 16px; margin:10px 0; font-family:var(--font-mono);" onclick="event.stopPropagation()">
+                <!-- Top Situation Header -->
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                     <div style="display:flex; align-items:center; gap:8px;">
                         ${awayLogo ? `<img src="${awayLogo}" style="width:26px; height:26px; object-fit:contain;">` : ''}
@@ -2057,10 +2081,14 @@
                     </div>
                 </div>
 
+                <!-- 3D Field Bar Graphic -->
                 <div style="position:relative; width:100%; height:34px; background:#1C242F; border-radius:4px; overflow:hidden; border:1px solid rgba(255,255,255,0.12); display:flex; box-shadow:inset 0 2px 6px rgba(0,0,0,0.6);">
+                    <!-- Left Endzone -->
                     <div style="width:10%; height:100%; background:${awayColor}; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; color:#fff; letter-spacing:1px; flex-shrink:0;">${awayAbbr}</div>
                     
+                    <!-- Field Surface (80%) -->
                     <div style="position:relative; width:80%; height:100%; background:linear-gradient(180deg, #18222C 0%, #121A22 100%);">
+                        <!-- 10-Yard Gridlines -->
                         <div style="position:absolute; inset:0; display:flex; justify-content:space-between; opacity:0.12; pointer-events:none;">
                             <div style="border-right:1px solid #fff; flex:1;"></div>
                             <div style="border-right:1px solid #fff; flex:1;"></div>
@@ -2073,20 +2101,22 @@
                         </div>
 
                         <!-- First Down Line (Yellow Line) -->
-                        <div style="position:absolute; top:0; bottom:0; left:${targetPct}%; width:2px; background:#F59E0B; z-index:2; box-shadow:0 0 6px #F59E0B;"></div>
+                        <div style="position:absolute; top:0; bottom:0; left:${firstDownPct}%; width:2px; background:#F59E0B; z-index:2; box-shadow:0 0 6px #F59E0B;" title="First Down Target Line"></div>
 
                         <!-- Line of Scrimmage Line (White Line) -->
-                        <div style="position:absolute; top:0; bottom:0; left:${lineOfScrimmagePct}%; width:2px; background:#FFFFFF; z-index:3; box-shadow:0 0 8px #FFFFFF;"></div>
+                        <div style="position:absolute; top:0; bottom:0; left:${ballPosPct}%; width:2px; background:#FFFFFF; z-index:3; box-shadow:0 0 8px #FFFFFF;" title="Line of Scrimmage"></div>
 
                         <!-- Drive Direction Arrow -->
-                        <div style="position:absolute; top:50%; transform:translateY(-50%); ${driveDirection === 'right' ? `left:${lineOfScrimmagePct}%; width:${Math.min(30, 100 - lineOfScrimmagePct)}%;` : `right:${100 - lineOfScrimmagePct}%; width:${Math.min(30, lineOfScrimmagePct)}%;`} height:2px; background:rgba(255,255,255,0.75); pointer-events:none; z-index:1;">
-                            <div style="position:absolute; ${driveDirection === 'right' ? 'right:-2px' : 'left:-2px'}; top:-3px; border-top:4px solid transparent; border-bottom:4px solid transparent; ${driveDirection === 'right' ? 'border-left:7px solid #FFFFFF' : 'border-right:7px solid #FFFFFF'};"></div>
+                        <div style="position:absolute; top:50%; transform:translateY(-50%); ${isAwayPossession ? `left:${arrowStartPct}%; width:${ballPosPct - arrowStartPct}%;` : `left:${ballPosPct}%; width:${arrowStartPct - ballPosPct}%;`} height:2px; background:rgba(255,255,255,0.75); pointer-events:none; z-index:1;">
+                            <div style="position:absolute; ${isAwayPossession ? 'right:-2px' : 'left:-2px'}; top:-3px; border-top:4px solid transparent; border-bottom:4px solid transparent; ${isAwayPossession ? 'border-left:7px solid #FFFFFF' : 'border-right:7px solid #FFFFFF'};"></div>
                         </div>
                     </div>
 
+                    <!-- Right Endzone -->
                     <div style="width:10%; height:100%; background:${homeColor}; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; color:#fff; letter-spacing:1px; flex-shrink:0;">${homeAbbr}</div>
                 </div>
 
+                <!-- Yard Labels Below -->
                 <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--muted); margin-top:5px; padding:0 2px;">
                     <span>${awayAbbr}</span>
                     <span>10</span>
