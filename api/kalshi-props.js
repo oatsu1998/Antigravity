@@ -3,14 +3,18 @@
 // doesn't apply. No paid odds API involved.
 
 const SERIES_LIST = [
-  { ticker: 'KXNBAPTS',   league: 'NBA',  stat: 'Points' },
-  { ticker: 'KXNBAREB',   league: 'NBA',  stat: 'Rebounds' },
-  { ticker: 'KXNBAAST',   league: 'NBA',  stat: 'Assists' },
-  { ticker: 'KXNBA3PT',   league: 'NBA',  stat: '3-Pointers' },
-  { ticker: 'KXWNBAPTS',  league: 'WNBA', stat: 'Points' },
-  { ticker: 'KXWNBAREB',  league: 'WNBA', stat: 'Rebounds' },
-  { ticker: 'KXWNBAAST',  league: 'WNBA', stat: 'Assists' },
-  { ticker: 'KXWNBA3PT',  league: 'WNBA', stat: '3-Pointers' },
+  { ticker: 'KXNBAPTS',     league: 'NBA',  stat: 'Points' },
+  { ticker: 'KXNBAREB',     league: 'NBA',  stat: 'Rebounds' },
+  { ticker: 'KXNBAAST',     league: 'NBA',  stat: 'Assists' },
+  { ticker: 'KXNBA3PT',     league: 'NBA',  stat: '3-Pointers' },
+  { ticker: 'KXWNBAPTS',    league: 'WNBA', stat: 'Points' },
+  { ticker: 'KXWNBAREB',    league: 'WNBA', stat: 'Rebounds' },
+  { ticker: 'KXWNBAAST',    league: 'WNBA', stat: 'Assists' },
+  { ticker: 'KXWNBA3PT',    league: 'WNBA', stat: '3-Pointers' },
+  { ticker: 'KXNFLPASSYDS', league: 'NFL',  stat: 'Passing Yards' },
+  { ticker: 'KXNFLRSHYDS',  league: 'NFL',  stat: 'Rushing Yards' },
+  { ticker: 'KXNFLRECYDS',  league: 'NFL',  stat: 'Receiving Yards' },
+  { ticker: 'KXNFLREC',     league: 'NFL',  stat: 'Receptions' },
 ];
 
 async function fetchSeries(ticker) {

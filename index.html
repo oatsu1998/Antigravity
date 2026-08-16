@@ -2138,6 +2138,29 @@
         .espn-ticker-team .winner {
             color: var(--accent);
         }
+
+        .weather-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--surface);
+            border: 1px solid var(--border2);
+            border-radius: 6px;
+            padding: 5px 10px;
+            margin-top: 8px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text);
+            width: fit-content;
+        }
+
+        .weather-chip .wind-flag {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 
@@ -2788,6 +2811,9 @@
             const oddsStr = odds ? `${odds.details || ''} · O/U ${odds.overUnder || ''}` : '';
 
             const venue = comp.venue?.fullName || '';
+            const venueCity = comp.venue?.address?.city || '';
+            const venueState = comp.venue?.address?.state || '';
+            const venueIndoor = comp.venue?.indoor === true;
             const broadcast = comp.broadcasts?.[0]?.names?.[0] || '';
 
             const homeRecord = home.records?.[0]?.summary || '';
@@ -3032,6 +3058,8 @@
         </div>
       </div>
       ` : ''}
+
+      ${!venueIndoor && venueCity ? `<div class="weather-chip" data-city="${venueCity.replace(/"/g, '&quot;')}" data-state="${venueState.replace(/"/g, '&quot;')}">Loading weather…</div>` : ''}
 
       ${sportGraphicHtml}
 
@@ -3769,6 +3797,7 @@
             }).join('');
             mainEl.innerHTML = html;
             loadKalshiCharts();
+            loadWeatherData();
         }
 
         // ── Per-card 24h price chart, drawn below the odds table ──────────
@@ -3848,6 +3877,124 @@
                     const liveEl = document.querySelector(`.bw-chart[data-ticker="${ticker}"]`);
                     if (liveEl) liveEl.innerHTML = '<div class="bw-chart-loading">Chart unavailable</div>';
                 }
+            });
+        }
+
+        // ── Real Weather with Wind Direction via Open-Meteo ────────────────
+        const weatherCache = {};
+        const WEATHER_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
+        const US_STATE_NAMES = {
+            AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+            CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', FL: 'Florida', GA: 'Georgia',
+            HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa',
+            KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland',
+            MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri',
+            MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey',
+            NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio',
+            OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina',
+            SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont',
+            VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming',
+            DC: 'District of Columbia'
+        };
+
+        function getWeatherIcon(code) {
+            if (code === 0) return '☀️';
+            if (code === 1 || code === 2) return '🌤️';
+            if (code === 3) return '☁️';
+            if (code === 45 || code === 48) return '🌫️';
+            if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return '🌧️';
+            if ([56, 57, 66, 67].includes(code)) return '🌧️';
+            if ([71, 73, 75, 77, 85, 86].includes(code)) return '🌨️';
+            if ([95, 96, 99].includes(code)) return '⛈️';
+            return '☀️';
+        }
+
+        function getCardinalWindDir(deg) {
+            const CARDINALS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+            const normalized = ((deg % 360) + 360) % 360;
+            const index = Math.round(normalized / 45) % 8;
+            return CARDINALS[index];
+        }
+
+        async function fetchCityWeather(city, state) {
+            try {
+                // 1. Geocode
+                const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=5&country=US`;
+                const geoRes = await fetch(geoUrl);
+                if (!geoRes.ok) return null;
+                const geoData = await geoRes.json();
+                const results = geoData.results;
+                if (!results || results.length === 0) return null;
+
+                let match = null;
+                if (state) {
+                    const fullState = US_STATE_NAMES[state.toUpperCase()] || state;
+                    match = results.find(r => r.admin1 && (
+                        r.admin1.toLowerCase() === fullState.toLowerCase() ||
+                        r.admin1.toLowerCase() === state.toLowerCase() ||
+                        (r.admin1_code && r.admin1_code.toUpperCase() === state.toUpperCase())
+                    ));
+                    // Disambiguation failure if state was provided but no result matches
+                    if (!match) return null;
+                } else {
+                    match = results[0];
+                }
+
+                const lat = match.latitude;
+                const lon = match.longitude;
+
+                // 2. Fetch current weather
+                const wxUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation,weather_code&temperature_unit=fahrenheit&wind_speed_unit=mph`;
+                const wxRes = await fetch(wxUrl);
+                if (!wxRes.ok) return null;
+                const wxData = await wxRes.json();
+                const current = wxData.current;
+                if (!current) return null;
+
+                const temp = Math.round(current.temperature_2m);
+                const windSpeed = Math.round(current.wind_speed_10m);
+                const windDir = current.wind_direction_10m || 0;
+                const cardinal = getCardinalWindDir(windDir);
+                const icon = getWeatherIcon(current.weather_code);
+                const gusts = Math.round(current.wind_gusts_10m || 0);
+
+                let gustText = '';
+                if (gusts >= windSpeed + 10) {
+                    gustText = `, gusts ${gusts}`;
+                }
+
+                const flagSvg = `<svg class="wind-flag" viewBox="0 0 24 24" style="transform: rotate(${windDir}deg);"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" fill="#06B6D4"/></svg>`;
+
+                return `${icon} ${temp}°F · ${flagSvg} ${windSpeed} mph ${cardinal}${gustText}`;
+            } catch (err) {
+                return null;
+            }
+        }
+
+        async function loadWeatherData() {
+            const chips = document.querySelectorAll('.weather-chip[data-city]');
+            chips.forEach(async (chip) => {
+                const city = chip.dataset.city;
+                const state = chip.dataset.state || '';
+                if (!city) return;
+
+                const cacheKey = `${city.toLowerCase()}|${state.toLowerCase()}`;
+                const cached = weatherCache[cacheKey];
+
+                if (cached && (Date.now() - cached.fetchedAt) < WEATHER_CACHE_TTL_MS) {
+                    chip.innerHTML = cached.html;
+                    return;
+                }
+
+                const html = await fetchCityWeather(city, state);
+                const finalHtml = html ? html : 'Weather unavailable';
+                weatherCache[cacheKey] = { html: finalHtml, fetchedAt: Date.now() };
+
+                // Re-query to handle re-renders in flight
+                document.querySelectorAll(`.weather-chip[data-city="${city}"][data-state="${state}"]`).forEach(c => {
+                    c.innerHTML = finalHtml;
+                });
             });
         }
 
@@ -3932,6 +4079,7 @@
             buildTabs();
             renderEspnTicker();
             loadKalshiCharts();
+            loadWeatherData();
 
             const usageEl = document.getElementById('api-usage');
             if (usageEl && globalRemaining !== null) {
