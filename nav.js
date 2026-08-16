@@ -242,6 +242,7 @@ function initGlobalNav() {
                 <a href="sandbox.html" class="universal-menu-item">🧪 Strategy Sandbox</a>
                 <a href="portfolio.html" class="universal-menu-item">💼 Portfolio & Ledger</a>
                 <a href="layout.html" class="universal-menu-item">📐 Layout & Widgets</a>
+                <a href="about.html" class="universal-menu-item">ℹ️ About</a>
             </div>
         </div>
     `;
