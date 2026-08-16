@@ -1788,29 +1788,26 @@
             user-select: none;
         }
 
-        .espn-top-events-btn {
+        .espn-icon-btn {
             background: #1a1e27;
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: #ffffff;
-            font-family: var(--font-sans);
-            font-size: 12px;
-            font-weight: 700;
-            padding: 6px 14px;
-            border-radius: 18px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
-            margin: 0 12px;
-            flex-shrink: 0;
-            z-index: 10;
+            justify-content: center;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
             transition: all 0.2s;
+            flex-shrink: 0;
         }
-        .espn-top-events-btn:hover {
+        .espn-icon-btn:hover {
             background: #252a36;
             border-color: var(--accent);
             color: var(--accent);
+            transform: scale(1.05);
         }
 
         .live-pulse-dot {
@@ -1889,8 +1886,10 @@
             overflow-x: auto;
             scroll-behavior: smooth;
             height: 100%;
-            flex: 1;
+            flex: 1 1 auto;
+            min-width: 0; /* Critical for smooth flex item scrolling without stretching viewport */
             scrollbar-width: none; /* Firefox */
+            -webkit-overflow-scrolling: touch;
         }
         .espn-ticker-scroll::-webkit-scrollbar {
             display: none; /* Chrome / Safari / Edge */
@@ -1983,8 +1982,26 @@
             <div class="espn-dropdown-item" onclick="setTickerFilter('ncaaf')">🎓 NCAAF</div>
         </div>
 
+        <!-- Scrollable Ticker Games Container -->
         <div class="espn-ticker-scroll" id="espn-ticker-scroll">
             <div style="padding: 0 20px; font-family: var(--font-mono); font-size: 11px; color: var(--muted);">Loading ESPN score ticker...</div>
+        </div>
+
+        <!-- Expandable Search Box -->
+        <div id="ticker-search-box" style="display:none; position:absolute; right:95px; top:14px; z-index:20; background:#11151c; border:1px solid rgba(255,255,255,0.2); border-radius:18px; padding:2px 10px; align-items:center; gap:6px; box-shadow:0 4px 16px rgba(0,0,0,0.6);">
+            <span style="font-size:12px; color:var(--muted);">🔍</span>
+            <input type="text" id="ticker-search-input" placeholder="Search team..." oninput="handleTickerSearchInput(this.value)" style="background:none; border:none; color:#fff; font-family:var(--font-mono); font-size:11px; outline:none; width:140px;">
+            <button onclick="toggleTickerSearch(event)" style="background:none; border:none; color:var(--muted); cursor:pointer; font-size:14px;">&times;</button>
+        </div>
+
+        <!-- Far Right Search & User Account Controls -->
+        <div class="espn-ticker-right-controls" style="display:flex; align-items:center; gap:8px; margin:0 12px; flex-shrink:0; z-index:10;">
+            <button class="espn-icon-btn" onclick="toggleTickerSearch(event)" title="Search Teams & Games">
+                <span style="font-size:14px;">🔍</span>
+            </button>
+            <button class="espn-icon-btn espn-user-btn" onclick="openUserProfileModal(event)" title="User Account Profile">
+                <span style="font-size:15px;">👤</span>
+            </button>
         </div>
     </div>
 
@@ -2022,6 +2039,53 @@
                         </div>
                         <button type="submit" class="mb-add-btn" style="width: 100%;">Add Wager to Track</button>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER PROFILE ACCOUNT MODAL -->
+    <div id="user-profile-modal-overlay" class="my-bets-modal-overlay" onclick="closeUserProfileModal()">
+        <div class="my-bets-modal" onclick="event.stopPropagation()" style="max-width: 440px;">
+            <div class="mb-header">
+                <span class="mb-title" style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:18px;">👤</span> USER ACCOUNT PROFILE
+                </span>
+                <button class="mb-close-btn" onclick="closeUserProfileModal()">&times;</button>
+            </div>
+            <div class="mb-body" style="gap:16px;">
+                <div style="display:flex; align-items:center; gap:14px; background:rgba(255,255,255,0.04); padding:14px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+                    <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #f59e0b, #06b6d4); display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:900; color:#000;">
+                        👤
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <span style="font-family:var(--font-head); font-size:16px; font-weight:900; color:#fff;">VipTrader_1M</span>
+                        <span style="font-family:var(--font-mono); font-size:11px; color:#10b981; font-weight:700;">● VERIFIED ACCOUNT · ID #90482</span>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div style="background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.3); padding:12px; border-radius:6px;">
+                        <div style="font-size:10px; color:var(--muted); font-family:var(--font-mono); font-weight:700;">CASH BANKROLL</div>
+                        <div style="font-size:16px; color:#f59e0b; font-family:var(--font-mono); font-weight:900; margin-top:2px;">
+                            $<span id="user-modal-bankroll">1,000,000.00</span>
+                        </div>
+                    </div>
+                    <div style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.3); padding:12px; border-radius:6px;">
+                        <div style="font-size:10px; color:var(--muted); font-family:var(--font-mono); font-weight:700;">CRYPTO DEBT TOKENS</div>
+                        <div style="font-size:16px; color:#ef4444; font-family:var(--font-mono); font-weight:900; margin-top:2px;">
+                            🪙 -$<span id="user-modal-debt">0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+                    <button class="mb-add-btn" onclick="resetUserBankrollModal()" style="width:100%; justify-content:center; display:flex; align-items:center; gap:8px;">
+                        ↻ RESET BANKROLL TO $1,000,000.00
+                    </button>
+                    <button onclick="closeUserProfileModal()" style="background:none; border:1px solid var(--border2); color:var(--muted); padding:8px; border-radius:4px; font-family:var(--font-mono); font-size:11px; cursor:pointer;">
+                        CLOSE WINDOW
+                    </button>
                 </div>
             </div>
         </div>
@@ -2927,6 +2991,59 @@
             const dd = document.getElementById('espn-events-dropdown');
             if (dd && dd.classList.contains('open')) dd.classList.remove('open');
         });
+
+        // Search & User Profile Modal Handlers
+        window.toggleTickerSearch = function(e) {
+            if (e) e.stopPropagation();
+            const box = document.getElementById('ticker-search-box');
+            if (!box) return;
+            if (box.style.display === 'none' || !box.style.display) {
+                box.style.display = 'flex';
+                document.getElementById('ticker-search-input')?.focus();
+            } else {
+                box.style.display = 'none';
+                handleTickerSearchInput('');
+            }
+        };
+
+        window.handleTickerSearchInput = function(query) {
+            const q = String(query || '').toLowerCase().trim();
+            const items = document.querySelectorAll('.espn-ticker-item');
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if (!q || text.includes(q)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        };
+
+        window.openUserProfileModal = function(e) {
+            if (e) e.stopPropagation();
+            const bEl = document.getElementById('user-modal-bankroll');
+            if (bEl) bEl.innerText = bankroll.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const dEl = document.getElementById('user-modal-debt');
+            if (dEl) dEl.innerText = debtTokens.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const overlay = document.getElementById('user-profile-modal-overlay');
+            if (overlay) overlay.style.display = 'flex';
+        };
+
+        window.closeUserProfileModal = function() {
+            const overlay = document.getElementById('user-profile-modal-overlay');
+            if (overlay) overlay.style.display = 'none';
+        };
+
+        window.resetUserBankrollModal = function() {
+            bankroll = 1000000.00;
+            debtTokens = 0.00;
+            localStorage.setItem('destiny_bankroll', bankroll);
+            localStorage.setItem('bankroll', bankroll);
+            localStorage.setItem('destiny_debt_tokens', debtTokens);
+            updateBankrollDisplay();
+            openUserProfileModal();
+        };
 
         function renderEspnTicker() {
             const scrollContainer = document.getElementById('espn-ticker-scroll');
