@@ -1274,6 +1274,38 @@
             border-radius: 4px;
         }
 
+        .bs-max-btn {
+            background: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%);
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 8px;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            margin-left: 6px;
+        }
+
+        .bs-max-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.04);
+        }
+
+        .bs-debt-tokens {
+            font-size: 11px;
+            color: #EF4444;
+            font-weight: bold;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            padding: 3px 7px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         .bs-close-btn {
             background: transparent;
             border: none;
@@ -3370,9 +3402,12 @@
     <button class="bs-toggle" onclick="toggleBetSlip()">BET SLIP (<span id="bs-count">0</span>)</button>
     <div id="bet-slip-panel" class="bet-slip">
         <div class="bs-header">
-            <div style="display:flex; align-items:center; gap:12px;">
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                 <div class="bs-title">BET SLIP</div>
-                <div class="bs-bankroll">Bankroll: $<span id="bankroll-amount">10000.00</span></div>
+                <div class="bs-bankroll">Bankroll: $<span id="bankroll-amount">100,000.00</span></div>
+                <div id="debt-tokens-badge" class="bs-debt-tokens" style="display:none;" title="Crypto Debt Tokens issued for overdraft wagers">
+                    🪙 Debt: -$<span id="debt-tokens-amount">0.00</span>
+                </div>
             </div>
             <button class="bs-close-btn" onclick="toggleBetSlip()" title="Close Bet Slip" aria-label="Close">&times;</button>
         </div>
@@ -3394,7 +3429,8 @@
         </div>
     </div>
     <script>
-        let bankroll = 10000.00;
+        let bankroll = 100000.00;
+        let debtTokens = 0.00;
         let betSlip = [];
         let activeBsTab = 'slip';
 
@@ -3533,20 +3569,48 @@
             }).join('');
         }
 
-        // Initialize: clear past wagers & reset bankroll
+        // Initialize: clear past wagers & set $100k default bankroll + crypto debt tokens
         localStorage.removeItem('wagers');
         localStorage.removeItem('espn_api_usage');
-        const savedBankroll = localStorage.getItem('bankroll');
-        if (savedBankroll) {
+        
+        bankroll = 100000.00;
+        debtTokens = 0.00;
+
+        const savedBankroll = localStorage.getItem('destiny_bankroll') || localStorage.getItem('bankroll');
+        if (savedBankroll !== null && !isNaN(parseFloat(savedBankroll))) {
             bankroll = parseFloat(savedBankroll);
+            if (bankroll === 10000) {
+                bankroll = 100000.00;
+                localStorage.setItem('destiny_bankroll', bankroll);
+                localStorage.setItem('bankroll', bankroll);
+            }
         } else {
+            bankroll = 100000.00;
+            localStorage.setItem('destiny_bankroll', bankroll);
             localStorage.setItem('bankroll', bankroll);
         }
 
-        function updateBankrollDisplay() {
-            const el = document.getElementById('bankroll-amount');
-            if (el) el.innerText = bankroll.toFixed(2);
+        const savedDebt = localStorage.getItem('destiny_debt_tokens');
+        if (savedDebt !== null && !isNaN(parseFloat(savedDebt))) {
+            debtTokens = parseFloat(savedDebt);
         }
+
+        function updateBankrollDisplay() {
+            const bEl = document.getElementById('bankroll-amount');
+            if (bEl) bEl.innerText = bankroll.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const dBadge = document.getElementById('debt-tokens-badge');
+            const dEl = document.getElementById('debt-tokens-amount');
+            if (dBadge && dEl) {
+                if (debtTokens > 0) {
+                    dBadge.style.display = 'inline-flex';
+                    dEl.innerText = debtTokens.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                } else {
+                    dBadge.style.display = 'none';
+                }
+            }
+        }
+        updateBankrollDisplay();
 
         function toggleBetSlip() {
             document.getElementById('bet-slip-panel').classList.toggle('open');
@@ -3557,7 +3621,6 @@
             
             // Clean up team name
             let displayTeam = (team || '').trim();
-            // If team name contains HTML (like image tags), strip them!
             if (displayTeam.includes('<')) {
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = displayTeam;
@@ -3570,27 +3633,23 @@
             
             const parts = odds.toString().trim().split(/\s+/);
             if (parts.length > 1) {
-                // e.g. ["+6.5", "-110"] or ["O", "218.5", "-114"]
                 price = parts[parts.length - 1];
                 line = parts.slice(0, parts.length - 1).join(' ');
             } else {
-                // If single part, determine if it's a price or a line
                 const val = parts[0];
                 if (val.includes('.') || (val.startsWith('+') && parseFloat(val) < 50 && parseFloat(val) > -50)) {
                     line = val;
-                    price = '-110'; // default price
+                    price = '-110';
                 } else {
                     price = val;
                 }
             }
             
-            // Clean price (odds) to integer (e.g. "+110" -> 110, "-110" -> -110)
             let cleanedPrice = parseInt(price.replace(/[^0-9-]/g, ''));
             if (isNaN(cleanedPrice)) {
                 cleanedPrice = -110;
             }
             
-            // For Display Type, if there is a line, display it as "Spread (${line})" or "Total (${line})"
             let displayType = type;
             if (line) {
                 displayType = `${type} (${line})`;
@@ -3618,6 +3677,15 @@
             }
         }
 
+        function setMaxWager(id) {
+            const bet = betSlip.find(b => b.id === id);
+            if (!bet) return;
+            const otherWagers = betSlip.filter(b => b.id !== id).reduce((sum, b) => sum + (parseFloat(b.wager) || 0), 0);
+            const availBankroll = Math.max(0, bankroll - otherWagers);
+            bet.wager = availBankroll > 0 ? availBankroll : (bankroll > 0 ? bankroll : 1000.00);
+            renderBetSlip();
+        }
+
         function calculatePayout(wager, odds) {
             if (!wager) return 0;
             if (odds > 0) return wager + (wager * (odds / 100));
@@ -3643,9 +3711,12 @@
                         <button class="bs-remove" onclick="removeFromBetSlip(${bet.id})">×</button>
                     </div>
                     <div class="bs-item-type">${bet.type} <span style="float:right" class="bs-item-odds">${bet.odds > 0 ? '+' : ''}${bet.odds}</span></div>
-                    <div class="bs-wager-row">
-                        <span style="font-size:12px;color:var(--muted)">Wager: $</span>
-                        <input type="number" class="bs-wager-input" placeholder="0.00" value="${bet.wager || ''}" onchange="updateWager(${bet.id}, this.value)" onkeyup="updateWager(${bet.id}, this.value)">
+                    <div class="bs-wager-row" style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
+                        <div style="display:flex; align-items:center; gap:4px; flex:1;">
+                            <span style="font-size:12px;color:var(--muted)">Wager: $</span>
+                            <input type="number" id="wager-input-${bet.id}" class="bs-wager-input" placeholder="0.00" value="${bet.wager || ''}" onchange="updateWager(${bet.id}, this.value)" onkeyup="updateWager(${bet.id}, this.value)" style="flex:1; min-width:0;">
+                        </div>
+                        <button class="bs-max-btn" onclick="setMaxWager(${bet.id})" title="Set wager to maximum available bankroll">MAX</button>
                     </div>
                     <div class="bs-to-win">To Win: $<span id="payout-${bet.id}">${(calculatePayout(bet.wager || 0, bet.odds) - (bet.wager || 0)).toFixed(2)}</span></div>
                 </div>
@@ -3653,13 +3724,30 @@
         }
 
         function placeBets() {
-            let totalWager = betSlip.reduce((sum, bet) => sum + bet.wager, 0);
+            let totalWager = betSlip.reduce((sum, bet) => sum + (parseFloat(bet.wager) || 0), 0);
             if (totalWager <= 0) return alert('Please enter wager amounts.');
-            if (totalWager > bankroll) return alert('Insufficient bankroll.');
 
-            bankroll -= totalWager;
-            localStorage.setItem('bankroll', bankroll);
-            updateBankrollDisplay();
+            if (totalWager > bankroll) {
+                const deficit = totalWager - bankroll;
+                const confirmDebt = confirm(
+                    `🪙 INSUFFICIENT BANKROLL!\n\n` +
+                    `Your wager total ($${totalWager.toFixed(2)}) exceeds your available bankroll ($${bankroll.toFixed(2)}).\n\n` +
+                    `Would you like to issue $${deficit.toFixed(2)} in Crypto Debt Tokens (DEBT) to cover the overdraft and place this bet?`
+                );
+                if (!confirmDebt) return;
+
+                debtTokens += deficit;
+                bankroll = 0.00;
+                localStorage.setItem('destiny_debt_tokens', debtTokens);
+                localStorage.setItem('destiny_bankroll', bankroll);
+                localStorage.setItem('bankroll', bankroll);
+                updateBankrollDisplay();
+            } else {
+                bankroll -= totalWager;
+                localStorage.setItem('destiny_bankroll', bankroll);
+                localStorage.setItem('bankroll', bankroll);
+                updateBankrollDisplay();
+            }
 
             // Log each placed bet into destiny_game_wagers!
             const KEY = 'destiny_game_wagers';
@@ -3725,6 +3813,9 @@
                 panel.classList.remove('open');
             }
         }
+        window.addToBetSlip = addToBetSlip;
+        window.setMaxWager = setMaxWager;
+        window.placeBets = placeBets;
 
         // Close bet slip on Escape key
         window.addEventListener('keydown', (e) => {
