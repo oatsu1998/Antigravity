@@ -2001,6 +2001,110 @@
             saveEspnOrder(tabKey, newOrder);
         }
 
+        function renderFootballGraphic(sit, away, home, statusLabel) {
+            if (!sit) return '';
+
+            const awayColor = away.team?.color ? '#' + away.team.color : '#004C54';
+            const homeColor = home.team?.color ? '#' + home.team.color : '#241773';
+            
+            const awayAbbr = away.team?.abbreviation || 'AWAY';
+            const homeAbbr = home.team?.abbreviation || 'HOME';
+
+            const awayLogo = away.team?.logo || away.team?.logos?.[0]?.href || '';
+            const homeLogo = home.team?.logo || home.team?.logos?.[0]?.href || '';
+
+            const possessionId = String(sit.possession || sit.possessionText || '');
+            const isAwayPossession = possessionId === String(away.team?.id || away.id || '') || possessionId.toUpperCase().includes(awayAbbr);
+            const isHomePossession = possessionId === String(home.team?.id || home.id || '') || possessionId.toUpperCase().includes(homeAbbr);
+
+            const down = parseInt(sit.down || 1);
+            const dist = parseInt(sit.distance || 10);
+            let yardLine = parseInt(sit.yardLine || 50);
+            if (isNaN(yardLine) || yardLine < 1) yardLine = 50;
+
+            let downText = sit.downDistanceText;
+            if (!downText && down > 0) {
+                const ord = down === 1 ? '1st' : down === 2 ? '2nd' : down === 3 ? '3rd' : '4th';
+                const distStr = dist === 0 ? 'Goal' : dist;
+                const posStr = sit.possessionText || (isAwayPossession ? `${awayAbbr} ${yardLine}` : `${homeAbbr} ${100 - yardLine}`);
+                downText = `${ord} & ${distStr}, ${posStr}`;
+            }
+            if (!downText) downText = 'Live Possession';
+
+            const lineOfScrimmagePct = Math.max(5, Math.min(95, yardLine));
+            
+            let targetPct = isHomePossession ? (lineOfScrimmagePct - (dist * 0.8)) : (lineOfScrimmagePct + (dist * 0.8));
+            targetPct = Math.max(5, Math.min(95, targetPct));
+
+            const driveDirection = isHomePossession ? 'left' : 'right';
+
+            return `
+            <div class="football-possession-card" style="background:#111923; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px 16px; margin:10px 0; font-family:var(--font-mono);" onclick="event.stopPropagation()">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        ${awayLogo ? `<img src="${awayLogo}" style="width:26px; height:26px; object-fit:contain;">` : ''}
+                        ${isAwayPossession ? '<span style="font-size:14px; filter:drop-shadow(0 0 4px #06B6D4);" title="Possession">🏈</span>' : ''}
+                    </div>
+                    
+                    <div style="text-align:center;">
+                        <div style="font-size:14px; font-weight:800; color:#FFFFFF; letter-spacing:0.5px;">${downText}</div>
+                        <div style="font-size:11px; color:var(--muted); margin-top:2px;">${statusLabel}</div>
+                    </div>
+
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        ${isHomePossession ? '<span style="font-size:14px; filter:drop-shadow(0 0 4px #06B6D4);" title="Possession">🏈</span>' : ''}
+                        ${homeLogo ? `<img src="${homeLogo}" style="width:26px; height:26px; object-fit:contain;">` : ''}
+                    </div>
+                </div>
+
+                <div style="position:relative; width:100%; height:34px; background:#1C242F; border-radius:4px; overflow:hidden; border:1px solid rgba(255,255,255,0.12); display:flex; box-shadow:inset 0 2px 6px rgba(0,0,0,0.6);">
+                    <div style="width:10%; height:100%; background:${awayColor}; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; color:#fff; letter-spacing:1px; flex-shrink:0;">${awayAbbr}</div>
+                    
+                    <div style="position:relative; width:80%; height:100%; background:linear-gradient(180deg, #18222C 0%, #121A22 100%);">
+                        <div style="position:absolute; inset:0; display:flex; justify-content:space-between; opacity:0.12; pointer-events:none;">
+                            <div style="border-right:1px solid #fff; flex:1;"></div>
+                            <div style="border-right:1px solid #fff; flex:1;"></div>
+                            <div style="border-right:1px solid #fff; flex:1;"></div>
+                            <div style="border-right:1px solid #fff; flex:1;"></div>
+                            <div style="border-right:1px solid #fff; flex:1;"></div>
+                            <div style="border-right:1px solid #fff; flex:1;"></div>
+                            <div style="border-right:1px solid #fff; flex:1;"></div>
+                            <div style="border-right:1px solid #fff; flex:1;"></div>
+                        </div>
+
+                        <!-- First Down Line (Yellow Line) -->
+                        <div style="position:absolute; top:0; bottom:0; left:${targetPct}%; width:2px; background:#F59E0B; z-index:2; box-shadow:0 0 6px #F59E0B;"></div>
+
+                        <!-- Line of Scrimmage Line (White Line) -->
+                        <div style="position:absolute; top:0; bottom:0; left:${lineOfScrimmagePct}%; width:2px; background:#FFFFFF; z-index:3; box-shadow:0 0 8px #FFFFFF;"></div>
+
+                        <!-- Drive Direction Arrow -->
+                        <div style="position:absolute; top:50%; transform:translateY(-50%); ${driveDirection === 'right' ? `left:${lineOfScrimmagePct}%; width:${Math.min(30, 100 - lineOfScrimmagePct)}%;` : `right:${100 - lineOfScrimmagePct}%; width:${Math.min(30, lineOfScrimmagePct)}%;`} height:2px; background:rgba(255,255,255,0.75); pointer-events:none; z-index:1;">
+                            <div style="position:absolute; ${driveDirection === 'right' ? 'right:-2px' : 'left:-2px'}; top:-3px; border-top:4px solid transparent; border-bottom:4px solid transparent; ${driveDirection === 'right' ? 'border-left:7px solid #FFFFFF' : 'border-right:7px solid #FFFFFF'};"></div>
+                        </div>
+                    </div>
+
+                    <div style="width:10%; height:100%; background:${homeColor}; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; color:#fff; letter-spacing:1px; flex-shrink:0;">${homeAbbr}</div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--muted); margin-top:5px; padding:0 2px;">
+                    <span>${awayAbbr}</span>
+                    <span>10</span>
+                    <span>20</span>
+                    <span>30</span>
+                    <span>40</span>
+                    <span>50</span>
+                    <span>40</span>
+                    <span>30</span>
+                    <span>20</span>
+                    <span>10</span>
+                    <span>${homeAbbr}</span>
+                </div>
+            </div>
+            `;
+        }
+        window.renderFootballGraphic = renderFootballGraphic;
+
         function renderCard(event, lg, panelType) {
             const comp = event.competitions?.[0];
             if (!comp) return '';
@@ -2035,6 +2139,11 @@
             const homeAbbr = home.team?.abbreviation || '';
             const awayName = away.team?.displayName || away.team?.name || awayAbbr;
             const homeName = home.team?.displayName || home.team?.name || homeAbbr;
+
+            const sit = comp.situation;
+            const footballGraphicHtml = (status.isLive && sit && (lg.sport === 'football' || sit.down !== undefined || sit.possessionText))
+                ? renderFootballGraphic(sit, away, home, status.label)
+                : '';
 
             let bettingWidgetHtml = '';
 
@@ -2213,6 +2322,7 @@
         </div>
       </div>
       ` : ''}
+      ${footballGraphicHtml}
       ${kalshiTileHtml}
       ${bettingWidgetHtml}
       <div class="game-footer" style="${bettingWidgetHtml !== '' ? 'display: none;' : ''}">
@@ -2660,6 +2770,17 @@
                 }
                 return '';
             };
+
+            // Render Football Live Possession & Field Card
+            if (data.situation && (currentOpenGame?.sport === 'football' || data.situation.down !== undefined || data.situation.possessionText)) {
+                const headerComp = data.header?.competitions?.[0];
+                const competitors = headerComp?.competitors || [];
+                const away = competitors.find(c => c.homeAway === 'away') || competitors[1] || { team: {} };
+                const home = competitors.find(c => c.homeAway === 'home') || competitors[0] || { team: {} };
+                const statusText = data.header?.competitions?.[0]?.status?.type?.detail || 'In Progress';
+                
+                html += renderFootballGraphic(data.situation, away, home, statusText);
+            }
 
             // Render Baseball Live Matchup Card
             if (data.situation && currentOpenGame?.sport === 'baseball') {
