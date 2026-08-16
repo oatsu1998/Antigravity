@@ -965,7 +965,7 @@
 
         .bw-header {
             display: grid;
-            grid-template-columns: 80px 1fr 1fr 1fr 1.1fr;
+            grid-template-columns: 90px 1fr 1fr 1fr;
             font-size: 10px;
             color: var(--muted);
             text-align: center;
@@ -977,7 +977,7 @@
 
         .bw-row {
             display: grid;
-            grid-template-columns: 80px 1fr 1fr 1fr 1.1fr;
+            grid-template-columns: 90px 1fr 1fr 1fr;
             gap: 6px;
             align-items: center;
         }
@@ -2350,7 +2350,6 @@
                         <span>Spread</span>
                         <span>Moneyline</span>
                         <span>Total</span>
-                        <span>Markets</span>
                     </div>
                     <div class="bw-row">
                         <span class="bw-team" style="display:flex; align-items:center; gap:8px;">
@@ -2363,7 +2362,6 @@
                         <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Spread (Kalshi)', '${spread ? (spread.awayLine > 0 ? '+' : '') + spread.awayLine + ' ' + spread.awayAmerican : 'N/A'}')">${spreadCell(spread && spread.awayLine, spread && spread.awayAmerican)}</div>
                         <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.awayAmerican : 'N/A'}')">${mlCell(kalshiML && kalshiML.awayCents, kalshiML && kalshiML.awayAmerican)}</div>
                         <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Total (Kalshi)', '${total ? 'O ' + total.line + ' ' + total.overAmerican : 'N/A'}')">${totalCell('O', total && total.line, total && total.overAmerican)}</div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.awayAmerican : 'N/A'}')">${winProbCell(awayAbbr, kalshiML && kalshiML.awayCents, kalshiML && kalshiML.awayAmerican)}</div>
                     </div>
                     <div class="bw-row">
                         <span class="bw-team" style="display:flex; align-items:center; gap:8px;">
@@ -2376,7 +2374,6 @@
                         <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Spread (Kalshi)', '${spread ? (spread.homeLine > 0 ? '+' : '') + spread.homeLine + ' ' + spread.homeAmerican : 'N/A'}')">${spreadCell(spread && spread.homeLine, spread && spread.homeAmerican)}</div>
                         <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.homeAmerican : 'N/A'}')">${mlCell(kalshiML && kalshiML.homeCents, kalshiML && kalshiML.homeAmerican)}</div>
                         <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Total (Kalshi)', '${total ? 'U ' + total.line + ' ' + total.underAmerican : 'N/A'}')">${totalCell('U', total && total.line, total && total.underAmerican)}</div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.homeAmerican : 'N/A'}')">${winProbCell(homeAbbr, kalshiML && kalshiML.homeCents, kalshiML && kalshiML.homeAmerican)}</div>
                     </div>
                     ${kalshiML ? `
                     <div class="bw-prob" style="margin-top: 4px;">
