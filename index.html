@@ -191,6 +191,35 @@
             border-color: var(--accent);
         }
 
+        .wager-status-circles {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .circle-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .circle-dot.red {
+            background-color: #ef4444;
+            box-shadow: 0 0 6px rgba(239, 68, 68, 0.7);
+        }
+
+        .circle-dot.yellow {
+            background-color: #f59e0b;
+            box-shadow: 0 0 6px rgba(245, 158, 11, 0.7);
+        }
+
+        .circle-dot.green {
+            background-color: #10b981;
+            box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
+        }
+
         .league-tabs-vertical .tab.dragging {
             opacity: 0.35;
             border-style: dashed;
@@ -3263,7 +3292,11 @@
             let html = `
                 <div class="league-header">
                     <div style="display:flex; align-items:center; gap:12px;">
-                        <span style="font-size:26px;">⚡</span>
+                        <div class="wager-status-circles" style="gap:6px;" title="Red (Losing), Yellow (At Risk), Green (Winning)">
+                            <span class="circle-dot red" style="width:10px; height:10px;"></span>
+                            <span class="circle-dot yellow" style="width:10px; height:10px;"></span>
+                            <span class="circle-dot green" style="width:10px; height:10px;"></span>
+                        </div>
                         <div class="league-title">LIVE WAGERS</div>
                     </div>
                     <div style="font-family:var(--font-mono); font-size:11px; color:var(--accent); font-weight:800; background:rgba(245, 158, 11, 0.15); padding:4px 12px; border-radius:12px; border:1px solid rgba(245,158,11,0.3);">
@@ -3619,22 +3652,26 @@
                 }
             });
 
-            // 1. PINNED DESTINY LEAGUE & LIVE WAGERS BUTTONS (Fixed at top)
+            // 1. PINNED VERY TOP: LIVE WAGERS (With Red, Yellow, Green Circles) + DESTINY LEAGUE
             let html = `
+      <button class="tab ${activeTab === 'live-wagers' ? 'active' : ''}" onclick="switchTab('live-wagers')" draggable="false" style="display:flex; align-items:center; justify-content:space-between; width:100%; cursor:pointer; background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.35); border-radius:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div class="wager-status-circles" title="Red (Losing), Yellow (At Risk), Green (Winning)">
+                <span class="circle-dot red"></span>
+                <span class="circle-dot yellow"></span>
+                <span class="circle-dot green"></span>
+            </div>
+            <span style="font-family:var(--font-head); font-weight:900; color:var(--accent);">LIVE WAGERS</span>
+        </div>
+        <span style="font-size:10px; font-weight:900; font-family:var(--font-mono); color:#000; background:var(--accent); padding:2px 7px; border-radius:10px;">${(typeof placedBets !== 'undefined' ? placedBets.length : 0)}</span>
+      </button>
+
       <button class="tab fixed-destiny ${activeTab === 'destiny' ? 'active' : ''}" onclick="switchTab('destiny')" draggable="false" style="display:flex; align-items:center; justify-content:space-between; width:100%; cursor:pointer;">
         <div style="display:flex; align-items:center; gap:8px;">
             <span style="font-size:16px;">👑</span>
             <span style="font-family:var(--font-head); font-weight:900; letter-spacing:0.5px; color:#fff;">DESTINY LEAGUE</span>
         </div>
         <span style="font-size:9px; font-weight:900; font-family:var(--font-mono); color:var(--accent); background:rgba(245, 158, 11, 0.2); padding:2px 6px; border-radius:10px; border:1px solid rgba(245, 158, 11, 0.4);">DEFAULT</span>
-      </button>
-
-      <button class="tab ${activeTab === 'live-wagers' ? 'active' : ''}" onclick="switchTab('live-wagers')" draggable="false" style="display:flex; align-items:center; justify-content:space-between; width:100%; cursor:pointer; background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.25);">
-        <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:15px;">⚡</span>
-            <span style="font-family:var(--font-head); font-weight:900; color:var(--accent);">LIVE WAGERS</span>
-        </div>
-        <span style="font-size:10px; font-weight:900; font-family:var(--font-mono); color:#000; background:var(--accent); padding:2px 7px; border-radius:10px;">${(typeof placedBets !== 'undefined' ? placedBets.length : 0)}</span>
       </button>
             `;
 
