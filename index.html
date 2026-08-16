@@ -2065,9 +2065,7 @@
                 const totalCell = (prefix, line, american) => (line !== undefined && line !== null)
                     ? `<span class="bw-val">${prefix} ${line}</span><span class="bw-sub">${american}</span>`
                     : `<span class="bw-val">&mdash;</span>`;
-                const winProbCell = (abbr, cents, american) => (cents !== undefined && cents !== null)
-                    ? `<span class="bw-val" style="color:#06B6D4;">${cents}% ${abbr}</span><span class="bw-sub" style="color:#06B6D4;">(${american})</span>`
-                    : `<span class="bw-val">&mdash;</span>`;
+                const winProbCell = (abbr, cents, american) => `<span class="bw-val-only">&mdash;</span>`;
 
                 bettingWidgetHtml = `
                 <div class="betting-widget" onclick="event.stopPropagation()">
