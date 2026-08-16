@@ -2135,6 +2135,102 @@
         }
         window.renderFootballGraphic = renderFootballGraphic;
 
+        function renderBaseballGraphic(sit, away, home, statusLabel) {
+            if (!sit) return '';
+
+            const balls = parseInt(sit.balls || 0);
+            const strikes = parseInt(sit.strikes || 0);
+            const outs = parseInt(sit.outs || 0);
+
+            const on1 = !!sit.onFirst;
+            const on2 = !!sit.onSecond;
+            const on3 = !!sit.onThird;
+
+            const batName = sit.batter?.athlete?.displayName || sit.batter?.athlete?.fullName || 'AT BAT';
+            const pitName = sit.pitcher?.athlete?.displayName || sit.pitcher?.athlete?.fullName || 'PITCHING';
+
+            const batImg = sit.batter?.athlete?.headshot || 'https://a.espncdn.com/i/headshots/placeholder.png';
+            const pitImg = sit.pitcher?.athlete?.headshot || 'https://a.espncdn.com/i/headshots/placeholder.png';
+
+            const batSummary = sit.batter?.summary || '';
+            const pitSummary = sit.pitcher?.summary || '';
+
+            return `
+            <div class="baseball-possession-card" style="background:#111923; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px 14px; margin:10px 0; font-family:var(--font-mono);" onclick="event.stopPropagation()">
+                <!-- Batter vs Pitcher Header -->
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                    <!-- Batter -->
+                    <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
+                        <img src="${batImg}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #06B6D4;" onerror="this.src='https://a.espncdn.com/i/headshots/placeholder.png'">
+                        <div style="display:flex; flex-direction:column; min-width:0;">
+                            <span style="font-size:8px; color:#06B6D4; font-weight:700;">AT BAT</span>
+                            <span style="font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${batName}</span>
+                            ${batSummary ? `<span style="font-size:9px; color:var(--muted);">${batSummary}</span>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Inning & Count Status -->
+                    <div style="text-align:center; padding:0 8px;">
+                        <div style="font-size:12px; font-weight:800; color:#FFFFFF;">${statusLabel}</div>
+                        <div style="font-size:11px; color:#06B6D4; font-weight:700; margin-top:2px;">${balls}-${strikes} · ${outs} ${outs === 1 ? 'Out' : 'Outs'}</div>
+                    </div>
+
+                    <!-- Pitcher -->
+                    <div style="display:flex; align-items:center; gap:8px; flex:1; justify-content:flex-end; text-align:right; min-width:0;">
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; min-width:0;">
+                            <span style="font-size:8px; color:var(--muted); font-weight:700;">PITCHING</span>
+                            <span style="font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${pitName}</span>
+                            ${pitSummary ? `<span style="font-size:9px; color:var(--muted);">${pitSummary}</span>` : ''}
+                        </div>
+                        <img src="${pitImg}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.2);" onerror="this.src='https://a.espncdn.com/i/headshots/placeholder.png'">
+                    </div>
+                </div>
+
+                <!-- Diamond & Count Indicators Row -->
+                <div style="display:flex; align-items:center; justify-content:space-between; background:#18222C; border-radius:6px; padding:8px 12px; border:1px solid rgba(255,255,255,0.06);">
+                    <!-- Count Dots -->
+                    <div style="display:flex; flex-direction:column; gap:4px; font-size:9px; color:var(--muted);">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="width:12px;">B</span>
+                            <div style="display:flex; gap:3px;">
+                                <span style="width:8px; height:8px; border-radius:50%; background:${balls >= 1 ? '#10B981' : '#334155'}; display:inline-block;"></span>
+                                <span style="width:8px; height:8px; border-radius:50%; background:${balls >= 2 ? '#10B981' : '#334155'}; display:inline-block;"></span>
+                                <span style="width:8px; height:8px; border-radius:50%; background:${balls >= 3 ? '#10B981' : '#334155'}; display:inline-block;"></span>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="width:12px;">S</span>
+                            <div style="display:flex; gap:3px;">
+                                <span style="width:8px; height:8px; border-radius:50%; background:${strikes >= 1 ? '#F59E0B' : '#334155'}; display:inline-block;"></span>
+                                <span style="width:8px; height:8px; border-radius:50%; background:${strikes >= 2 ? '#F59E0B' : '#334155'}; display:inline-block;"></span>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="width:12px;">O</span>
+                            <div style="display:flex; gap:3px;">
+                                <span style="width:8px; height:8px; border-radius:50%; background:${outs >= 1 ? '#EF4444' : '#334155'}; display:inline-block;"></span>
+                                <span style="width:8px; height:8px; border-radius:50%; background:${outs >= 2 ? '#EF4444' : '#334155'}; display:inline-block;"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bases Diamond -->
+                    <div style="position:relative; width:44px; height:44px;">
+                        <!-- 2nd Base (Top) -->
+                        <div style="position:absolute; top:2px; left:16px; width:12px; height:12px; transform:rotate(45deg); background:${on2 ? '#06B6D4' : '#334155'}; border:1px solid ${on2 ? '#38BDF8' : '#475569'}; box-shadow:${on2 ? '0 0 8px #06B6D4' : 'none'};" title="2nd Base"></div>
+                        <!-- 3rd Base (Left) -->
+                        <div style="position:absolute; top:16px; left:2px; width:12px; height:12px; transform:rotate(45deg); background:${on3 ? '#06B6D4' : '#334155'}; border:1px solid ${on3 ? '#38BDF8' : '#475569'}; box-shadow:${on3 ? '0 0 8px #06B6D4' : 'none'};" title="3rd Base"></div>
+                        <!-- 1st Base (Right) -->
+                        <div style="position:absolute; top:16px; right:2px; width:12px; height:12px; transform:rotate(45deg); background:${on1 ? '#06B6D4' : '#334155'}; border:1px solid ${on1 ? '#38BDF8' : '#475569'}; box-shadow:${on1 ? '0 0 8px #06B6D4' : 'none'};" title="1st Base"></div>
+                        <!-- Home Plate (Bottom) -->
+                        <div style="position:absolute; bottom:2px; left:16px; width:12px; height:12px; transform:rotate(45deg); background:#64748B; border:1px solid #94A3B8;" title="Home Plate"></div>
+                    </div>
+                </div>
+            </div>
+            `;
+        }
+        window.renderBaseballGraphic = renderBaseballGraphic;
+
         function renderCard(event, lg, panelType) {
             const comp = event.competitions?.[0];
             if (!comp) return '';
@@ -2171,9 +2267,14 @@
             const homeName = home.team?.displayName || home.team?.name || homeAbbr;
 
             const sit = comp.situation;
-            const footballGraphicHtml = (status.isLive && sit && (lg.sport === 'football' || sit.down !== undefined || sit.possessionText))
-                ? renderFootballGraphic(sit, away, home, status.label)
-                : '';
+            let sportGraphicHtml = '';
+            if (status.isLive && sit) {
+                if (lg.sport === 'football' || sit.down !== undefined || sit.possessionText) {
+                    sportGraphicHtml = renderFootballGraphic(sit, away, home, status.label);
+                } else if (lg.sport === 'baseball' || sit.batter !== undefined || sit.outs !== undefined) {
+                    sportGraphicHtml = renderBaseballGraphic(sit, away, home, status.label);
+                }
+            }
 
             let bettingWidgetHtml = '';
 
@@ -2352,7 +2453,7 @@
         </div>
       </div>
       ` : ''}
-      ${footballGraphicHtml}
+      ${sportGraphicHtml}
       ${kalshiTileHtml}
       ${bettingWidgetHtml}
       <div class="game-footer" style="${bettingWidgetHtml !== '' ? 'display: none;' : ''}">
