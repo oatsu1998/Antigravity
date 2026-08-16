@@ -3404,7 +3404,7 @@
         <div class="bs-header">
             <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                 <div class="bs-title">BET SLIP</div>
-                <div class="bs-bankroll">Bankroll: $<span id="bankroll-amount">100,000.00</span></div>
+                <div class="bs-bankroll">Bankroll: $<span id="bankroll-amount">1,000,000.00</span></div>
                 <div id="debt-tokens-badge" class="bs-debt-tokens" style="display:none;" title="Crypto Debt Tokens issued for overdraft wagers">
                     🪙 Debt: -$<span id="debt-tokens-amount">0.00</span>
                 </div>
@@ -3569,26 +3569,27 @@
             }).join('');
         }
 
-        // Initialize: clear past wagers & set $100k default bankroll + crypto debt tokens
+        // Initialize: clear past wagers & set $1M default bankroll + crypto debt tokens
         localStorage.removeItem('wagers');
         localStorage.removeItem('espn_api_usage');
         
-        bankroll = 100000.00;
+        bankroll = 1000000.00;
         debtTokens = 0.00;
 
         const savedBankroll = localStorage.getItem('destiny_bankroll') || localStorage.getItem('bankroll');
         if (savedBankroll !== null && !isNaN(parseFloat(savedBankroll))) {
-            bankroll = parseFloat(savedBankroll);
-            if (bankroll === 10000) {
-                bankroll = 100000.00;
-                localStorage.setItem('destiny_bankroll', bankroll);
-                localStorage.setItem('bankroll', bankroll);
+            const parsed = parseFloat(savedBankroll);
+            if (parsed < 1000000.00) {
+                bankroll = 1000000.00;
+            } else {
+                bankroll = parsed;
             }
         } else {
-            bankroll = 100000.00;
-            localStorage.setItem('destiny_bankroll', bankroll);
-            localStorage.setItem('bankroll', bankroll);
+            bankroll = 1000000.00;
         }
+
+        localStorage.setItem('destiny_bankroll', bankroll);
+        localStorage.setItem('bankroll', bankroll);
 
         const savedDebt = localStorage.getItem('destiny_debt_tokens');
         if (savedDebt !== null && !isNaN(parseFloat(savedDebt))) {
