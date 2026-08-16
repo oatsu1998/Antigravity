@@ -179,11 +179,39 @@
             border-color: rgba(255, 255, 255, 0.15);
         }
 
-        .league-tabs-vertical .tab.active {
-            background: rgba(245, 158, 11, 0.15);
-            border-color: rgba(245, 158, 11, 0.4);
-            color: var(--accent);
-            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
+        .league-tabs-vertical .tab.fixed-destiny {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(6, 182, 212, 0.18));
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            color: #ffffff;
+            font-weight: 900;
+        }
+
+        .league-tabs-vertical .tab.fixed-destiny.active {
+            box-shadow: 0 0 14px rgba(245, 158, 11, 0.3);
+            border-color: var(--accent);
+        }
+
+        .league-tabs-vertical .tab.dragging {
+            opacity: 0.35;
+            border-style: dashed;
+            border-color: var(--accent);
+        }
+
+        .league-tabs-vertical .tab.drag-over {
+            border-color: #06b6d4;
+            background: rgba(6, 182, 212, 0.15);
+            transform: scale(1.02);
+        }
+
+        .sidebar-drag-handle {
+            cursor: grab;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 13px;
+            margin-right: 2px;
+            user-select: none;
+        }
+        .sidebar-drag-handle:active {
+            cursor: grabbing;
         }
 
         .league-tabs {
@@ -3002,6 +3030,98 @@
             return `<div class="games-grid">${allLiveEvents.map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>`;
         }
 
+        function renderDestinyLeaguePanel() {
+            let allEvents = [];
+            LEAGUES.forEach(lg => {
+                if (leagueData[lg.id] && leagueData[lg.id].events) {
+                    leagueData[lg.id].events.forEach(e => {
+                        allEvents.push({ event: e, lg: lg });
+                    });
+                }
+            });
+
+            if (allEvents.length === 0) {
+                const loading = LEAGUES.some(lg => !leagueData[lg.id]);
+                if (loading) return '<div class="loading">LOADING DESTINY LEAGUE MATCHES...</div>';
+                return `<div class="no-games"><div class="icon">👑</div>No Destiny League games active</div>`;
+            }
+
+            allEvents.sort((a, b) => {
+                const sa = gameStatus(a.event), sb = gameStatus(b.event);
+                if (sa.isLive !== sb.isLive) return sa.isLive ? -1 : 1;
+                return new Date(a.event.date || 0) - new Date(b.event.date || 0);
+            });
+
+            return `
+                <div class="league-header">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:26px;">👑</span>
+                        <div class="league-title">DESTINY LEAGUE</div>
+                    </div>
+                    <div style="font-family:var(--font-mono); font-size:11px; color:var(--accent2); font-weight:700;">PRO AI ALGORITHM FEATURED MATCHES</div>
+                </div>
+                <div class="games-grid">${allEvents.map(item => renderCard(item.event, item.lg, 'destiny')).join('')}</div>
+            `;
+        }
+
+        // ── Drag & Drop Sidebar League Custom Reordering ─────────────────────
+        let draggedLeagueId = null;
+
+        window.handleSidebarDragStart = function(e, id) {
+            if (id === 'destiny') {
+                e.preventDefault();
+                return false;
+            }
+            draggedLeagueId = id;
+            e.dataTransfer.effectAllowed = 'move';
+            e.currentTarget.classList.add('dragging');
+        };
+
+        window.handleSidebarDragOver = function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.classList.add('drag-over');
+        };
+
+        window.handleSidebarDragLeave = function(e) {
+            e.currentTarget.classList.remove('drag-over');
+        };
+
+        window.handleSidebarDrop = function(e, targetId) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+
+            if (!draggedLeagueId || draggedLeagueId === targetId || targetId === 'destiny') return;
+
+            let currentOrder = getSidebarOrder();
+            const fromIdx = currentOrder.indexOf(draggedLeagueId);
+            const toIdx = currentOrder.indexOf(targetId);
+
+            if (fromIdx !== -1 && toIdx !== -1) {
+                currentOrder.splice(fromIdx, 1);
+                currentOrder.splice(toIdx, 0, draggedLeagueId);
+                localStorage.setItem('destiny_league_sidebar_order', JSON.stringify(currentOrder));
+                buildTabs();
+            }
+        };
+
+        window.handleSidebarDragEnd = function(e) {
+            e.currentTarget.classList.remove('dragging');
+            document.querySelectorAll('.league-tabs-vertical .tab').forEach(t => t.classList.remove('drag-over', 'dragging'));
+            draggedLeagueId = null;
+        };
+
+        function getSidebarOrder() {
+            const saved = localStorage.getItem('destiny_league_sidebar_order');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed)) return parsed;
+                } catch(e){}
+            }
+            return ['live', 'nba', 'mlb', 'ncaaf', 'nhl', 'wnba', 'nfl'];
+        }
+
         // ── ESPN-Style Horizontal Scoreboard Ticker Engine ─────────────────
         let currentTickerFilter = 'live';
 
@@ -3224,38 +3344,94 @@
                 }
             });
 
+            // 1. PINNED DESTINY LEAGUE BUTTON (Fixed at top, non-draggable)
             let html = `
-      <button class="tab ${activeTab === 'live' ? 'active' : ''}" onclick="switchTab('live')">
+      <button class="tab fixed-destiny ${activeTab === 'destiny' ? 'active' : ''}" onclick="switchTab('destiny')" draggable="false" style="display:flex; align-items:center; justify-content:space-between; width:100%; cursor:pointer;">
         <div style="display:flex; align-items:center; gap:8px;">
-            <span class="live-pulse-dot" style="width:7px; height:7px;"></span>
-            <span style="color: var(--live);">LIVE GAMES</span>
+            <span style="font-size:16px;">👑</span>
+            <span style="font-family:var(--font-head); font-weight:900; letter-spacing:0.5px; color:#fff;">DESTINY LEAGUE</span>
         </div>
-        <span style="font-size:11px; font-weight:800; font-family:var(--font-mono); color:var(--live); background:rgba(239, 68, 68, 0.15); padding:2px 7px; border-radius:10px;">${totalLiveGames}</span>
+        <span style="font-size:9px; font-weight:900; font-family:var(--font-mono); color:var(--accent); background:rgba(245, 158, 11, 0.2); padding:2px 6px; border-radius:10px; border:1px solid rgba(245, 158, 11, 0.4);">DEFAULT</span>
       </button>
             `;
 
-            html += LEAGUES.map(lg => {
-                const events = leagueData[lg.id]?.events || [];
-                const liveCount = events.filter(e => gameStatus(e).isLive).length;
+            // 2. DRAGGABLE LEAGUE ITEMS (Custom reorderable list)
+            const orderKeys = getSidebarOrder();
+            
+            const itemMap = {
+                'live': {
+                    id: 'live',
+                    label: 'LIVE GAMES',
+                    iconHtml: '<span class="live-pulse-dot" style="width:7px; height:7px;"></span>',
+                    getStats: () => {
+                        return { live: totalLiveGames, sched: 0, final: 0 };
+                    }
+                }
+            };
 
-                return `
-      <button class="tab ${activeTab === lg.id ? 'active' : ''}" onclick="switchTab('${lg.id}')">
-        <div style="display:flex; align-items:center; gap:8px;">
-            ${lg.logo ? `<img src="${lg.logo}" style="width: 18px; height: 18px; object-fit: contain;">` : ''}
-            <span>${lg.label}</span>
+            LEAGUES.forEach(lg => {
+                itemMap[lg.id] = {
+                    id: lg.id,
+                    label: lg.label,
+                    iconHtml: lg.logo ? `<img src="${lg.logo}" style="width: 18px; height: 18px; object-fit: contain;">` : '',
+                    getStats: () => {
+                        const events = leagueData[lg.id]?.events || [];
+                        const live = events.filter(e => gameStatus(e).isLive).length;
+                        const sched = events.filter(e => !gameStatus(e).isFinal && !gameStatus(e).isLive).length;
+                        const final = events.filter(e => gameStatus(e).isFinal).length;
+                        return { live, sched, final, total: events.length };
+                    }
+                };
+            });
+
+            orderKeys.forEach(key => {
+                const item = itemMap[key];
+                if (!item) return;
+
+                const stats = item.getStats();
+
+                let statusBadgeHtml = '';
+                if (key === 'live') {
+                    statusBadgeHtml = `<span style="font-size:11px; font-weight:800; font-family:var(--font-mono); color:var(--live); background:rgba(239, 68, 68, 0.15); padding:2px 7px; border-radius:10px;">${stats.live} Live</span>`;
+                } else {
+                    statusBadgeHtml = `
+                        <div style="font-size:10px; font-family:var(--font-mono); display:flex; gap:5px; align-items:center;">
+                            <span style="color:var(--live); font-weight:700;">${stats.live} L</span>
+                            <span style="color:var(--accent2);">${stats.sched} S</span>
+                            <span style="color:var(--muted);">${stats.final} F</span>
+                        </div>
+                    `;
+                }
+
+                html += `
+      <button class="tab ${activeTab === key ? 'active' : ''}" 
+              onclick="switchTab('${key}')" 
+              draggable="true" 
+              ondragstart="handleSidebarDragStart(event, '${key}')"
+              ondragover="handleSidebarDragOver(event)"
+              ondragleave="handleSidebarDragLeave(event)"
+              ondrop="handleSidebarDrop(event, '${key}')"
+              ondragend="handleSidebarDragEnd(event)"
+              style="display:flex; align-items:center; justify-content:space-between; width:100%; cursor:grab;">
+        <div style="display:flex; align-items:center; gap:6px;">
+            <span class="sidebar-drag-handle" title="Drag to reorder">⠿</span>
+            ${item.iconHtml}
+            <span>${item.label}</span>
         </div>
-        ${liveCount > 0 
-            ? `<span style="font-size:10px; font-weight:800; font-family:var(--font-mono); color:#ef4444; background:rgba(239, 68, 68, 0.15); padding:2px 6px; border-radius:10px;">${liveCount} LIVE</span>` 
-            : `<span style="font-size:10px; font-weight:600; font-family:var(--font-mono); color:var(--muted);">${events.length}</span>`}
+        ${statusBadgeHtml}
       </button>
     `;
-            }).join('');
+            });
+
             tabsEl.innerHTML = html;
         }
 
         function buildMain() {
             const mainEl = document.getElementById('main');
             let html = `
+      <div class="league-panel ${activeTab === 'destiny' ? 'active' : ''}" id="panel-destiny">
+        ${renderDestinyLeaguePanel()}
+      </div>
       <div class="league-panel ${activeTab === 'live' ? 'active' : ''}" id="panel-live">
         ${renderLivePanel()}
       </div>
@@ -3428,6 +3604,8 @@
             if (panel) panel.innerHTML = renderPanel(lg, result);
             const livePanel = document.getElementById('panel-live');
             if (livePanel) livePanel.innerHTML = renderLivePanel();
+            const destinyPanel = document.getElementById('panel-destiny');
+            if (destinyPanel) destinyPanel.innerHTML = renderDestinyLeaguePanel();
             buildTabs();
             renderEspnTicker();
             loadKalshiCharts();
