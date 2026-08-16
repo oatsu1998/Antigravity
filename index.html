@@ -1233,12 +1233,12 @@
         .bet-slip {
             position: fixed;
             right: -340px;
-            top: 0;
+            top: 56px;
             bottom: 0;
             width: 320px;
             background: var(--surface);
             border-left: 1px solid var(--border);
-            z-index: 100;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
             transition: right 0.3s ease;
@@ -1250,7 +1250,7 @@
         }
 
         .bs-header {
-            padding: 20px;
+            padding: 16px 20px;
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
@@ -1272,6 +1272,27 @@
             background: rgba(16, 185, 129, 0.1);
             padding: 4px 8px;
             border-radius: 4px;
+        }
+
+        .bs-close-btn {
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-size: 22px;
+            font-weight: 400;
+            cursor: pointer;
+            padding: 2px 6px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: color 0.2s, background 0.2s;
+        }
+
+        .bs-close-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .bs-items {
@@ -2038,9 +2059,9 @@
                 const spreadCell = (line, american) => (line !== undefined && line !== null)
                     ? `<span class="bw-val">${line > 0 ? '+' : ''}${line}</span><span class="bw-sub">${american}</span>`
                     : `<span class="bw-val">&mdash;</span>`;
-                const mlCell = (american) => american
-                    ? `<span class="bw-val-only">${american}</span>`
-                    : `<span class="bw-val-only">&mdash;</span>`;
+                const mlCell = (cents, american) => (cents !== undefined && cents !== null && american)
+                    ? `<span class="bw-val" style="color:#06B6D4;">${cents}%</span><span class="bw-sub">${american}</span>`
+                    : (american ? `<span class="bw-val-only">${american}</span>` : `<span class="bw-val-only">&mdash;</span>`);
                 const totalCell = (prefix, line, american) => (line !== undefined && line !== null)
                     ? `<span class="bw-val">${prefix} ${line}</span><span class="bw-sub">${american}</span>`
                     : `<span class="bw-val">&mdash;</span>`;
@@ -2055,7 +2076,7 @@
                         <span>Spread</span>
                         <span>Moneyline</span>
                         <span>Total</span>
-                        <span>Win probability</span>
+                        <span>Markets</span>
                     </div>
                     <div class="bw-row">
                         <span class="bw-team" style="display:flex; align-items:center; gap:8px;">
@@ -2066,7 +2087,7 @@
                             </div>
                         </span>
                         <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Spread (Kalshi)', '${spread ? (spread.awayLine > 0 ? '+' : '') + spread.awayLine + ' ' + spread.awayAmerican : 'N/A'}')">${spreadCell(spread && spread.awayLine, spread && spread.awayAmerican)}</div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.awayAmerican : 'N/A'}')">${mlCell(kalshiML && kalshiML.awayAmerican)}</div>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.awayAmerican : 'N/A'}')">${mlCell(kalshiML && kalshiML.awayCents, kalshiML && kalshiML.awayAmerican)}</div>
                         <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Total (Kalshi)', '${total ? 'O ' + total.line + ' ' + total.overAmerican : 'N/A'}')">${totalCell('O', total && total.line, total && total.overAmerican)}</div>
                         <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.awayAmerican : 'N/A'}')">${winProbCell(awayAbbr, kalshiML && kalshiML.awayCents, kalshiML && kalshiML.awayAmerican)}</div>
                     </div>
@@ -2079,7 +2100,7 @@
                             </div>
                         </span>
                         <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Spread (Kalshi)', '${spread ? (spread.homeLine > 0 ? '+' : '') + spread.homeLine + ' ' + spread.homeAmerican : 'N/A'}')">${spreadCell(spread && spread.homeLine, spread && spread.homeAmerican)}</div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.homeAmerican : 'N/A'}')">${mlCell(kalshiML && kalshiML.homeAmerican)}</div>
+                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.homeAmerican : 'N/A'}')">${mlCell(kalshiML && kalshiML.homeCents, kalshiML && kalshiML.homeAmerican)}</div>
                         <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Total (Kalshi)', '${total ? 'U ' + total.line + ' ' + total.underAmerican : 'N/A'}')">${totalCell('U', total && total.line, total && total.underAmerican)}</div>
                         <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.homeAmerican : 'N/A'}')">${winProbCell(homeAbbr, kalshiML && kalshiML.homeCents, kalshiML && kalshiML.homeAmerican)}</div>
                     </div>
@@ -2106,7 +2127,7 @@
                 <div class="betting-widget" onclick="event.stopPropagation()" style="opacity:.4;">
                     <div class="bw-header">
                         <span style="font-size: 8px; color: var(--muted);">ODDS N/A</span>
-                        <span>Spread</span><span>Moneyline</span><span>Total</span><span>Win probability</span>
+                        <span>Spread</span><span>Moneyline</span><span>Total</span><span>Markets</span>
                     </div>
                     <div class="bw-row">
                         <span class="bw-team">${awayLogo ? `<img src="${awayLogo}" style="width:28px;height:28px;object-fit:contain;">` : awayAbbr}</span>
@@ -3045,12 +3066,18 @@
     <button class="bs-toggle" onclick="toggleBetSlip()">BET SLIP (<span id="bs-count">0</span>)</button>
     <div id="bet-slip-panel" class="bet-slip">
         <div class="bs-header">
-            <div class="bs-title">BET SLIP</div>
-            <div class="bs-bankroll">Bankroll: $<span id="bankroll-amount">10000.00</span></div>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div class="bs-title">BET SLIP</div>
+                <div class="bs-bankroll">Bankroll: $<span id="bankroll-amount">10000.00</span></div>
+            </div>
+            <button class="bs-close-btn" onclick="toggleBetSlip()" title="Close Bet Slip" aria-label="Close">&times;</button>
         </div>
-        <div class="bs-tabs">
-            <div class="bs-tab active" id="bs-tab-slip" onclick="switchBsTab('slip')">SLIP (<span id="bs-slip-count">0</span>)</div>
-            <div class="bs-tab" id="bs-tab-active" onclick="switchBsTab('active')">ACTIVE (<span id="bs-active-count">0</span>)</div>
+        <div class="bs-tabs" style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; gap:0; flex:1;">
+                <div class="bs-tab active" id="bs-tab-slip" onclick="switchBsTab('slip')">SLIP (<span id="bs-slip-count">0</span>)</div>
+                <div class="bs-tab" id="bs-tab-active" onclick="switchBsTab('active')">ACTIVE (<span id="bs-active-count">0</span>)</div>
+            </div>
+            <button class="bs-close-btn" onclick="toggleBetSlip()" title="Close Bet Slip" aria-label="Close" style="margin-right:12px; font-size:22px;">&times;</button>
         </div>
         <div id="bs-items" class="bs-items">
             <div style="color:var(--muted); font-size:12px; text-align:center;">Your bet slip is empty.</div>
@@ -3389,7 +3416,32 @@
                 renderActiveBetsInPanel();
             }
             alert('Bets placed successfully!');
+            const panel = document.getElementById('bet-slip-panel');
+            if (panel && panel.classList.contains('open')) {
+                panel.classList.remove('open');
+            }
         }
+
+        // Close bet slip on Escape key
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const panel = document.getElementById('bet-slip-panel');
+                if (panel && panel.classList.contains('open')) {
+                    panel.classList.remove('open');
+                }
+            }
+        });
+
+        // Close bet slip when clicking outside the panel
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('bet-slip-panel');
+            if (panel && panel.classList.contains('open')) {
+                const toggleBtn = document.querySelector('.bs-toggle');
+                if (!panel.contains(e.target) && (!toggleBtn || !toggleBtn.contains(e.target)) && !e.target.closest('.clickable')) {
+                    panel.classList.remove('open');
+                }
+            }
+        });
 
         // ── My Bets Modal Logic ───────────────────────────────────────────
         let activeWagerGame = null;

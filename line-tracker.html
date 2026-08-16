@@ -1009,13 +1009,13 @@
         var games = {}, selectedGame = null, lwChart = null, lwAwayMl = null, lwHomeMl = null, lwAwaySpr = null, lwHomeSpr = null, lwTotSeries = null, lwAwayScore = null, lwHomeScore = null;
         let refreshCountdown = 60;
 
+        window.addEventListener('DOMContentLoaded', init);
+
         async function init() {
-            document.getElementById('gameList').innerHTML = '<div style="padding:14px;font-family:var(--font-mono);font-size:10px;color:var(--muted);">LOADING API...</div>';
+            document.getElementById('gameList').innerHTML = '<div style="padding:14px;font-family:var(--font-mono);font-size:10px;color:var(--muted);">LOADING KALSHI MARKETS...</div>';
             await refreshData();
             
             if (window.DestinyLiveFeed) {
-                window.DestinyLiveFeed.connectKalshiWebhook();
-
                 const handleIncomingKalshiTick = (tick) => {
                     if (!tick) return;
                     const rawTeam = (tick.team || tick.ticker || '').toUpperCase();
@@ -1033,7 +1033,6 @@
                         return fLast.length > 3 && (q.includes(fLast) || fLast === qLast);
                     };
 
-                    // Match against games in line tracker catalog
                     let matchedGameId = null;
                     const gameIds = Object.keys(games);
                     for (let id of gameIds) {
@@ -1051,7 +1050,6 @@
                     if (!matchedGameId || !games[matchedGameId]) return;
                     const g = games[matchedGameId];
 
-                    // Process live score / period / status from Kalshi feed
                     if (tick.aScore !== undefined && tick.hScore !== undefined) {
                         g.away_score = String(tick.aScore);
                         g.home_score = String(tick.hScore);
@@ -1060,7 +1058,6 @@
                     if (tick.clock !== undefined) g.clock = tick.clock;
                     if (tick.status_label) g.espn_detail = tick.status_label;
 
-                    // Process price / probability / odds
                     const yesP = tick.yesPrice || (tick.price ? Math.round(tick.price * 100) : 50);
                     const teamOddsStr = tick.americanOdds || (window.DestinyLiveFeed.centsToAmericanOdds ? window.DestinyLiveFeed.centsToAmericanOdds(yesP) : (yesP > 50 ? '-' + Math.round((yesP/(100-yesP))*100) : '+' + Math.round(((100-yesP)/yesP)*100)));
                     const teamOddsNum = parseInt(teamOddsStr.replace('+', ''), 10) || -110;
@@ -1081,7 +1078,6 @@
                     const nowSec = Math.floor(Date.now() / 1000);
                     let lastSnap = g.snapshots[g.snapshots.length - 1];
 
-                    // Create new snapshot or update existing if within 3s
                     if (!lastSnap || nowSec - lastSnap.time >= 3) {
                         const newSnapBooks = lastSnap ? JSON.parse(JSON.stringify(lastSnap.books)) : {};
                         lastSnap = {
@@ -1105,7 +1101,6 @@
                         total_point: null
                     };
 
-                    // Update live line matrix storage
                     if (!ltLinesDb[g.game_id]) {
                         ltLinesDb[g.game_id] = {
                             game_id: g.game_id, commence_time: g.commence_time,
@@ -1124,7 +1119,6 @@
                     };
                     saveLinesDb();
 
-                    // Sidebar game card highlight & lead pill
                     const giEl = document.getElementById(`gi-${g.game_id}`);
                     if (giEl) {
                         giEl.classList.remove('flash-green', 'flash-red');
@@ -1142,7 +1136,6 @@
                         kalshiPill.innerText = `⚡ ${yesP}¢ (${teamOddsStr})`;
                     }
 
-                    // Real-time update for selected game
                     if (g.game_id === selectedGame) {
                         renderHeader();
                         renderStrip();
@@ -1175,268 +1168,129 @@
             await refreshData();
         }
 
-        function processApiData(scoresData, oddsData, espnEvents = []) {
-            const nowTime = Math.floor(Date.now() / 1000);
+        async function fetchGameHistory(g) {
+            if (!g || !g.awayTicker || g.historyLoaded) return;
+            g.historyLoaded = true;
+            try {
+                const res = await fetch('/api/kalshi-history?ticker=' + encodeURIComponent(g.awayTicker));
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.points && Array.isArray(data.points) && data.points.length > 0) {
+                    g.snapshots = data.points.map(p => {
+                        const cents = p.cents;
+                        const awayOddsStr = window.DestinyLiveFeed && window.DestinyLiveFeed.centsToAmericanOdds 
+                            ? window.DestinyLiveFeed.centsToAmericanOdds(cents) 
+                            : (cents > 50 ? '-' + Math.round((cents/(100-cents))*100) : '+' + Math.round(((100-cents)/cents)*100));
+                        const homeOddsStr = window.DestinyLiveFeed && window.DestinyLiveFeed.centsToAmericanOdds 
+                            ? window.DestinyLiveFeed.centsToAmericanOdds(100 - cents) 
+                            : (100-cents > 50 ? '-' + Math.round(((100-cents)/cents)*100) : '+' + Math.round((cents/(100-cents))*100));
+                        
+                        const awayML = parseInt(awayOddsStr.replace('+', ''), 10) || -110;
+                        const homeML = parseInt(homeOddsStr.replace('+', ''), 10) || +100;
 
-            oddsData.forEach(game => {
-                if (!games[game.id]) {
-                    games[game.id] = {
-                        game_id: game.id, away_team: game.away_team, home_team: game.home_team,
-                        commence_time: game.commence_time, snapshots: []
-                    };
-                }
-                const g = games[game.id];
-                g.sport_key = game.sport_key;
-
-                const scoreMatch = scoresData.find(s => s.id === game.id);
-                let aScore = '0', hScore = '0', gStatus = 'pre_game';
-
-                if (scoreMatch) {
-                    if (scoreMatch.scores) {
-                        const awayS = scoreMatch.scores.find(s => s.name === game.away_team);
-                        const homeS = scoreMatch.scores.find(s => s.name === game.home_team);
-                        if (awayS) aScore = awayS.score;
-                        if (homeS) hScore = homeS.score;
-                    }
-                    if (scoreMatch.completed) gStatus = 'completed';
-                    else if (aScore !== '0' || hScore !== '0') gStatus = 'live';
-                }
-
-                g.away_score = aScore;
-                g.home_score = hScore;
-                g.game_status = gStatus;
-                g.period = ''; g.clock = '';
-
-                const snap = { time: nowTime, books: {}, aScore: aScore, hScore: hScore };
-
-                game.bookmakers.forEach(book => {
-                    const b = { bookmaker: book.key, h2h_away: null, h2h_home: null, spread_away: null, spread_home: null, spread_away_point: null, spread_home_point: null, total_point: null };
-
-                    const h2h = book.markets.find(m => m.key === 'h2h');
-                    if (h2h) {
-                        b.h2h_away = h2h.outcomes.find(o => o.name === game.away_team)?.price;
-                        b.h2h_home = h2h.outcomes.find(o => o.name === game.home_team)?.price;
-                    }
-                    const spreads = book.markets.find(m => m.key === 'spreads');
-                    if (spreads) {
-                        const ao = spreads.outcomes.find(o => o.name === game.away_team);
-                        const ho = spreads.outcomes.find(o => o.name === game.home_team);
-                        if (ao) { b.spread_away = ao.price; b.spread_away_point = ao.point; }
-                        if (ho) { b.spread_home = ho.price; b.spread_home_point = ho.point; }
-                    }
-                    const totals = book.markets.find(m => m.key === 'totals');
-                    if (totals) {
-                        const oo = totals.outcomes.find(o => o.name === 'Over');
-                        const uo = totals.outcomes.find(o => o.name === 'Under');
-                        if (oo) { b.total_point = oo.point; }
-                        else if (uo) { b.total_point = uo.point; }
-                    }
-                    snap.books[book.key] = b;
-                });
-
-                if (!snap.books['kalshi']) {
-                    let consensusAwayML = null, consensusHomeML = null;
-                    Object.values(snap.books).forEach(b => {
-                        if (b && b.h2h_away !== null && b.h2h_away !== undefined && consensusAwayML === null) consensusAwayML = b.h2h_away;
-                        if (b && b.h2h_home !== null && b.h2h_home !== undefined && consensusHomeML === null) consensusHomeML = b.h2h_home;
+                        return {
+                            time: p.ts,
+                            books: {
+                                kalshi: {
+                                    bookmaker: 'kalshi',
+                                    h2h_away: awayML,
+                                    h2h_home: homeML,
+                                    spread_away: null,
+                                    spread_home: null,
+                                    total_point: null
+                                }
+                            },
+                            aScore: g.away_score || '0',
+                            hScore: g.home_score || '0'
+                        };
                     });
-                    snap.books['kalshi'] = {
-                        bookmaker: 'kalshi',
-                        h2h_away: consensusAwayML || -110,
-                        h2h_home: consensusHomeML || -110,
-                        spread_away: null, spread_home: null,
-                        spread_away_point: null, spread_home_point: null,
-                        total_point: null
-                    };
-                }
 
-                if (g.snapshots.length === 0) {
-                    // Seed 2-hour historical trajectory (24 points at 5-minute intervals)
-                    const startTime = nowTime - 7200;
-                    const isLiveGame = g.game_status === 'live';
-                    const targetAScore = parseInt(g.away_score || '0', 10);
-                    const targetHScore = parseInt(g.home_score || '0', 10);
-
-                    for (let step = 0; step < 24; step++) {
-                        const histTime = startTime + (step * 300);
-                        const frac = step / 23;
-                        const varAway = Math.round((Math.sin(step * 0.5) * 6) + (Math.cos(step * 0.8) * 4));
-                        const varHome = -varAway;
-
-                        const histBooks = JSON.parse(JSON.stringify(snap.books));
-                        Object.keys(histBooks).forEach(bk => {
-                            if (histBooks[bk] && histBooks[bk].h2h_away) histBooks[bk].h2h_away = histBooks[bk].h2h_away + varAway;
-                            if (histBooks[bk] && histBooks[bk].h2h_home) histBooks[bk].h2h_home = histBooks[bk].h2h_home + varHome;
-                        });
-
-                        let stepAScore = '0', stepHScore = '0';
-                        if (isLiveGame && (targetAScore > 0 || targetHScore > 0)) {
-                            stepAScore = Math.floor(targetAScore * frac).toString();
-                            stepHScore = Math.floor(targetHScore * frac).toString();
-                        }
-
-                        g.snapshots.push({
-                            time: histTime,
-                            books: histBooks,
-                            aScore: stepAScore,
-                            hScore: stepHScore
-                        });
+                    if (g.game_id === selectedGame) {
+                        renderChart();
+                        renderHeader();
+                        renderLineMatrix();
                     }
                 }
+            } catch (err) {
+                console.error('Failed to load Kalshi price history for ' + g.awayTicker, err);
+            }
+        }
 
-                if (nowTime - g.snapshots[g.snapshots.length - 1].time > 10) {
-                    g.snapshots.push(snap);
-                }
+        async function refreshData() {
+            const nowTime = Math.floor(Date.now() / 1000);
+            try {
+                const res = await fetch('/api/kalshi');
+                if (!res.ok) throw new Error('Proxy returned ' + res.status);
+                const data = await res.json();
+                const markets = data.markets || [];
 
-                // Calculate best odds of the current snapshot
-                let bestAwayML = null, bestHomeML = null;
-                let bestAwaySprPoint = null, bestAwaySprPrice = null;
-                let bestHomeSprPoint = null, bestHomeSprPrice = null;
-                let bestTotalPoint = null;
-
-                Object.values(snap.books).forEach(bdata => {
-                    if (!bdata) return;
-                    // ML
-                    if (bdata.h2h_away !== null && !isNaN(bdata.h2h_away)) {
-                        if (bestAwayML === null || bdata.h2h_away > bestAwayML) bestAwayML = bdata.h2h_away;
-                    }
-                    if (bdata.h2h_home !== null && !isNaN(bdata.h2h_home)) {
-                        if (bestHomeML === null || bdata.h2h_home > bestHomeML) bestHomeML = bdata.h2h_home;
-                    }
-                    // Spread
-                    if (bdata.spread_away_point !== null && !isNaN(bdata.spread_away_point)) {
-                        bestAwaySprPoint = bdata.spread_away_point;
-                        bestAwaySprPrice = bdata.spread_away;
-                    }
-                    if (bdata.spread_home_point !== null && !isNaN(bdata.spread_home_point)) {
-                        bestHomeSprPoint = bdata.spread_home_point;
-                        bestHomeSprPrice = bdata.spread_home;
-                    }
-                    // Totals
-                    if (bdata.total_point !== null && !isNaN(bdata.total_point)) {
-                        bestTotalPoint = bdata.total_point;
-                    }
-                });
-
-                // Get or initialize persistent record
-                if (!ltLinesDb[game.id]) {
-                    ltLinesDb[game.id] = {
-                        game_id: game.id,
-                        commence_time: game.commence_time,
-                        away_team: game.away_team,
-                        home_team: game.home_team,
-                        opening: null,
-                        closing: null,
-                        live: null,
-                        graded: null
-                    };
-                }
-                const db = ltLinesDb[game.id];
-                db.commence_time = game.commence_time; // keep fresh
-
-                const currentLine = {
-                    away_ml: bestAwayML,
-                    home_ml: bestHomeML,
-                    away_spr: bestAwaySprPoint !== null ? { point: bestAwaySprPoint, price: bestAwaySprPrice } : null,
-                    home_spr: bestHomeSprPoint !== null ? { point: bestHomeSprPoint, price: bestHomeSprPrice } : null,
-                    total_line: bestTotalPoint,
-                    timestamp: nowTime
+                const prefixes = {
+                    MLB:   { game: 'KXMLBGAME' },
+                    NFL:   { game: 'KXNFLGAME' },
+                    NBA:   { game: 'KXNBAGAME' },
+                    NHL:   { game: 'KXNHLGAME' },
+                    NCAAF: { game: 'KXNCAAFGAME' },
+                    WNBA:  { game: 'KXWNBAGAME' }
                 };
 
-                // 1. Opening Line: Set once if not yet defined
-                if (!db.opening && (bestAwayML !== null || bestAwaySprPoint !== null)) {
-                    db.opening = currentLine;
-                }
+                const eventsMap = {};
+                markets.forEach(m => {
+                    if (!m._league || m._kind !== 'game') return;
+                    const p = prefixes[m._league];
+                    if (!p || !m.event_ticker || !m.event_ticker.startsWith(p.game + '-')) return;
+                    const gameId = m._league + '::' + m.event_ticker.slice(p.game.length + 1);
 
-                // 2. Live Line: Always update with the latest best odds
-                if (bestAwayML !== null || bestAwaySprPoint !== null) {
-                    db.live = currentLine;
-                }
-
-                // 3. Closing Line: Only update while game is pre_game. Once it is live or completed, it is locked.
-                if (g.game_status === 'pre_game') {
-                    if (bestAwayML !== null || bestAwaySprPoint !== null) {
-                        db.closing = currentLine;
+                    if (!eventsMap[gameId]) {
+                        eventsMap[gameId] = {
+                            game_id: gameId,
+                            league: m._league,
+                            title: m.title || '',
+                            markets: []
+                        };
                     }
-                } else {
-                    // Fallback to opening if kickoff was missed
-                    if (!db.closing) {
-                        db.closing = db.opening || currentLine;
-                    }
-                }
-
-                // 4. Graded Line: Lock at completion
-                if (g.game_status === 'completed' && !db.graded) {
-                    db.graded = currentLine;
-                }
-            });
-
-            // Active Kalshi Prediction Market Games Fallback (guarantees games are ALWAYS present)
-            if (Object.keys(games).length === 0) {
-                const DEFAULT_KALSHI_GAMES = [
-                    { id: 'kalshi_1', away: 'New York Rangers', home: 'Boston Bruins', sport: 'hockey_nhl', aScore: '2', hScore: '1', period: '2', clock: '08:42' },
-                    { id: 'kalshi_2', away: 'Detroit Tigers', home: 'Oakland Athletics', sport: 'baseball_mlb', aScore: '4', hScore: '3', period: '7', clock: 'Bot 7th' },
-                    { id: 'kalshi_3', away: 'Houston Astros', home: 'Texas Rangers', sport: 'baseball_mlb', aScore: '5', hScore: '2', period: '6', clock: 'Top 6th' },
-                    { id: 'kalshi_4', away: 'Kansas City Royals', home: 'Colorado Rockies', sport: 'baseball_mlb', aScore: '3', hScore: '1', period: '5', clock: 'Bot 5th' },
-                    { id: 'kalshi_5', away: 'Boston Red Sox', home: 'Los Angeles Dodgers', sport: 'baseball_mlb', aScore: '8', hScore: '4', period: '7', clock: 'Top 7th' },
-                    { id: 'kalshi_6', away: 'Oklahoma City Thunder', home: 'Boston Celtics', sport: 'basketball_nba', aScore: '98', hScore: '94', period: '4', clock: '04:12' }
-                ];
-
-                DEFAULT_KALSHI_GAMES.forEach(dg => {
-                    games[dg.id] = {
-                        game_id: dg.id,
-                        away_team: dg.away,
-                        home_team: dg.home,
-                        commence_time: new Date().toISOString(),
-                        snapshots: [],
-                        sport_key: dg.sport,
-                        away_score: dg.aScore,
-                        home_score: dg.hScore,
-                        game_status: 'live',
-                        period: dg.period,
-                        clock: dg.clock,
-                        espn_status: 'In Progress'
-                    };
-
-                    const g = games[dg.id];
-                    const snap = {
-                        time: nowTime,
-                        books: {
-                            kalshi: { bookmaker: 'kalshi', h2h_away: -118, h2h_home: -102, spread_away: -1.5, spread_home: +1.5, total_point: 8.5 },
-                            betonlineag: { bookmaker: 'betonlineag', h2h_away: -115, h2h_home: -105, spread_away: -1.5, spread_home: +1.5, total_point: 8.5 },
-                            draftkings: { bookmaker: 'draftkings', h2h_away: -120, h2h_home: +100, spread_away: -1.5, spread_home: +1.5, total_point: 8.5 },
-                            fanduel: { bookmaker: 'fanduel', h2h_away: -116, h2h_home: -104, spread_away: -1.5, spread_home: +1.5, total_point: 8.5 }
-                        },
-                        aScore: g.away_score,
-                        hScore: g.home_score
-                    };
-
-                    const startTime = nowTime - 7200;
-                    const targetAScore = parseInt(g.away_score || '0', 10);
-                    const targetHScore = parseInt(g.home_score || '0', 10);
-
-                    for (let step = 0; step < 24; step++) {
-                        const histTime = startTime + (step * 300);
-                        const frac = step / 23;
-                        const varAway = Math.round((Math.sin(step * 0.5) * 6) + (Math.cos(step * 0.8) * 4));
-                        const varHome = -varAway;
-
-                        const histBooks = JSON.parse(JSON.stringify(snap.books));
-                        Object.keys(histBooks).forEach(bk => {
-                            if (histBooks[bk] && histBooks[bk].h2h_away) histBooks[bk].h2h_away = histBooks[bk].h2h_away + varAway;
-                            if (histBooks[bk] && histBooks[bk].h2h_home) histBooks[bk].h2h_home = histBooks[bk].h2h_home + varHome;
-                        });
-
-                        g.snapshots.push({
-                            time: histTime,
-                            books: histBooks,
-                            aScore: Math.floor(targetAScore * frac).toString(),
-                            hScore: Math.floor(targetHScore * frac).toString()
-                        });
-                    }
+                    eventsMap[gameId].markets.push(m);
                 });
+
+                Object.values(eventsMap).forEach(ev => {
+                    const mList = ev.markets;
+                    if (mList.length < 1) return;
+
+                    const titleClean = ev.title.replace(/\s*(?:women's\s*)?Pro\s*(?:Basketball|Football|Baseball|Hockey)\s*game.*$/i, '').trim();
+                    const titleParts = titleClean.split(/\s+vs\s+|\s+at\s+/i);
+
+                    let awayName = mList[0].yes_sub_title || titleParts[0] || 'Away';
+                    let homeName = (mList[1] && mList[1].yes_sub_title) || titleParts[1] || 'Home';
+                    if (mList.length >= 2 && mList[0].yes_sub_title && mList[1].yes_sub_title) {
+                        awayName = mList[0].yes_sub_title;
+                        homeName = mList[1].yes_sub_title;
+                    }
+
+                    if (!games[ev.game_id]) {
+                        games[ev.game_id] = {
+                            game_id: ev.game_id,
+                            away_team: awayName,
+                            home_team: homeName,
+                            sport_key: ev.league.toLowerCase(),
+                            commence_time: mList[0].close_time || new Date().toISOString(),
+                            snapshots: [],
+                            awayTicker: mList[0].ticker,
+                            homeTicker: mList[1] ? mList[1].ticker : mList[0].ticker,
+                            away_score: '0',
+                            home_score: '0',
+                            game_status: 'live',
+                            period: '',
+                            clock: ''
+                        };
+                    }
+
+                    const g = games[ev.game_id];
+                    fetchGameHistory(g);
+                });
+            } catch (err) {
+                console.error('[LineTracker] Failed to refresh Kalshi markets:', err);
             }
 
+            renderSidebar();
             saveLinesDb();
         }
 
