@@ -3242,6 +3242,103 @@
             `;
         }
 
+        function renderLiveWagersPanel() {
+            const activeWagers = (typeof placedBets !== 'undefined') ? placedBets : [];
+
+            if (activeWagers.length === 0) {
+                return `
+                    <div class="next-event-countdown-card" style="max-width:580px; margin:36px auto;">
+                        <div class="next-event-badge">🎯 LIVE ACTIVE BET TICKETS</div>
+                        <div class="next-event-title">NO LIVE WAGERS PLACED</div>
+                        <div style="font-family:var(--font-mono); font-size:12px; color:var(--muted); line-height:1.6;">
+                            You have zero active wager tickets currently in play.<br>Select any live or scheduled game from the sidebar to place a wager and track your ticket in real time.
+                        </div>
+                        <button onclick="toggleBetSlip()" class="mb-add-btn" style="margin-top:8px; display:inline-flex; align-items:center; gap:8px;">
+                            📋 OPEN BET SLIP (<span id="live-wagers-slip-cnt">${betSlip.length}</span> DRAFT BETS)
+                        </button>
+                    </div>
+                `;
+            }
+
+            let html = `
+                <div class="league-header">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:26px;">⚡</span>
+                        <div class="league-title">LIVE WAGERS</div>
+                    </div>
+                    <div style="font-family:var(--font-mono); font-size:11px; color:var(--accent); font-weight:800; background:rgba(245, 158, 11, 0.15); padding:4px 12px; border-radius:12px; border:1px solid rgba(245,158,11,0.3);">
+                        ${activeWagers.length} ACTIVE TICKET${activeWagers.length !== 1 ? 'S' : ''} IN PLAY
+                    </div>
+                </div>
+                <div class="games-grid">
+            `;
+
+            activeWagers.forEach((wager, idx) => {
+                const wagerAmt = (parseFloat(wager.wager) || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                const toWinAmt = (parseFloat(wager.toWin) || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                const potentialPayout = ((parseFloat(wager.wager) || 0) + (parseFloat(wager.toWin) || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+                html += `
+                    <div class="card" style="border-left: 4px solid var(--accent); background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(26,30,39,0.95));">
+                        <div class="card-top-bar" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="background:var(--accent); color:#000; font-family:var(--font-mono); font-size:10px; font-weight:900; padding:2px 8px; border-radius:4px;">TICKET #${idx + 1001}</span>
+                                <span style="font-family:var(--font-mono); font-size:11px; color:var(--muted);">${wager.type || 'SPREAD'}</span>
+                            </div>
+                            <span class="status-badge live" style="font-family:var(--font-mono); font-size:10px; font-weight:800; color:var(--live);">● LIVE IN PLAY</span>
+                        </div>
+
+                        <div style="font-family:var(--font-head); font-size:18px; font-weight:900; color:#fff; margin-bottom:10px;">
+                            ${wager.target || 'GAME MATCHUP'}
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:rgba(0,0,0,0.4); padding:10px; border-radius:6px; border:1px solid rgba(255,255,255,0.08); font-family:var(--font-mono); font-size:11px; margin-bottom:12px;">
+                            <div>
+                                <div style="font-size:9px; color:var(--muted);">LINE DETAIL</div>
+                                <div style="font-weight:800; color:var(--accent2);">${wager.detail || '-'}</div>
+                            </div>
+                            <div>
+                                <div style="font-size:9px; color:var(--muted);">WAGER AMOUNT</div>
+                                <div style="font-weight:800; color:#fff;">$${wagerAmt}</div>
+                            </div>
+                            <div>
+                                <div style="font-size:9px; color:var(--muted);">POTENTIAL WIN</div>
+                                <div style="font-weight:800; color:#10b981;">$${toWinAmt}</div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; align-items:center; justify-content:space-between; font-family:var(--font-mono); font-size:11px; color:var(--muted);">
+                            <span>Total Payout: <strong style="color:var(--accent);">$${potentialPayout}</strong></span>
+                            <button onclick="cashoutActiveWager(${idx})" style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#ef4444; font-family:var(--font-mono); font-size:10px; font-weight:800; padding:5px 12px; border-radius:4px; cursor:pointer;">
+                                CASH OUT (95%)
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            return html;
+        }
+
+        window.cashoutActiveWager = function(idx) {
+            if (typeof placedBets === 'undefined' || !placedBets[idx]) return;
+            const wager = placedBets[idx];
+            const cashoutVal = (parseFloat(wager.wager) || 0) * 0.95;
+            bankroll += cashoutVal;
+            localStorage.setItem('destiny_bankroll', bankroll);
+            localStorage.setItem('bankroll', bankroll);
+            updateBankrollDisplay();
+
+            placedBets.splice(idx, 1);
+            localStorage.setItem('destiny_placed_bets', JSON.stringify(placedBets));
+            updateBsActiveCount();
+
+            const panel = document.getElementById('panel-live-wagers');
+            if (panel) panel.innerHTML = renderLiveWagersPanel();
+            buildTabs();
+        };
+
         // ── Drag & Drop Sidebar League Custom Reordering ─────────────────────
         let draggedLeagueId = null;
 
@@ -3522,7 +3619,7 @@
                 }
             });
 
-            // 1. PINNED DESTINY LEAGUE BUTTON (Fixed at top, non-draggable)
+            // 1. PINNED DESTINY LEAGUE & LIVE WAGERS BUTTONS (Fixed at top)
             let html = `
       <button class="tab fixed-destiny ${activeTab === 'destiny' ? 'active' : ''}" onclick="switchTab('destiny')" draggable="false" style="display:flex; align-items:center; justify-content:space-between; width:100%; cursor:pointer;">
         <div style="display:flex; align-items:center; gap:8px;">
@@ -3530,6 +3627,14 @@
             <span style="font-family:var(--font-head); font-weight:900; letter-spacing:0.5px; color:#fff;">DESTINY LEAGUE</span>
         </div>
         <span style="font-size:9px; font-weight:900; font-family:var(--font-mono); color:var(--accent); background:rgba(245, 158, 11, 0.2); padding:2px 6px; border-radius:10px; border:1px solid rgba(245, 158, 11, 0.4);">DEFAULT</span>
+      </button>
+
+      <button class="tab ${activeTab === 'live-wagers' ? 'active' : ''}" onclick="switchTab('live-wagers')" draggable="false" style="display:flex; align-items:center; justify-content:space-between; width:100%; cursor:pointer; background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.25);">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:15px;">⚡</span>
+            <span style="font-family:var(--font-head); font-weight:900; color:var(--accent);">LIVE WAGERS</span>
+        </div>
+        <span style="font-size:10px; font-weight:900; font-family:var(--font-mono); color:#000; background:var(--accent); padding:2px 7px; border-radius:10px;">${(typeof placedBets !== 'undefined' ? placedBets.length : 0)}</span>
       </button>
             `;
 
@@ -3609,6 +3714,9 @@
             let html = `
       <div class="league-panel ${activeTab === 'destiny' ? 'active' : ''}" id="panel-destiny">
         ${renderDestinyLeaguePanel()}
+      </div>
+      <div class="league-panel ${activeTab === 'live-wagers' ? 'active' : ''}" id="panel-live-wagers">
+        ${renderLiveWagersPanel()}
       </div>
       <div class="league-panel ${activeTab === 'live' ? 'active' : ''}" id="panel-live">
         ${renderLivePanel()}
