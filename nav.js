@@ -72,7 +72,6 @@ function initGlobalNav() {
             align-items: center;
             gap: 6px;
             transition: all 0.2s;
-            margin-right: 20px;
         }
         .universal-menu-btn:hover {
             background: rgba(245, 158, 11, 0.18);
@@ -83,7 +82,8 @@ function initGlobalNav() {
         .universal-menu-dropdown {
             position: absolute;
             top: 52px;
-            left: 20px;
+            right: 0;
+            left: auto;
             background: #11151c;
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 6px;
@@ -172,33 +172,14 @@ function initGlobalNav() {
     const nav = document.createElement('nav');
     nav.className = 'global-nav';
     nav.innerHTML = `
-        <div style="display:flex; align-items:center; position:relative;">
-            <!-- Universal Menu Button -->
-            <button class="universal-menu-btn" onclick="toggleUniversalMenu(event)" title="Open Universal Navigation Menu">
-                <span style="font-size:14px;">☰</span> MENU
-            </button>
-
-            <!-- Universal Dropdown Drawer -->
-            <div id="universal-menu-dropdown" class="universal-menu-dropdown" onclick="event.stopPropagation()">
-                <div style="padding:6px 16px 8px; font-size:10px; color:#f59e0b; font-weight:800; border-bottom:1px solid rgba(255,255,255,0.08); letter-spacing:1px;">UNIVERSAL NAVIGATION</div>
-                <a href="index.html" class="universal-menu-item">⚡ Command Center</a>
-                <a href="line-tracker.html" class="universal-menu-item">📈 Line Tracker</a>
-                <a href="history.html" class="universal-menu-item">📜 History & Logs</a>
-                <a href="props.html" class="universal-menu-item">🎯 Player Props</a>
-                <a href="my-bets.html" class="universal-menu-item">🎟️ My Bets Tracking</a>
-                <a href="kalshi.html" class="universal-menu-item">📊 Kalshi Live Markets</a>
-                <a href="sandbox.html" class="universal-menu-item">🧪 Strategy Sandbox</a>
-                <a href="portfolio.html" class="universal-menu-item">💼 Portfolio & Ledger</a>
-                <a href="layout.html" class="universal-menu-item">📐 Layout & Widgets</a>
-            </div>
-
-            <!-- Destiny Network Brand + Live Date & Time directly under -->
+        <!-- Left: Brand + Date & Time directly under -->
+        <div style="display:flex; align-items:center;">
             <div style="display:flex; flex-direction:column; justify-content:center; margin-right:28px;">
                 <div class="global-nav-brand">DESTINY NETWORK</div>
                 <div id="global-nav-clock" class="global-nav-clock">Loading date...</div>
             </div>
 
-            <!-- Horizontal Quick Links -->
+            <!-- Center: Desktop Horizontal Links -->
             <div class="global-nav-links">
                 <a href="index.html" class="global-nav-link ${(!isLineTracker && !isProps && !isMyBets && !isHistory && !isKalshi && !isSandbox && !isPortfolio && !isLayout) ? 'active' : ''}">Command Center</a>
                 <a href="line-tracker.html" class="global-nav-link ${isLineTracker ? 'active' : ''}">Line Tracker</a>
@@ -212,9 +193,31 @@ function initGlobalNav() {
             </div>
         </div>
 
-        <div class="nav-bankroll-pill">
-            <span>BANKROLL:</span>
-            <span class="nav-bankroll-val bankroll-amount">${formattedBankroll}</span>
+        <!-- Right: Bankroll Pill + Far Right Universal Menu Button -->
+        <div style="display:flex; align-items:center; gap:14px; position:relative;">
+            <div class="nav-bankroll-pill">
+                <span>BANKROLL:</span>
+                <span class="nav-bankroll-val bankroll-amount">${formattedBankroll}</span>
+            </div>
+
+            <!-- Universal Menu Button on Far Right -->
+            <button class="universal-menu-btn" onclick="toggleUniversalMenu(event)" title="Open Universal Navigation Menu">
+                <span style="font-size:14px;">☰</span> MENU
+            </button>
+
+            <!-- Universal Dropdown Drawer (Right Aligned) -->
+            <div id="universal-menu-dropdown" class="universal-menu-dropdown" onclick="event.stopPropagation()">
+                <div style="padding:6px 16px 8px; font-size:10px; color:#f59e0b; font-weight:800; border-bottom:1px solid rgba(255,255,255,0.08); letter-spacing:1px;">UNIVERSAL NAVIGATION</div>
+                <a href="index.html" class="universal-menu-item">⚡ Command Center</a>
+                <a href="line-tracker.html" class="universal-menu-item">📈 Line Tracker</a>
+                <a href="history.html" class="universal-menu-item">📜 History & Logs</a>
+                <a href="props.html" class="universal-menu-item">🎯 Player Props</a>
+                <a href="my-bets.html" class="universal-menu-item">🎟️ My Bets Tracking</a>
+                <a href="kalshi.html" class="universal-menu-item">📊 Kalshi Live Markets</a>
+                <a href="sandbox.html" class="universal-menu-item">🧪 Strategy Sandbox</a>
+                <a href="portfolio.html" class="universal-menu-item">💼 Portfolio & Ledger</a>
+                <a href="layout.html" class="universal-menu-item">📐 Layout & Widgets</a>
+            </div>
         </div>
     `;
     document.body.insertBefore(nav, document.body.firstChild);
