@@ -459,12 +459,95 @@
 
         .no-games {
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px 20px;
             color: var(--muted);
+            font-family: var(--font-mono);
             font-size: 13px;
+        }
+
+        .next-event-countdown-card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 32px 24px;
+            text-align: center;
+            max-width: 640px;
+            margin: 24px auto;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .next-event-badge {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 20px;
             letter-spacing: 1px;
-            border: 1px dashed var(--border2);
-            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        .next-event-title {
+            font-family: var(--font-head);
+            font-size: 22px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .countdown-clock-grid {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0;
+        }
+
+        .countdown-unit {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            padding: 12px 16px;
+            min-width: 64px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .countdown-val {
+            font-family: var(--font-mono);
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--accent);
+            line-height: 1;
+        }
+
+        .countdown-lbl {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--muted);
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .countdown-colon {
+            font-family: var(--font-mono);
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--accent2);
+        }
+
+        .next-event-date-str {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--muted);
         }
 
         .kalshi-card-tile {
@@ -2959,6 +3042,106 @@
   `;
         }
 
+        // Default Kickoff Fallback Dates for major leagues (e.g. NFL Season Kickoff, NBA Opening Night)
+        const DEFAULT_NEXT_EVENT_MAP = {
+            'nfl': { name: 'NFL Season Kickoff (DAL @ PHI)', date: '2026-09-10T20:15:00-04:00' },
+            'nba': { name: 'NBA Opening Night Tip-Off', date: '2026-10-20T19:30:00-04:00' },
+            'ncaaf': { name: 'NCAAF Kickoff Game', date: '2026-08-29T12:00:00-04:00' },
+            'mlb': { name: 'MLB Series Game 1', date: '2026-08-16T13:05:00-04:00' },
+            'nhl': { name: 'NHL Opening Night', date: '2026-10-06T19:00:00-04:00' },
+            'wnba': { name: 'WNBA Regular Season Game', date: '2026-08-16T18:00:00-04:00' }
+        };
+
+        function renderNextGameCountdown(lg, result) {
+            let nextGameName = `${lg.label} NEXT SCHEDULED EVENT`;
+            let targetDateStr = '';
+
+            // Check if ESPN result provided an upcoming event in the future
+            if (result && result.events && result.events.length > 0) {
+                const upcoming = result.events.find(e => !gameStatus(e).isFinal);
+                if (upcoming) {
+                    const comp = upcoming.competitions?.[0];
+                    const home = comp?.competitors?.find(c => c.homeAway === 'home')?.team?.abbreviation || '';
+                    const away = comp?.competitors?.find(c => c.homeAway === 'away')?.team?.abbreviation || '';
+                    nextGameName = `${away} @ ${home} (${lg.label})`;
+                    targetDateStr = upcoming.date;
+                }
+            }
+
+            if (!targetDateStr) {
+                const fallback = DEFAULT_NEXT_EVENT_MAP[lg.id] || { name: `${lg.label} NEXT EVENT`, date: '2026-09-01T20:00:00-04:00' };
+                nextGameName = fallback.name;
+                targetDateStr = fallback.date;
+            }
+
+            const targetTime = new Date(targetDateStr).getTime();
+            const formattedDate = new Date(targetDateStr).toLocaleString('en-US', {
+                weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
+            });
+
+            return `
+                <div class="next-event-countdown-card" id="countdown-card-${lg.id}" data-target="${targetTime}">
+                    <div class="next-event-badge">⌛ NO GAMES ACTIVE TODAY — COUNTDOWN TO NEXT EVENT</div>
+                    <div class="next-event-title">${nextGameName}</div>
+                    
+                    <div class="countdown-clock-grid">
+                        <div class="countdown-unit">
+                            <span class="countdown-val" id="cd-days-${lg.id}">00</span>
+                            <span class="countdown-lbl">DAYS</span>
+                        </div>
+                        <div class="countdown-colon">:</div>
+                        <div class="countdown-unit">
+                            <span class="countdown-val" id="cd-hours-${lg.id}">00</span>
+                            <span class="countdown-lbl">HOURS</span>
+                        </div>
+                        <div class="countdown-colon">:</div>
+                        <div class="countdown-unit">
+                            <span class="countdown-val" id="cd-mins-${lg.id}">00</span>
+                            <span class="countdown-lbl">MINS</span>
+                        </div>
+                        <div class="countdown-colon">:</div>
+                        <div class="countdown-unit">
+                            <span class="countdown-val" id="cd-secs-${lg.id}">00</span>
+                            <span class="countdown-lbl">SECS</span>
+                        </div>
+                    </div>
+
+                    <div class="next-event-date-str">Target Date & Time: <strong>${formattedDate}</strong></div>
+                </div>
+            `;
+        }
+
+        function updateAllCountdownClocks() {
+            const cards = document.querySelectorAll('.next-event-countdown-card');
+            const now = Date.now();
+
+            cards.forEach(card => {
+                const lgId = card.id.replace('countdown-card-', '');
+                const targetTime = parseInt(card.getAttribute('data-target') || '0');
+                if (!targetTime) return;
+
+                let diff = targetTime - now;
+                if (diff < 0) diff = 0;
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+                const dEl = document.getElementById(`cd-days-${lgId}`);
+                const hEl = document.getElementById(`cd-hours-${lgId}`);
+                const mEl = document.getElementById(`cd-mins-${lgId}`);
+                const sEl = document.getElementById(`cd-secs-${lgId}`);
+
+                if (dEl) dEl.innerText = String(days).padStart(2, '0');
+                if (hEl) hEl.innerText = String(hours).padStart(2, '0');
+                if (mEl) mEl.innerText = String(mins).padStart(2, '0');
+                if (sEl) sEl.innerText = String(secs).padStart(2, '0');
+            });
+        }
+
+        setInterval(updateAllCountdownClocks, 1000);
+
         function renderPanel(lg, result) {
             let html = '';
 
@@ -2967,12 +3150,7 @@
             }
 
             if (result.events.length === 0) {
-                html += `
-      <div class="no-games">
-        <div class="icon">◻</div>
-        No games scheduled for today
-      </div>
-    `;
+                html += renderNextGameCountdown(lg, result);
             } else {
                 const sortedEvents = [...result.events].sort((a, b) => {
                     const isPinA = espnPinned.has(a.id), isPinB = espnPinned.has(b.id);
