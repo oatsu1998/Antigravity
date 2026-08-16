@@ -168,18 +168,15 @@
             'status', 'awaymybets',
             'awayinfo', 'awayscore',
             'homeinfo', 'homescore',
-            'kalshitag', 'markettype',
-            'awayrole', 'awayodds',
-            'homerole', 'homeodds',
-            'probleft', 'probbar', 'probright',
-            'sourcelabel', 'lblspread', 'lblml', 'lbltotal',
-            'awaybwteam', 'awaybwspread', 'awaybwml', 'awaybwtotal',
-            'homebwteam', 'homebwspread', 'homebwml', 'homebwtotal'
+            'sourcelabel', 'lblspread', 'lblml', 'lbltotal', 'lblwinprob',
+            'awaybwteam', 'awaybwspread', 'awaybwml', 'awaybwtotal', 'awaybwwinprob',
+            'homebwteam', 'homebwspread', 'homebwml', 'homebwtotal', 'homebwwinprob',
+            'probleft', 'probbar', 'probright'
         ];
 
         function clbCellForIndex(i) {
-            const row = Math.floor(i / 4);
-            const col = i % 4;
+            const row = Math.floor(i / 5);
+            const col = i % 5;
             return 'cell-' + (row * CLB_GRID_COLS + col);
         }
 
@@ -195,10 +192,11 @@
 
             const pick = (root, sel) => root ? root.querySelector(sel) : null;
             const teamRows = card.querySelectorAll('.teams .team-row');
-            const kalshiRows = card.querySelectorAll('.kalshi-card-tile .kalshi-row');
             const bwRows = card.querySelectorAll('.betting-widget .bw-row');
             const bwHeader = card.querySelector('.betting-widget .bw-header');
             const bwHeaderSpans = bwHeader ? bwHeader.querySelectorAll('span') : [];
+            const awayCells = bwRows[0] ? bwRows[0].querySelectorAll('.bw-cell') : [];
+            const homeCells = bwRows[1] ? bwRows[1].querySelectorAll('.bw-cell') : [];
 
             const found = {
                 status: pick(card, '.card-top-bar .game-status'),
@@ -207,27 +205,24 @@
                 awayscore: teamRows[0] ? teamRows[0].querySelector('.team-score') : null,
                 homeinfo: teamRows[1] ? teamRows[1].querySelector('div') : null,
                 homescore: teamRows[1] ? teamRows[1].querySelector('.team-score') : null,
-                kalshitag: pick(card, '.kalshi-live-tag'),
-                markettype: pick(card, '.kalshi-market-type'),
-                awayrole: kalshiRows[0] ? kalshiRows[0].querySelector('.kalshi-team-label') : null,
-                awayodds: kalshiRows[0] ? kalshiRows[0].querySelector('.kalshi-odds-box') : null,
-                homerole: kalshiRows[1] ? kalshiRows[1].querySelector('.kalshi-team-label') : null,
-                homeodds: kalshiRows[1] ? kalshiRows[1].querySelector('.kalshi-odds-box') : null,
-                probleft: pick(card, '.bw-prob-val-left'),
-                probbar: pick(card, '.bw-prob-bar-wrap'),
-                probright: pick(card, '.bw-prob-val-right'),
                 sourcelabel: bwHeaderSpans[0] || null,
                 lblspread: bwHeaderSpans[1] || null,
                 lblml: bwHeaderSpans[2] || null,
                 lbltotal: bwHeaderSpans[3] || null,
+                lblwinprob: bwHeaderSpans[4] || null,
                 awaybwteam: bwRows[0] ? bwRows[0].querySelector('.bw-team') : null,
-                awaybwspread: bwRows[0] ? bwRows[0].querySelectorAll('.bw-cell')[0] : null,
-                awaybwml: bwRows[0] ? bwRows[0].querySelectorAll('.bw-cell')[1] : null,
-                awaybwtotal: bwRows[0] ? bwRows[0].querySelectorAll('.bw-cell')[2] : null,
+                awaybwspread: awayCells[0] || null,
+                awaybwml: awayCells[1] || null,
+                awaybwtotal: awayCells[2] || null,
+                awaybwwinprob: awayCells[3] || null,
                 homebwteam: bwRows[1] ? bwRows[1].querySelector('.bw-team') : null,
-                homebwspread: bwRows[1] ? bwRows[1].querySelectorAll('.bw-cell')[0] : null,
-                homebwml: bwRows[1] ? bwRows[1].querySelectorAll('.bw-cell')[1] : null,
-                homebwtotal: bwRows[1] ? bwRows[1].querySelectorAll('.bw-cell')[2] : null
+                homebwspread: homeCells[0] || null,
+                homebwml: homeCells[1] || null,
+                homebwtotal: homeCells[2] || null,
+                homebwwinprob: homeCells[3] || null,
+                probleft: pick(card, '.bw-prob-val-left'),
+                probbar: pick(card, '.bw-prob-bar-wrap'),
+                probright: pick(card, '.bw-prob-val-right')
             };
 
             const items = {};
