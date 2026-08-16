@@ -1776,14 +1776,178 @@
         .mb-add-btn:hover {
             opacity: 0.9;
         }
+        /* ESPN Horizontal Scrolling Ticker Bar */
+        .espn-ticker-bar {
+            background: #0f131a;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            display: flex;
+            align-items: center;
+            height: 64px;
+            overflow: hidden;
+            position: relative;
+            user-select: none;
+        }
+
+        .espn-top-events-btn {
+            background: #1a1e27;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-family: var(--font-sans);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0 12px;
+            flex-shrink: 0;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s;
+        }
+        .espn-top-events-btn:hover {
+            background: #252a36;
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .espn-events-dropdown {
+            position: absolute;
+            top: 56px;
+            left: 12px;
+            background: #11151c;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.9);
+            padding: 8px 0;
+            min-width: 220px;
+            display: none;
+            z-index: 99999;
+        }
+        .espn-events-dropdown.open {
+            display: block;
+        }
+        .espn-dropdown-item {
+            padding: 8px 16px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 700;
+            color: #d1d5db;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.15s, color 0.15s;
+        }
+        .espn-dropdown-item:hover, .espn-dropdown-item.active {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent);
+        }
+
+        .espn-ticker-scroll {
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            height: 100%;
+            flex: 1;
+            scrollbar-width: none; /* Firefox */
+        }
+        .espn-ticker-scroll::-webkit-scrollbar {
+            display: none; /* Chrome / Safari / Edge */
+        }
+
+        .espn-ticker-divider {
+            height: 100%;
+            width: 48px;
+            background: #161b24;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-head);
+            font-weight: 900;
+            font-size: 11px;
+            color: #94a3b8;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+
+        .espn-ticker-item {
+            height: 100%;
+            padding: 6px 14px;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 140px;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .espn-ticker-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .espn-ticker-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 9px;
+            font-weight: 700;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+        .espn-ticker-top .status-live {
+            color: #ef4444;
+        }
+
+        .espn-ticker-team {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 800;
+            color: #f3f4f6;
+            line-height: 1.2;
+        }
+        .espn-ticker-team .score {
+            font-weight: 900;
+            color: #ffffff;
+        }
+        .espn-ticker-team .winner {
+            color: var(--accent);
+        }
     </style>
 </head>
 
 <body>
 
-    <header>
-        <div class="logo">DESTINY <span>// TODAY'S GAMES & LIVE COMMAND CENTER</span></div>
-    </header>
+    <!-- ESPN-Style Live Horizontal Scoreboard Ticker with Top Events Filter Dropdown -->
+    <div class="espn-ticker-bar">
+        <button class="espn-top-events-btn" onclick="toggleEspnFilterDropdown(event)">
+            <span id="espn-filter-label">Top Events</span>
+            <span style="font-size: 10px;">▼</span>
+        </button>
+
+        <div id="espn-events-dropdown" class="espn-events-dropdown" onclick="event.stopPropagation()">
+            <div class="espn-dropdown-item active" onclick="setTickerFilter('top')">🔥 Top Events</div>
+            <div class="espn-dropdown-item" onclick="setTickerFilter('live')">🔴 Live Now</div>
+            <div class="espn-dropdown-item" onclick="setTickerFilter('nfl')">🏈 NFL</div>
+            <div class="espn-dropdown-item" onclick="setTickerFilter('mlb')">⚾ MLB</div>
+            <div class="espn-dropdown-item" onclick="setTickerFilter('nba')">🏀 NBA</div>
+            <div class="espn-dropdown-item" onclick="setTickerFilter('nhl')">🏒 NHL</div>
+            <div class="espn-dropdown-item" onclick="setTickerFilter('ncaaf')">🎓 NCAAF</div>
+        </div>
+
+        <div class="espn-ticker-scroll" id="espn-ticker-scroll">
+            <div style="padding: 0 20px; font-family: var(--font-mono); font-size: 11px; color: var(--muted);">Loading ESPN score ticker...</div>
+        </div>
+    </div>
 
     <div class="league-tabs" id="tabs"></div>
 
@@ -2686,6 +2850,159 @@
             return `<div class="games-grid">${allLiveEvents.map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>`;
         }
 
+        // ── ESPN-Style Horizontal Scoreboard Ticker Engine ─────────────────
+        let currentTickerFilter = 'top';
+
+        window.toggleEspnFilterDropdown = function(e) {
+            if (e) e.stopPropagation();
+            const dd = document.getElementById('espn-events-dropdown');
+            if (dd) dd.classList.toggle('open');
+        };
+
+        window.setTickerFilter = function(filterId) {
+            currentTickerFilter = filterId;
+            const labels = {
+                top: 'Top Events',
+                live: 'Live Now',
+                nfl: 'NFL',
+                mlb: 'MLB',
+                nba: 'NBA',
+                nhl: 'NHL',
+                ncaaf: 'NCAAF'
+            };
+            const labelEl = document.getElementById('espn-filter-label');
+            if (labelEl) labelEl.innerText = labels[filterId] || 'Top Events';
+
+            document.querySelectorAll('.espn-dropdown-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event?.currentTarget?.classList?.add('active');
+
+            const dd = document.getElementById('espn-events-dropdown');
+            if (dd) dd.classList.remove('open');
+
+            renderEspnTicker();
+        };
+
+        document.addEventListener('click', () => {
+            const dd = document.getElementById('espn-events-dropdown');
+            if (dd && dd.classList.contains('open')) dd.classList.remove('open');
+        });
+
+        function renderEspnTicker() {
+            const scrollContainer = document.getElementById('espn-ticker-scroll');
+            if (!scrollContainer) return;
+
+            let allEvents = [];
+            LEAGUES.forEach(lg => {
+                const result = leagueData[lg.id];
+                if (result && result.events) {
+                    result.events.forEach(e => {
+                        allEvents.push({ event: e, lg: lg });
+                    });
+                }
+            });
+
+            if (allEvents.length === 0) {
+                scrollContainer.innerHTML = '<div style="padding: 0 20px; font-family: var(--font-mono); font-size: 11px; color: var(--muted);">Loading live ticker scores...</div>';
+                return;
+            }
+
+            // Filter logic
+            let filtered = [];
+            if (currentTickerFilter === 'top') {
+                filtered = allEvents;
+            } else if (currentTickerFilter === 'live') {
+                filtered = allEvents.filter(i => gameStatus(i.event).isLive);
+            } else {
+                filtered = allEvents.filter(i => i.lg.id.toLowerCase() === currentTickerFilter);
+            }
+
+            if (filtered.length === 0) {
+                scrollContainer.innerHTML = `<div style="padding: 0 20px; font-family: var(--font-mono); font-size: 11px; color: var(--muted);">No ${currentTickerFilter.toUpperCase()} games right now</div>`;
+                return;
+            }
+
+            // Sort: Live games first, then by date
+            filtered.sort((a, b) => {
+                const sa = gameStatus(a.event), sb = gameStatus(b.event);
+                if (sa.isLive !== sb.isLive) return sa.isLive ? -1 : 1;
+                return new Date(a.event.date || 0) - new Date(b.event.date || 0);
+            });
+
+            // Group by league for divider headers
+            let currentLeague = '';
+            let html = '';
+
+            filtered.forEach(item => {
+                const event = item.event;
+                const lg = item.lg;
+                const comp = event.competitions?.[0];
+                if (!comp) return;
+
+                const competitors = comp.competitors || [];
+                const home = competitors.find(c => c.homeAway === 'home') || competitors[0];
+                const away = competitors.find(c => c.homeAway === 'away') || competitors[1];
+                if (!home || !away) return;
+
+                const status = gameStatus(event);
+                const homeScore = parseInt(home.score || 0);
+                const awayScore = parseInt(away.score || 0);
+                const homeWin = status.isFinal && homeScore > awayScore;
+                const awayWin = status.isFinal && awayScore > homeScore;
+
+                const awayAbbr = away.team?.abbreviation || 'AWAY';
+                const homeAbbr = home.team?.abbreviation || 'HOME';
+
+                const leagueName = (lg.league || lg.id || '').toUpperCase();
+
+                if (currentTickerFilter === 'top' && leagueName !== currentLeague) {
+                    currentLeague = leagueName;
+                    html += `<div class="espn-ticker-divider">${leagueName}</div>`;
+                }
+
+                const situationText = (() => {
+                    const sit = comp.situation;
+                    if (!sit || !status.isLive) return '';
+                    if (sit.down !== undefined && sit.distance !== undefined && sit.yardLine !== undefined) {
+                        return `${sit.down}${getOrdinalSuffix(sit.down)} & ${sit.distance} at ${sit.possessionText || ''} ${sit.yardLine}`;
+                    }
+                    if (sit.outs !== undefined) {
+                        return `${sit.outs} Out${sit.outs !== 1 ? 's' : ''}`;
+                    }
+                    return '';
+                })();
+
+                const broadcast = comp.broadcasts?.[0]?.names?.[0] || '';
+
+                html += `
+                    <div class="espn-ticker-item" onclick="switchTab('${lg.id}'); setTimeout(() => { const el = document.getElementById('card-${lg.id}-${event.id}'); if(el) el.scrollIntoView({ behavior: 'smooth' }); }, 100);">
+                        <div class="espn-ticker-top">
+                            <span class="${status.isLive ? 'status-live' : ''}">${status.label}</span>
+                            <span style="color:#64748b; font-size:8px;">${broadcast ? '▶ ' + broadcast : ''}</span>
+                        </div>
+                        <div class="espn-ticker-team" style="margin-bottom: 2px;">
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                ${away.team?.logo ? `<img src="${away.team.logo}" style="width:12px; height:12px; object-fit:contain;">` : ''}
+                                <span class="${awayWin ? 'winner' : ''}">${awayAbbr}</span>
+                            </div>
+                            <span class="score ${awayWin ? 'winner' : ''}">${awayScore}</span>
+                        </div>
+                        <div class="espn-ticker-team">
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                ${home.team?.logo ? `<img src="${home.team.logo}" style="width:12px; height:12px; object-fit:contain;">` : ''}
+                                <span class="${homeWin ? 'winner' : ''}">${homeAbbr}</span>
+                            </div>
+                            <span class="score ${homeWin ? 'winner' : ''}">${homeScore}</span>
+                        </div>
+                        ${situationText ? `<div style="font-family:var(--font-mono); font-size:8px; color:#06b6d4; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${situationText}</div>` : ''}
+                    </div>
+                `;
+            });
+
+            scrollContainer.innerHTML = html;
+        }
+
         function buildTabs() {
             const tabsEl = document.getElementById('tabs');
 
@@ -2905,6 +3222,7 @@
             const livePanel = document.getElementById('panel-live');
             if (livePanel) livePanel.innerHTML = renderLivePanel();
             buildTabs();
+            renderEspnTicker();
             loadKalshiCharts();
 
             const usageEl = document.getElementById('api-usage');
@@ -3424,6 +3742,7 @@
             buildMain();
             const fetches = LEAGUES.map(lg => pollLeague(lg, true));
             await Promise.all(fetches);
+            renderEspnTicker();
         }
 
         initialLoad();
