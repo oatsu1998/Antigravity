@@ -1813,6 +1813,43 @@
             color: var(--accent);
         }
 
+        .live-pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            animation: livePulse 1.5s infinite;
+        }
+
+        @keyframes livePulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        .espn-live-counter {
+            background: #ef4444;
+            color: #ffffff;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 7px;
+            border-radius: 10px;
+            margin-left: 2px;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+        }
+
         .espn-events-dropdown {
             position: absolute;
             top: 56px;
@@ -1927,16 +1964,18 @@
 
 <body>
 
-    <!-- ESPN-Style Live Horizontal Scoreboard Ticker with Top Events Filter Dropdown -->
+    <!-- ESPN-Style Live Horizontal Scoreboard Ticker with Live Events Counter & Filter Dropdown -->
     <div class="espn-ticker-bar">
-        <button class="espn-top-events-btn" onclick="toggleEspnFilterDropdown(event)">
-            <span id="espn-filter-label">Top Events</span>
-            <span style="font-size: 10px;">▼</span>
+        <button class="espn-top-events-btn" onclick="toggleEspnFilterDropdown(event)" title="Filter Ticker Events">
+            <span class="live-pulse-dot"></span>
+            <span id="espn-filter-label" style="font-family: var(--font-mono); font-size: 11px; font-weight: 800; color: #ffffff;">LIVE</span>
+            <span id="espn-live-counter" class="espn-live-counter">0</span>
+            <span style="font-size: 9px; color: var(--muted); margin-left: 2px;">▼</span>
         </button>
 
         <div id="espn-events-dropdown" class="espn-events-dropdown" onclick="event.stopPropagation()">
-            <div class="espn-dropdown-item active" onclick="setTickerFilter('top')">🔥 Top Events</div>
-            <div class="espn-dropdown-item" onclick="setTickerFilter('live')">🔴 Live Now</div>
+            <div class="espn-dropdown-item active" onclick="setTickerFilter('live')">🔴 Live Events</div>
+            <div class="espn-dropdown-item" onclick="setTickerFilter('top')">🔥 Top Events</div>
             <div class="espn-dropdown-item" onclick="setTickerFilter('nfl')">🏈 NFL</div>
             <div class="espn-dropdown-item" onclick="setTickerFilter('mlb')">⚾ MLB</div>
             <div class="espn-dropdown-item" onclick="setTickerFilter('nba')">🏀 NBA</div>
@@ -2851,7 +2890,7 @@
         }
 
         // ── ESPN-Style Horizontal Scoreboard Ticker Engine ─────────────────
-        let currentTickerFilter = 'top';
+        let currentTickerFilter = 'live';
 
         window.toggleEspnFilterDropdown = function(e) {
             if (e) e.stopPropagation();
@@ -2863,7 +2902,7 @@
             currentTickerFilter = filterId;
             const labels = {
                 top: 'Top Events',
-                live: 'Live Now',
+                live: 'LIVE',
                 nfl: 'NFL',
                 mlb: 'MLB',
                 nba: 'NBA',
@@ -2871,7 +2910,7 @@
                 ncaaf: 'NCAAF'
             };
             const labelEl = document.getElementById('espn-filter-label');
-            if (labelEl) labelEl.innerText = labels[filterId] || 'Top Events';
+            if (labelEl) labelEl.innerText = labels[filterId] || 'LIVE';
 
             document.querySelectorAll('.espn-dropdown-item').forEach(item => {
                 item.classList.remove('active');
@@ -2902,6 +2941,11 @@
                     });
                 }
             });
+
+            // Update live games counter badge on filter button
+            const liveEventsCount = allEvents.filter(i => gameStatus(i.event).isLive).length;
+            const counterBadge = document.getElementById('espn-live-counter');
+            if (counterBadge) counterBadge.innerText = liveEventsCount;
 
             if (allEvents.length === 0) {
                 scrollContainer.innerHTML = '<div style="padding: 0 20px; font-family: var(--font-mono); font-size: 11px; color: var(--muted);">Loading live ticker scores...</div>';
