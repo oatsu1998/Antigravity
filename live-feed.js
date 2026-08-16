@@ -216,7 +216,9 @@
                 awayCents: awayEntry.yesPrice,
                 homeCents: homeEntry.yesPrice,
                 awayAmerican: centsToAmericanOdds(awayEntry.yesPrice),
-                homeAmerican: centsToAmericanOdds(homeEntry.yesPrice)
+                homeAmerican: centsToAmericanOdds(homeEntry.yesPrice),
+                awayTicker: awayEntry.ticker,
+                homeTicker: homeEntry.ticker
             };
         },
 
