@@ -2265,7 +2265,27 @@
             </div>
             `;
         }
-        window.renderBaseballGraphic = renderBaseballGraphic;
+        function getLeagueLogo(leagueStr, sportStr) {
+            const l = String(leagueStr || '').toLowerCase();
+            const s = String(sportStr || '').toLowerCase();
+
+            if (l.includes('nfl') || s === 'nfl') return 'https://a.espncdn.com/i/leaguelogos/nfl/500/nfl.png';
+            if (l.includes('mlb') || s === 'mlb') return 'https://a.espncdn.com/i/leaguelogos/mlb/500/mlb.png';
+            if (l.includes('nba') || s === 'nba') return 'https://a.espncdn.com/i/leaguelogos/nba/500/nba.png';
+            if (l.includes('nhl') || s === 'nhl') return 'https://a.espncdn.com/i/leaguelogos/nhl/500/nhl.png';
+            if (l.includes('college-football') || l.includes('ncaaf') || l.includes('cfb')) return 'https://a.espncdn.com/i/leaguelogos/ncaa/500/ncaa.png';
+            if (l.includes('mens-college-basketball') || l.includes('ncaab') || l.includes('cbk')) return 'https://a.espncdn.com/i/leaguelogos/ncaa/500/ncaa.png';
+            if (l.includes('wnba') || s === 'wnba') return 'https://a.espncdn.com/i/leaguelogos/wnba/500/wnba.png';
+            if (l.includes('soccer') || s === 'soccer') return 'https://a.espncdn.com/i/leaguelogos/soccer/500/global.png';
+            
+            if (s === 'baseball') return 'https://a.espncdn.com/i/leaguelogos/mlb/500/mlb.png';
+            if (s === 'football') return 'https://a.espncdn.com/i/leaguelogos/nfl/500/nfl.png';
+            if (s === 'basketball') return 'https://a.espncdn.com/i/leaguelogos/nba/500/nba.png';
+            if (s === 'hockey') return 'https://a.espncdn.com/i/leaguelogos/nhl/500/nhl.png';
+
+            return 'https://a.espncdn.com/i/leaguelogos/ncaa/500/ncaa.png';
+        }
+        window.getLeagueLogo = getLeagueLogo;
 
         function renderCard(event, lg, panelType) {
             const comp = event.competitions?.[0];
@@ -2450,9 +2470,10 @@
          ondragover="_onEspnDragOver(event,'${event.id}','${panelType}')"
          ondrop="_onEspnDrop(event,'${event.id}','${lg.id}','${panelType}')"
          onclick="toggleGameDetails('${event.id}', '${lg.sport}', '${lg.league}', '${panelType}')">
-      <div class="card-top-bar">
+      <div class="card-top-bar" style="display:flex; align-items:center; gap:8px;">
+        <img src="${getLeagueLogo(lg.league || lg.id, lg.sport)}" class="league-logo" style="width:18px; height:18px; object-fit:contain; flex-shrink:0; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));" alt="${lg.league || lg.id || lg.sport}" title="${(lg.league || lg.id || lg.sport || '').toUpperCase()}">
         <span class="drag-handle" onclick="event.stopPropagation()" title="Drag to reorder">⠿</span>
-        <div class="game-status" style="margin:0; display:flex; align-items:center; gap:6px;">
+        <div class="game-status" style="margin:0; display:flex; align-items:center; gap:6px; flex:1;">
           <span class="${status.cls}">${status.label}</span>
           ${status.isLive ? '<span class="live-dot"></span>' : ''}
         </div>

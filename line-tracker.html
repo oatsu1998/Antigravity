@@ -1413,6 +1413,18 @@
                     else leagueBadge = g.sport_key.split('_').pop().toUpperCase();
                 }
 
+                function getLeagueLogoUrl(sk) {
+                    var s = String(sk || '').toLowerCase();
+                    if (s.includes('nfl') || s.includes('americanfootball_nfl')) return 'https://a.espncdn.com/i/leaguelogos/nfl/500/nfl.png';
+                    if (s.includes('mlb') || s.includes('baseball_mlb')) return 'https://a.espncdn.com/i/leaguelogos/mlb/500/mlb.png';
+                    if (s.includes('nba') || s.includes('basketball_nba')) return 'https://a.espncdn.com/i/leaguelogos/nba/500/nba.png';
+                    if (s.includes('nhl') || s.includes('icehockey_nhl')) return 'https://a.espncdn.com/i/leaguelogos/nhl/500/nhl.png';
+                    if (s.includes('ncaaf') || s.includes('college-football')) return 'https://a.espncdn.com/i/leaguelogos/ncaa/500/ncaa.png';
+                    if (s.includes('ncaab') || s.includes('basketball_ncaab')) return 'https://a.espncdn.com/i/leaguelogos/ncaa/500/ncaa.png';
+                    if (s.includes('wnba')) return 'https://a.espncdn.com/i/leaguelogos/wnba/500/wnba.png';
+                    return 'https://a.espncdn.com/i/leaguelogos/ncaa/500/ncaa.png';
+                }
+
                 var awayLogoUrl = g.away_logo || getTeamLogoUrl(g.away_team, g.sport_key);
                 var homeLogoUrl = g.home_logo || getTeamLogoUrl(g.home_team, g.sport_key);
 
@@ -1428,14 +1440,14 @@
                     + '>'
                     // Top row: status + actions
                     + '<div class="gi-top-row">'
-                    + '<div style="display:flex; align-items:center; gap:8px;">'
+                    + '<div style="display:flex; align-items:center; gap:6px;">'
+                    + '<img src="' + getLeagueLogoUrl(g.sport_key) + '" style="width:16px;height:16px;object-fit:contain;flex-shrink:0;" title="' + (leagueBadge || '') + '">'
+                    + '<span class="drag-handle" title="Drag to reorder">&#8942;</span>'
                     + '<span class="gi-status ' + (isLiveNow ? 'live' : '') + '" style="' + (isLiveNow ? '' : 'color:var(--muted);') + '">' + stxt + '</span>'
-                    + (leagueBadge ? '<span style="font-family:var(--font-mono);font-size:8px;color:var(--muted);letter-spacing:1px;background:rgba(255,255,255,0.06);padding:1px 4px;border-radius:3px;">' + leagueBadge + '</span>' : '')
                     + '</div>'
                     + '<div class="gi-actions" onclick="event.stopPropagation()">'
                     + '<button class="pin-btn' + (isPinned ? ' pinned' : '') + '" title="' + (isPinned ? 'Unpin' : 'Pin') + '" onclick="togglePin(\'' + g.game_id + '\', event)">'
                     + (isPinned ? '&#9733;' : '&#9734;') + '</button>'
-                    + '<span class="drag-handle" title="Drag to reorder">&#8942;</span>'
                     + '</div>'
                     + '</div>'
                     // Away team
