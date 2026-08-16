@@ -31,11 +31,11 @@ function initGlobalNav() {
         .global-nav {
             background: #0a0c0f;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 0 20px;
+            padding: 8px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 52px;
+            min-height: 62px;
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -57,6 +57,28 @@ function initGlobalNav() {
             letter-spacing: 0.5px;
             margin-top: 2px;
             font-family: 'JetBrains Mono', monospace;
+            line-height: 1.1;
+        }
+        .nav-refresh-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #a1a1aa;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+            width: fit-content;
+            transition: all 0.2s;
+        }
+        .nav-refresh-btn:hover {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: #f59e0b;
+            color: #f59e0b;
+            box-shadow: 0 0 6px rgba(245, 158, 11, 0.25);
         }
         .universal-menu-btn {
             background: rgba(255, 255, 255, 0.06);
@@ -81,7 +103,7 @@ function initGlobalNav() {
         }
         .universal-menu-dropdown {
             position: absolute;
-            top: 52px;
+            top: 58px;
             right: 0;
             left: auto;
             background: #11151c;
@@ -172,11 +194,14 @@ function initGlobalNav() {
     const nav = document.createElement('nav');
     nav.className = 'global-nav';
     nav.innerHTML = `
-        <!-- Left: Brand + Date & Time directly under -->
+        <!-- Left: Brand + Date/Time + Force Refresh Button directly under -->
         <div style="display:flex; align-items:center;">
             <div style="display:flex; flex-direction:column; justify-content:center; margin-right:28px;">
                 <div class="global-nav-brand">DESTINY NETWORK</div>
                 <div id="global-nav-clock" class="global-nav-clock">Loading date...</div>
+                <button class="nav-refresh-btn" onclick="handleNavRefresh()" title="Force Refresh Live Data">
+                    ↻ FORCE REFRESH
+                </button>
             </div>
 
             <!-- Center: Desktop Horizontal Links -->
@@ -246,6 +271,15 @@ function initGlobalNav() {
     }
     updateClock();
     setInterval(updateClock, 1000);
+
+    // Global Refresh Trigger Handler
+    window.handleNavRefresh = function() {
+        if (typeof window.manualRefresh === 'function') {
+            window.manualRefresh();
+        } else {
+            window.location.reload();
+        }
+    };
 
     // Universal Menu Toggle Logic
     window.toggleUniversalMenu = function(e) {
