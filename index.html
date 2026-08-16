@@ -2063,7 +2063,7 @@
                     ? `<span class="bw-val" style="color:#06B6D4;">${cents}%</span><span class="bw-sub">${american}</span>`
                     : (american ? `<span class="bw-val-only">${american}</span>` : `<span class="bw-val-only">&mdash;</span>`);
                 const totalCell = (prefix, line, american) => (line !== undefined && line !== null)
-                    ? `<span class="bw-val">${prefix} ${line}</span><span class="bw-sub">${american}</span>`
+                    ? `<span class="bw-val"><span style="color:#06B6D4; font-weight:700; margin-right:3px;">${prefix}</span>${line}</span><span class="bw-sub">${american}</span>`
                     : `<span class="bw-val">&mdash;</span>`;
                 const winProbCell = (abbr, cents, american) => `<span class="bw-val-only">&mdash;</span>`;
 
