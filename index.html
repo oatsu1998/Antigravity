@@ -2013,12 +2013,14 @@
             const awayLogo = away.team?.logo || away.team?.logos?.[0]?.href || '';
             const homeLogo = home.team?.logo || home.team?.logos?.[0]?.href || '';
 
-            const possessionId = String(sit.possession || sit.possessionText || '');
+            const possessionId = String(sit.possession || sit.possessionText || sit.lastPlay?.team?.id || '');
             const isAwayPossession = possessionId === String(away.team?.id || away.id || '') || possessionId.toUpperCase().includes(awayAbbr);
             const isHomePossession = possessionId === String(home.team?.id || home.id || '') || possessionId.toUpperCase().includes(homeAbbr);
 
-            const down = parseInt(sit.down || 1);
-            const dist = parseInt(sit.distance || 10);
+            const down = parseInt(sit.down);
+            const dist = parseInt(sit.distance || 0);
+            const isInvalidDown = isNaN(down) || down <= 0;
+
             let rawYardLine = parseInt(sit.yardLine || 50);
             if (isNaN(rawYardLine) || rawYardLine < 1) rawYardLine = 50;
 
@@ -2034,7 +2036,7 @@
                 } else {
                     ballPosPct = rawYardLine;
                 }
-            } else {
+            } else if (isHomePossession) {
                 // Home team (BAL) drives LEFT towards Away (PHI)
                 if (posText.includes(homeAbbr)) {
                     ballPosPct = 100 - rawYardLine; // e.g. BAL 34 = 66% (own territory)
@@ -2043,6 +2045,8 @@
                 } else {
                     ballPosPct = 100 - rawYardLine;
                 }
+            } else {
+                ballPosPct = rawYardLine;
             }
             ballPosPct = Math.max(3, Math.min(97, ballPosPct));
 
@@ -2050,16 +2054,20 @@
             firstDownPct = Math.max(2, Math.min(98, firstDownPct));
 
             let downText = sit.downDistanceText;
-            if (!downText && down > 0) {
-                const ord = down === 1 ? '1st' : down === 2 ? '2nd' : down === 3 ? '3rd' : '4th';
-                const distStr = dist === 0 ? 'Goal' : dist;
-                const posStr = posText || (isAwayPossession ? `${awayAbbr} ${rawYardLine}` : `${homeAbbr} ${rawYardLine}`);
-                downText = `${ord} & ${distStr}, ${posStr}`;
+            if (!downText) {
+                if (!isInvalidDown) {
+                    const ord = down === 1 ? '1st' : down === 2 ? '2nd' : down === 3 ? '3rd' : '4th';
+                    const distStr = dist === 0 ? 'Goal' : dist;
+                    const posStr = posText || (isAwayPossession ? `${awayAbbr} ${rawYardLine}` : `${homeAbbr} ${rawYardLine}`);
+                    downText = `${ord} & ${distStr}, ${posStr}`;
+                } else {
+                    downText = sit.lastPlay?.text || sit.lastPlay?.type?.text || 'Timeout / Game Break';
+                }
             }
-            if (!downText) downText = 'Live Possession';
 
             const driveLength = Math.min(20, isAwayPossession ? ballPosPct : (100 - ballPosPct));
             const arrowStartPct = isAwayPossession ? (ballPosPct - driveLength) : (ballPosPct + driveLength);
+            const showArrow = !isInvalidDown && dist > 0 && (isAwayPossession || isHomePossession);
 
             return `
             <div class="football-possession-card" style="background:#111923; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px 16px; margin:10px 0; font-family:var(--font-mono);" onclick="event.stopPropagation()">
@@ -2070,8 +2078,8 @@
                         ${isAwayPossession ? '<span style="font-size:14px; filter:drop-shadow(0 0 4px #06B6D4);" title="Possession">🏈</span>' : ''}
                     </div>
                     
-                    <div style="text-align:center;">
-                        <div style="font-size:14px; font-weight:800; color:#FFFFFF; letter-spacing:0.5px;">${downText}</div>
+                    <div style="text-align:center; flex:1; padding:0 8px; overflow:hidden;">
+                        <div style="font-size:13px; font-weight:800; color:#FFFFFF; letter-spacing:0.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${downText}</div>
                         <div style="font-size:11px; color:var(--muted); margin-top:2px;">${statusLabel}</div>
                     </div>
 
@@ -2100,16 +2108,16 @@
                             <div style="border-right:1px solid #fff; flex:1;"></div>
                         </div>
 
-                        <!-- First Down Line (Yellow Line) -->
-                        <div style="position:absolute; top:0; bottom:0; left:${firstDownPct}%; width:2px; background:#F59E0B; z-index:2; box-shadow:0 0 6px #F59E0B;" title="First Down Target Line"></div>
+                        ${!isInvalidDown && dist > 0 ? `<div style="position:absolute; top:0; bottom:0; left:${firstDownPct}%; width:2px; background:#F59E0B; z-index:2; box-shadow:0 0 6px #F59E0B;" title="First Down Target Line"></div>` : ''}
 
                         <!-- Line of Scrimmage Line (White Line) -->
                         <div style="position:absolute; top:0; bottom:0; left:${ballPosPct}%; width:2px; background:#FFFFFF; z-index:3; box-shadow:0 0 8px #FFFFFF;" title="Line of Scrimmage"></div>
 
                         <!-- Drive Direction Arrow -->
+                        ${showArrow ? `
                         <div style="position:absolute; top:50%; transform:translateY(-50%); ${isAwayPossession ? `left:${arrowStartPct}%; width:${ballPosPct - arrowStartPct}%;` : `left:${ballPosPct}%; width:${arrowStartPct - ballPosPct}%;`} height:2px; background:rgba(255,255,255,0.75); pointer-events:none; z-index:1;">
                             <div style="position:absolute; ${isAwayPossession ? 'right:-2px' : 'left:-2px'}; top:-3px; border-top:4px solid transparent; border-bottom:4px solid transparent; ${isAwayPossession ? 'border-left:7px solid #FFFFFF' : 'border-right:7px solid #FFFFFF'};"></div>
-                        </div>
+                        </div>` : ''}
                     </div>
 
                     <!-- Right Endzone -->
