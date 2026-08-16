@@ -2135,7 +2135,21 @@
         }
         window.renderFootballGraphic = renderFootballGraphic;
 
-        function renderBaseballGraphic(sit, away, home, statusLabel) {
+        function getAthleteHeadshot(ath, playerId) {
+            if (ath) {
+                if (typeof ath.headshot === 'string' && ath.headshot.startsWith('http')) return ath.headshot;
+                if (ath.headshot && typeof ath.headshot === 'object' && ath.headshot.href) return ath.headshot.href;
+                if (ath.headshot?.href) return ath.headshot.href;
+            }
+            const pid = playerId || ath?.id || ath?.playerId;
+            if (pid) {
+                return `https://a.espncdn.com/i/headshots/mlb/players/full/${pid}.png`;
+            }
+            return 'https://a.espncdn.com/i/headshots/placeholder.png';
+        }
+        window.getAthleteHeadshot = getAthleteHeadshot;
+
+        function renderBaseballGraphic(sit, away, home, statusLabel, findAthlete) {
             if (!sit) return '';
 
             const balls = parseInt(sit.balls || 0);
@@ -2146,13 +2160,27 @@
             const on2 = !!sit.onSecond;
             const on3 = !!sit.onThird;
 
-            const batName = sit.batter?.athlete?.displayName || sit.batter?.athlete?.fullName || 'AT BAT';
-            const pitName = sit.pitcher?.athlete?.displayName || sit.pitcher?.athlete?.fullName || 'PITCHING';
+            let batId = sit.batter?.playerId || sit.batter?.athlete?.id;
+            let batAth = sit.batter?.athlete || (findAthlete && batId ? findAthlete(batId) : null);
+            let batName = batAth?.displayName || batAth?.fullName || batAth?.shortName;
+            let batRole = 'AT BAT';
 
-            const batImg = sit.batter?.athlete?.headshot || 'https://a.espncdn.com/i/headshots/placeholder.png';
-            const pitImg = sit.pitcher?.athlete?.headshot || 'https://a.espncdn.com/i/headshots/placeholder.png';
+            if (!batName && sit.dueUp && sit.dueUp[0]) {
+                const nextBat = sit.dueUp[0];
+                batId = nextBat.playerId || nextBat.athlete?.id;
+                batAth = nextBat.athlete || (findAthlete && batId ? findAthlete(batId) : null);
+                batName = batAth?.displayName || batAth?.fullName || batAth?.shortName;
+                batRole = 'DUE UP';
+            }
+            if (!batName) batName = 'BATTER';
+            let batImg = getAthleteHeadshot(batAth, batId);
 
-            const batSummary = sit.batter?.summary || '';
+            let pitId = sit.pitcher?.playerId || sit.pitcher?.athlete?.id;
+            let pitAth = sit.pitcher?.athlete || (findAthlete && pitId ? findAthlete(pitId) : null);
+            let pitName = pitAth?.displayName || pitAth?.fullName || pitAth?.shortName || 'PITCHING';
+            let pitImg = getAthleteHeadshot(pitAth, pitId);
+
+            const batSummary = sit.batter?.summary || (sit.dueUp?.[0]?.summary || '');
             const pitSummary = sit.pitcher?.summary || '';
 
             return `
@@ -2161,9 +2189,9 @@
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                     <!-- Batter -->
                     <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
-                        <img src="${batImg}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #06B6D4;" onerror="this.src='https://a.espncdn.com/i/headshots/placeholder.png'">
+                        <img src="${batImg}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid #06B6D4; background:#1A2430;" onerror="this.src='https://a.espncdn.com/i/headshots/placeholder.png'">
                         <div style="display:flex; flex-direction:column; min-width:0;">
-                            <span style="font-size:8px; color:#06B6D4; font-weight:700;">AT BAT</span>
+                            <span style="font-size:8px; color:#06B6D4; font-weight:700;">${batRole}</span>
                             <span style="font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${batName}</span>
                             ${batSummary ? `<span style="font-size:9px; color:var(--muted);">${batSummary}</span>` : ''}
                         </div>
@@ -2182,7 +2210,7 @@
                             <span style="font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${pitName}</span>
                             ${pitSummary ? `<span style="font-size:9px; color:var(--muted);">${pitSummary}</span>` : ''}
                         </div>
-                        <img src="${pitImg}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.2);" onerror="this.src='https://a.espncdn.com/i/headshots/placeholder.png'">
+                        <img src="${pitImg}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.2); background:#1A2430;" onerror="this.src='https://a.espncdn.com/i/headshots/placeholder.png'">
                     </div>
                 </div>
 
@@ -2918,18 +2946,18 @@
                 const sit = data.situation;
                 
                 // Get Batter Athlete & Stats
-                const batId = sit.batter?.playerId;
-                const batAth = findAthlete(batId);
-                const batName = batAth ? batAth.displayName : 'UNKNOWN BATTER';
-                const batHeadshot = batAth?.headshot?.href || 'https://a.espncdn.com/i/headshots/placeholder.png';
-                const batStats = getBatterStatsString(batId) || '0-0';
+                const batId = sit.batter?.playerId || sit.dueUp?.[0]?.playerId;
+                const batAth = findAthlete(batId) || sit.batter?.athlete || sit.dueUp?.[0]?.athlete;
+                const batName = batAth ? (batAth.displayName || batAth.fullName) : (sit.dueUp?.[0] ? 'DUE UP' : 'UNKNOWN BATTER');
+                const batHeadshot = getAthleteHeadshot(batAth, batId);
+                const batStats = getBatterStatsString(batId) || sit.batter?.summary || sit.dueUp?.[0]?.summary || '0-0';
 
                 // Get Pitcher Athlete & Stats
                 const pitId = sit.pitcher?.playerId;
-                const pitAth = findAthlete(pitId);
-                const pitName = pitAth ? pitAth.displayName : 'UNKNOWN PITCHER';
-                const pitHeadshot = pitAth?.headshot?.href || 'https://a.espncdn.com/i/headshots/placeholder.png';
-                const pitStats = getPitcherStatsString(pitId) || '0.0 IP';
+                const pitAth = findAthlete(pitId) || sit.pitcher?.athlete;
+                const pitName = pitAth ? (pitAth.displayName || pitAth.fullName) : 'UNKNOWN PITCHER';
+                const pitHeadshot = getAthleteHeadshot(pitAth, pitId);
+                const pitStats = getPitcherStatsString(pitId) || sit.pitcher?.summary || '0.0 IP';
 
                 // Matchup Notes / Plays Fallback
                 const latestPlayText = plays[plays.length - 1]?.text;
