@@ -3311,7 +3311,7 @@
                             You have zero active wager tickets currently in play.<br>Select any live or scheduled game from the sidebar to place a wager and track your ticket in real time.
                         </div>
                         <button onclick="toggleBetSlip()" class="mb-add-btn" style="margin-top:8px; display:inline-flex; align-items:center; gap:8px;">
-                            📋 OPEN BET SLIP (<span id="live-wagers-slip-cnt">${betSlip.length}</span> DRAFT BETS)
+                            📋 OPEN BET SLIP (<span id="live-wagers-slip-cnt">${typeof betSlip !== 'undefined' && Array.isArray(betSlip) ? betSlip.length : 0}</span> DRAFT BETS)
                         </button>
                     </div>
                 `;
