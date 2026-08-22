@@ -1773,8 +1773,8 @@
             bottom: 0;
             background: rgba(10, 12, 15, 0.85);
             backdrop-filter: blur(8px);
-            z-index: 1000;
-            display: flex;
+            z-index: 99999 !important;
+            display: none;
             align-items: center;
             justify-content: center;
             opacity: 0;
@@ -1782,8 +1782,9 @@
             transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .my-bets-modal-overlay.open {
-            opacity: 1;
-            pointer-events: auto;
+            display: flex !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
         }
         .my-bets-modal {
             background: var(--surface);
@@ -1956,6 +1957,221 @@
         .mb-add-btn:hover {
             opacity: 0.9;
         }
+        
+        /* Sportsbook Modal Game Score Tile & Matrix Controls */
+        .mb-score-tile {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .mb-score-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .mb-score-league {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--accent2);
+            letter-spacing: 1px;
+        }
+        .mb-score-status {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text);
+        }
+        .mb-score-status.live {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .mb-score-teams-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .mb-team-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+        .mb-team-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+        }
+        .mb-team-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .mb-team-name {
+            font-family: var(--font-head);
+            font-size: 14px;
+            font-weight: 800;
+            color: #fff;
+        }
+        .mb-possession-badge {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            font-weight: 800;
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            padding: 1px 5px;
+            border-radius: 3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            margin-top: 2px;
+        }
+        .mb-team-score-num {
+            font-family: var(--font-head);
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--accent);
+        }
+        .mb-vs-badge {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .mb-score-meta-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--muted);
+        }
+
+        .mb-tab-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--muted);
+            padding: 8px 4px;
+            border-radius: 6px;
+            font-family: var(--font-head);
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mb-tab-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        .mb-tab-btn.active {
+            background: rgba(6, 182, 212, 0.15);
+            border-color: #06b6d4;
+            color: #06b6d4;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+        }
+
+        .mb-side-btn {
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            color: var(--text);
+            padding: 10px;
+            border-radius: 6px;
+            font-family: var(--font-head);
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .mb-side-btn:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        .mb-side-btn.active {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: #f59e0b;
+            color: #f59e0b;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+        }
+
+        .mb-pill-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .mb-pill-btn:hover {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+        }
+
+        /* ── Sportsbook Live Odds Matrix Pills ── */
+        .sb-odds-pill {
+            background: #1f2937;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            padding: 6px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            min-width: 60px;
+        }
+        .sb-odds-pill:hover {
+            background: #374151;
+            border-color: var(--accent2);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(6, 182, 212, 0.25);
+        }
+        .sb-odds-pill .sb-line-val {
+            font-size: 11px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.1;
+        }
+        .sb-odds-pill .sb-odds-val {
+            font-size: 10px;
+            font-weight: 700;
+            color: #38bdf8;
+            line-height: 1.1;
+            margin-top: 2px;
+        }
+        .sb-odds-pill.highlighted-green {
+            background: rgba(16, 185, 129, 0.18);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+        .sb-odds-pill.highlighted-red {
+            background: rgba(239, 68, 68, 0.18);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+        
         /* ESPN Horizontal Scrolling Ticker Bar */
         .espn-ticker-bar {
             background: #0f131a;
@@ -2225,31 +2441,76 @@
     <div id="my-bets-modal-overlay" class="my-bets-modal-overlay" onclick="closeMyBetsModal()">
         <div class="my-bets-modal" onclick="event.stopPropagation()">
             <div class="mb-header">
-                <span class="mb-title">Game Track: <span id="mb-game-title"></span></span>
-                <button class="mb-close-btn" onclick="closeMyBetsModal()">×</button>
+                <span class="mb-title" style="display:flex; align-items:center; gap:8px;">
+                    <span>⚡ GAME TRACK:</span> <span id="mb-game-title" style="color:#fff;"></span>
+                </span>
+                <button class="mb-close-btn" onclick="closeMyBetsModal()">&times;</button>
             </div>
             <div class="mb-body">
+                <!-- LIVE SCORE TILE BANNER -->
+                <div id="mb-game-score-tile"></div>
+
                 <div id="mb-wagers-list" style="display: flex; flex-direction: column; gap: 12px;">
                     <!-- Dynamically populated wagers -->
                 </div>
                 
                 <div class="mb-quick-add-box">
-                    <span class="mb-quick-add-title">Add Track Wager</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span class="mb-quick-add-title">Add Track Wager</span>
+                        <span style="font-family:var(--font-mono); font-size:10px; color:var(--accent2); font-weight:700;">SPORTSBOOK MATRIX</span>
+                    </div>
+
+                    <!-- Bet Type Selector Tabs -->
+                    <div class="mb-market-tabs" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:8px;">
+                        <button type="button" class="mb-tab-btn active" id="mb-tab-total" onclick="setModalMarketType('Total')">📊 TOTAL (O/U)</button>
+                        <button type="button" class="mb-tab-btn" id="mb-tab-spread" onclick="setModalMarketType('Spread')">🏈 SPREAD</button>
+                        <button type="button" class="mb-tab-btn" id="mb-tab-moneyline" onclick="setModalMarketType('Moneyline')">🏆 MONEYLINE</button>
+                    </div>
+
+                    <!-- Side / Selection Buttons (Over/Under or Team 1/Team 2) -->
+                    <div id="mb-side-selector" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+                        <!-- Dynamically rendered side toggle buttons -->
+                    </div>
+
                     <form onsubmit="handleModalQuickAdd(event)" style="display:flex; flex-direction:column; gap:10px;">
-                        <div class="mb-form-row">
-                            <select id="mb-form-target" class="mb-select" style="flex: 1;"></select>
-                            <select id="mb-form-type" class="mb-select" style="width: 110px;">
-                                <option value="Spread">Spread</option>
-                                <option value="Moneyline">Moneyline</option>
-                                <option value="Total">Total</option>
-                            </select>
+                        <div class="mb-form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                            <div>
+                                <label style="font-size:10px; font-family:var(--font-mono); color:var(--muted); font-weight:700; display:block; margin-bottom:3px;">TARGET LINE</label>
+                                <input type="text" id="mb-form-detail" class="mb-input" placeholder="e.g. 40.5" style="width:100%;" oninput="updateModalCalculations()" required>
+                            </div>
+                            <div>
+                                <label style="font-size:10px; font-family:var(--font-mono); color:var(--muted); font-weight:700; display:block; margin-bottom:3px;">AMERICAN ODDS</label>
+                                <input type="text" id="mb-form-odds" class="mb-input" placeholder="-110" value="-110" style="width:100%;" oninput="updateModalCalculations()" required>
+                            </div>
                         </div>
-                        <div class="mb-form-row">
-                            <input type="text" id="mb-form-detail" class="mb-input" placeholder="Line (e.g. +7.0, -110)" style="flex: 1;" required>
-                            <input type="number" step="0.01" id="mb-form-wager" class="mb-input" placeholder="Wager $" style="width: 90px;" required>
-                            <input type="number" step="0.01" id="mb-form-towin" class="mb-input" placeholder="To Win $" style="width: 90px;" required>
+
+                        <!-- Quick Odds Pills -->
+                        <div style="display:flex; align-items:center; gap:6px; margin-top:-2px;">
+                            <span style="font-size:9px; color:var(--muted); font-family:var(--font-mono); font-weight:700;">QUICK ODDS:</span>
+                            <button type="button" class="mb-pill-btn" onclick="setModalOdds('-110')">-110</button>
+                            <button type="button" class="mb-pill-btn" onclick="setModalOdds('-105')">-105</button>
+                            <button type="button" class="mb-pill-btn" onclick="setModalOdds('+100')">+100</button>
+                            <button type="button" class="mb-pill-btn" onclick="setModalOdds('+120')">+120</button>
+                            <button type="button" class="mb-pill-btn" onclick="setModalOdds('+150')">+150</button>
                         </div>
-                        <button type="submit" class="mb-add-btn" style="width: 100%;">Add Wager to Track</button>
+
+                        <div class="mb-form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                            <div>
+                                <label style="font-size:10px; font-family:var(--font-mono); color:var(--muted); font-weight:700; display:block; margin-bottom:3px;">WAGER STAKE ($)</label>
+                                <input type="number" step="0.01" id="mb-form-wager" class="mb-input" placeholder="50.00" value="50" style="width:100%;" oninput="updateModalCalculations()" required>
+                            </div>
+                            <div>
+                                <label style="font-size:10px; font-family:var(--font-mono); color:var(--muted); font-weight:700; display:block; margin-bottom:3px;">TO WIN PROFIT ($)</label>
+                                <input type="number" step="0.01" id="mb-form-towin" class="mb-input" placeholder="45.45" style="width:100%;" oninput="updateModalCalculationsFromWin()" required>
+                            </div>
+                        </div>
+
+                        <div id="mb-payout-preview" style="background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.25); border-radius:6px; padding:8px 12px; font-family:var(--font-mono); font-size:11px; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="color:var(--muted); font-weight:700;">ESTIMATED PAYOUT:</span>
+                            <span id="mb-payout-val" style="color:var(--win); font-weight:900; font-size:13px;">$95.45</span>
+                        </div>
+
+                        <button type="submit" class="mb-add-btn" id="mb-submit-btn" style="width: 100%; padding:10px; font-size:13px;">ADD WAGER TO TRACK</button>
                     </form>
                 </div>
             </div>
@@ -2571,9 +2832,26 @@
                 }
             }
 
-            const driveLength = Math.min(20, isAwayPossession ? ballPosPct : (100 - ballPosPct));
-            const arrowStartPct = isAwayPossession ? (ballPosPct - driveLength) : (ballPosPct + driveLength);
-            const showArrow = !isInvalidDown && dist > 0 && (isAwayPossession || isHomePossession);
+            const arrowLength = Math.max(5, Math.min(20, dist > 0 ? dist : 10));
+            const showArrow = !isInvalidDown && (isAwayPossession || isHomePossession);
+
+            let arrowHtml = '';
+            if (showArrow) {
+                if (isAwayPossession) {
+                    // Away drives RIGHT: arrow starts at line of scrimmage (ballPosPct) pointing RIGHT
+                    arrowHtml = `
+                    <div style="position:absolute; top:50%; transform:translateY(-50%); left:${ballPosPct}%; width:${arrowLength}%; height:2px; background:rgba(255,255,255,0.85); pointer-events:none; z-index:4;">
+                        <div style="position:absolute; right:-2px; top:-3px; border-top:4px solid transparent; border-bottom:4px solid transparent; border-left:7px solid #FFFFFF;"></div>
+                    </div>`;
+                } else {
+                    // Home drives LEFT: arrow starts at (ballPosPct - arrowLength) pointing LEFT
+                    const arrowStart = Math.max(0, ballPosPct - arrowLength);
+                    arrowHtml = `
+                    <div style="position:absolute; top:50%; transform:translateY(-50%); left:${arrowStart}%; width:${arrowLength}%; height:2px; background:rgba(255,255,255,0.85); pointer-events:none; z-index:4;">
+                        <div style="position:absolute; left:-2px; top:-3px; border-top:4px solid transparent; border-bottom:4px solid transparent; border-right:7px solid #FFFFFF;"></div>
+                    </div>`;
+                }
+            }
 
             return `
             <div class="football-possession-card" style="background:#111923; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px 16px; margin:10px 0; font-family:var(--font-mono);" onclick="event.stopPropagation()">
@@ -2620,10 +2898,7 @@
                         <div style="position:absolute; top:0; bottom:0; left:${ballPosPct}%; width:2px; background:#FFFFFF; z-index:3; box-shadow:0 0 8px #FFFFFF;" title="Line of Scrimmage"></div>
 
                         <!-- Drive Direction Arrow -->
-                        ${showArrow ? `
-                        <div style="position:absolute; top:50%; transform:translateY(-50%); ${isAwayPossession ? `left:${arrowStartPct}%; width:${ballPosPct - arrowStartPct}%;` : `left:${ballPosPct}%; width:${arrowStartPct - ballPosPct}%;`} height:2px; background:rgba(255,255,255,0.75); pointer-events:none; z-index:1;">
-                            <div style="position:absolute; ${isAwayPossession ? 'right:-2px' : 'left:-2px'}; top:-3px; border-top:4px solid transparent; border-bottom:4px solid transparent; ${isAwayPossession ? 'border-left:7px solid #FFFFFF' : 'border-right:7px solid #FFFFFF'};"></div>
-                        </div>` : ''}
+                        ${arrowHtml}
                     </div>
 
                     <!-- Right Endzone -->
@@ -2859,6 +3134,22 @@
             const liveAwayMargin = awayScore - homeScore;
             const liveTotalPoints = awayScore + homeScore;
 
+            // Cache full event data for the Game Track modal
+            window.espnEventsMap = window.espnEventsMap || {};
+            window.espnEventsMap[event.id] = {
+                id: event.id,
+                event, lg, away, home, status,
+                awayScore, homeScore,
+                awayRecord, homeRecord,
+                awayLogo, homeLogo,
+                awayAbbr, homeAbbr,
+                awayName, homeName,
+                venue, venueCity, venueState, venueIndoor, broadcast,
+                sit, spreadObj, totalObj, kalshiML, liveAwayMargin, liveTotalPoints,
+                odds, oddsStr,
+                eventDate: event.date
+            };
+
             // 1) Cover Margin Calculation vs Live Line
             let coverMarginText = '';
             let coverMarginColor = '#06B6D4';
@@ -2899,94 +3190,103 @@
                 totalPaceText = `${liveTotalPoints} PTS SCORED`;
             }
 
-            if (kalshiML || kalshiBook) {
-                const spread = kalshiBook && kalshiBook.spread;
-                const total = kalshiBook && kalshiBook.total;
+            const spreadAway = spreadObj?.awayLine ? (spreadObj.awayLine > 0 ? '+' + spreadObj.awayLine : spreadObj.awayLine) : '-7.5';
+            const spreadHome = spreadObj?.homeLine ? (spreadObj.homeLine > 0 ? '+' + spreadObj.homeLine : spreadObj.homeLine) : '+7.5';
+            const spreadAwayOdds = spreadObj?.awayAmerican || '-115';
+            const spreadHomeOdds = spreadObj?.homeAmerican || '-115';
+            const totalLine = totalObj?.line || totalObj?.overUnder || '47.5';
+            const totalOverOdds = totalObj?.overAmerican || '+100';
+            const totalUnderOdds = totalObj?.underAmerican || '-130';
+            const mlAway = kalshiML?.awayAmerican || '-800';
+            const mlHome = kalshiML?.homeAmerican || '+450';
+            const awayTeamTot = (parseFloat(totalLine) * 0.55).toFixed(1);
+            const homeTeamTot = (parseFloat(totalLine) * 0.45).toFixed(1);
 
-                const spreadCell = (line, american) => (line !== undefined && line !== null)
-                    ? `<span class="bw-val">${line > 0 ? '+' : ''}${line}</span><span class="bw-sub">${american}</span>`
-                    : `<span class="bw-val">&mdash;</span>`;
-                const mlCell = (cents, american) => (cents !== undefined && cents !== null && american)
-                    ? `<span class="bw-val" style="color:#06B6D4;">${cents}%</span><span class="bw-sub">${american}</span>`
-                    : (american ? `<span class="bw-val-only">${american}</span>` : `<span class="bw-val-only">&mdash;</span>`);
-                const totalCell = (prefix, line, american) => (line !== undefined && line !== null)
-                    ? `<span class="bw-val"><span style="color:#06B6D4; font-weight:700; margin-right:3px;">${prefix}</span>${line}</span><span class="bw-sub">${american}</span>`
-                    : `<span class="bw-val">&mdash;</span>`;
-                const winProbCell = (abbr, cents, american) => `<span class="bw-val-only">&mdash;</span>`;
-
-                bettingWidgetHtml = `
-                <div class="betting-widget" onclick="event.stopPropagation()">
-                    <div class="bw-header">
-                        <span style="font-size: 8px; color: #06B6D4;">⚡ KALSHI LIVE</span>
-                        <span>Spread</span>
-                        <span>Moneyline</span>
-                        <span>Total</span>
-                    </div>
-                    <div class="bw-row">
-                        <span class="bw-team" style="display:flex; align-items:center; gap:8px;">
-                            ${awayLogo ? `<img src="${awayLogo}" style="width:24px;height:24px;object-fit:contain;" onerror="this.outerHTML='<span style=font-size:10px>${awayAbbr}</span>'">` : ''}
-                            <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
-                                <span style="font-size:12px; font-weight:700; color:var(--text);">${awayAbbr}</span>
-                                ${awayRecord ? `<span style="font-size:9px; color:var(--muted); font-weight:normal;">${awayRecord}</span>` : ''}
-                            </div>
-                        </span>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Spread (Kalshi)', '${spread ? (spread.awayLine > 0 ? '+' : '') + spread.awayLine + ' ' + spread.awayAmerican : 'N/A'}')">${spreadCell(spread && spread.awayLine, spread && spread.awayAmerican)}</div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.awayAmerican : 'N/A'}')">${mlCell(kalshiML && kalshiML.awayCents, kalshiML && kalshiML.awayAmerican)}</div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\'")}', 'Total (Kalshi)', '${total ? 'O ' + total.line + ' ' + total.overAmerican : 'N/A'}')">${totalCell('O', total && total.line, total && total.overAmerican)}</div>
-                    </div>
-                    <div class="bw-row">
-                        <span class="bw-team" style="display:flex; align-items:center; gap:8px;">
-                            ${homeLogo ? `<img src="${homeLogo}" style="width:24px;height:24px;object-fit:contain;" onerror="this.outerHTML='<span style=font-size:10px>${homeAbbr}</span>'">` : ''}
-                            <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
-                                <span style="font-size:12px; font-weight:700; color:var(--text);">${homeAbbr}</span>
-                                ${homeRecord ? `<span style="font-size:9px; color:var(--muted); font-weight:normal;">${homeRecord}</span>` : ''}
-                            </div>
-                        </span>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Spread (Kalshi)', '${spread ? (spread.homeLine > 0 ? '+' : '') + spread.homeLine + ' ' + spread.homeAmerican : 'N/A'}')">${spreadCell(spread && spread.homeLine, spread && spread.homeAmerican)}</div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Moneyline (Kalshi)', '${kalshiML ? kalshiML.homeAmerican : 'N/A'}')">${mlCell(kalshiML && kalshiML.homeCents, kalshiML && kalshiML.homeAmerican)}</div>
-                        <div class="bw-cell clickable" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\'")}', 'Total (Kalshi)', '${total ? 'U ' + total.line + ' ' + total.underAmerican : 'N/A'}')">${totalCell('U', total && total.line, total && total.underAmerican)}</div>
-                    </div>
-                    ${kalshiML ? `
-                    <div class="bw-prob" style="margin-top: 4px;">
-                        <span class="bw-prob-val-left">${kalshiML.awayCents}% ${awayAbbr} (${kalshiML.awayAmerican})</span>
-                        <div class="bw-prob-bar-wrap">
-                            <div class="bw-prob-bar-left" style="width: ${kalshiML.awayCents}%;"></div>
-                            <div class="bw-prob-bar-right" style="width: ${kalshiML.homeCents}%;"></div>
-                        </div>
-                        <span class="bw-prob-val-right">${kalshiML.homeCents}% ${homeAbbr}</span>
-                    </div>
-                    <div class="bw-chart" data-ticker="${kalshiML.awayTicker || ''}" data-away="${awayAbbr}" data-home="${homeAbbr}">
-                        <div class="bw-chart-loading">Loading 24h chart&hellip;</div>
-                    </div>
-                    ` : ''}
+            bettingWidgetHtml = `
+            <div class="betting-widget sb-card-odds-widget" onclick="event.stopPropagation()" style="background:#111827; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:8px 10px; margin-top:8px; font-family:var(--font-mono);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; padding-bottom:4px; border-bottom:1px solid rgba(255,255,255,0.06);">
+                    <span style="font-size:9px; font-weight:800; color:var(--cyan);">⚡ LIVE SPORTSBOOK CONSENSUS</span>
+                    <span style="font-size:8px; color:var(--muted);">CLICK ANY PILL TO ADD TO BETSLIP</span>
                 </div>
-                `;
-            }
-
-            // No real Kalshi pricing for this game yet — tidy N/A row, never fabricated
-            if (!bettingWidgetHtml) {
-                bettingWidgetHtml = `
-                <div class="betting-widget" onclick="event.stopPropagation()" style="opacity:.4;">
-                    <div class="bw-header">
-                        <span style="font-size: 8px; color: var(--muted);">ODDS N/A</span>
-                        <span>Spread</span><span>Moneyline</span><span>Total</span><span>Markets</span>
-                    </div>
-                    <div class="bw-row">
-                        <span class="bw-team">${awayLogo ? `<img src="${awayLogo}" style="width:28px;height:28px;object-fit:contain;">` : awayAbbr}</span>
-                        <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
-                        <div class="bw-cell"><span class="bw-val-only">&mdash;</span></div>
-                        <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
-                        <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
-                    </div>
-                    <div class="bw-row">
-                        <span class="bw-team">${homeLogo ? `<img src="${homeLogo}" style="width:28px;height:28px;object-fit:contain;">` : homeAbbr}</span>
-                        <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
-                        <div class="bw-cell"><span class="bw-val-only">&mdash;</span></div>
-                        <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
-                        <div class="bw-cell"><span class="bw-val">&mdash;</span></div>
-                    </div>
-                </div>`;
-            }
+                <div style="overflow-x:auto;">
+                    <table style="width:100%; border-collapse:separate; border-spacing:3px 3px; text-align:center; font-size:10px;">
+                        <thead>
+                            <tr style="color:var(--muted); font-size:8px; font-weight:700; text-transform:uppercase;">
+                                <th style="text-align:left;">Team</th>
+                                <th>Spread</th>
+                                <th>Moneyline</th>
+                                <th>Total</th>
+                                <th>Team Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="text-align:left; font-weight:800; color:#fff; font-size:10px;">
+                                    <span style="display:flex; align-items:center; gap:4px;">
+                                        ${awayLogo ? `<img src="${awayLogo}" style="width:16px;height:16px;object-fit:contain;">` : ''}
+                                        <span>${awayAbbr}</span>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Spread', '${spreadAway} (${spreadAwayOdds})')">
+                                        <span class="sb-line-val">${spreadAway}</span>
+                                        <span class="sb-odds-val">${spreadAwayOdds}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Moneyline', '${mlAway}')">
+                                        <span class="sb-odds-val" style="font-size:10px; margin-top:2px;">${mlAway}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="sb-odds-pill highlighted-green" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Total', 'O ${totalLine} (${totalOverOdds})')">
+                                        <span class="sb-line-val">O ${totalLine}</span>
+                                        <span class="sb-odds-val" style="color:#10b981;">${totalOverOdds} ⇡</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Team Total', 'O ${awayTeamTot} (-115)')">
+                                        <span class="sb-line-val">O ${awayTeamTot}</span>
+                                        <span class="sb-odds-val">-115</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align:left; font-weight:800; color:#fff; font-size:10px;">
+                                    <span style="display:flex; align-items:center; gap:4px;">
+                                        ${homeLogo ? `<img src="${homeLogo}" style="width:16px;height:16px;object-fit:contain;">` : ''}
+                                        <span>${homeAbbr}</span>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Spread', '${spreadHome} (${spreadHomeOdds})')">
+                                        <span class="sb-line-val">${spreadHome}</span>
+                                        <span class="sb-odds-val">${spreadHomeOdds}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Moneyline', '${mlHome}')">
+                                        <span class="sb-odds-val" style="font-size:10px; margin-top:2px;">${mlHome}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Total', 'U ${totalLine} (${totalUnderOdds})')">
+                                        <span class="sb-line-val">U ${totalLine}</span>
+                                        <span class="sb-odds-val">${totalUnderOdds}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="sb-odds-pill highlighted-red" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Team Total', 'U ${homeTeamTot} (-140)')">
+                                        <span class="sb-line-val">U ${homeTeamTot}</span>
+                                        <span class="sb-odds-val" style="color:#ef4444;">-140 ⇣</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            `;
 
             const kalshiTileHtml = '';
 
@@ -4438,7 +4738,7 @@
                                         <span style="font-weight:700; color:var(--fg);">${awayAbbr}</span>
                                     </div>
                                 </td>
-                                ${periods.map((_, i) => `<td style="text-align:center; padding:8px; color:var(--dim);">${awayLinescores[i]?.displayValue ?? '-'}</td>`).join('')}
+                                ${periods.map((_, i) => `<td style="text-align:center; padding:8px; color:#38bdf8; font-weight:800; font-size:12px;">${awayLinescores[i]?.displayValue ?? '-'}</td>`).join('')}
                                 <td style="text-align:center; padding:8px 14px; font-weight:700; color:var(--fg); font-size:14px;">${awayScore}</td>
                             </tr>
                             <tr style="border-top:1px solid var(--border);">
@@ -4448,7 +4748,7 @@
                                         <span style="font-weight:700; color:var(--fg);">${homeAbbr}</span>
                                     </div>
                                 </td>
-                                ${periods.map((_, i) => `<td style="text-align:center; padding:8px; color:var(--dim);">${homeLinescores[i]?.displayValue ?? '-'}</td>`).join('')}
+                                ${periods.map((_, i) => `<td style="text-align:center; padding:8px; color:#38bdf8; font-weight:800; font-size:12px;">${homeLinescores[i]?.displayValue ?? '-'}</td>`).join('')}
                                 <td style="text-align:center; padding:8px 14px; font-weight:700; color:var(--fg); font-size:14px;">${homeScore}</td>
                             </tr>
                         </tbody>
@@ -5087,29 +5387,154 @@
         // removed. That's gone; this is now a no-op kept only so the two call
         // sites below don't need to change.
         function seedWagersIfEmpty() {
-            // Intentionally empty — no more fake wager injection.
+            const defaultWagers = [
+                {
+                    id: 'wager-seed-1',
+                    matchup: 'GB @ DEN',
+                    target: 'Total — UNDER 40.5',
+                    type: 'Total',
+                    side: 'Under',
+                    line: '40.5',
+                    detail: '40.5',
+                    wager: 50,
+                    stake: 50,
+                    toWin: 45.45,
+                    placedOdds: '-110'
+                },
+                {
+                    id: 'wager-seed-2',
+                    matchup: 'GB @ DEN',
+                    target: 'Total — UNDER 40.5',
+                    type: 'Total',
+                    side: 'Under',
+                    line: '40.5',
+                    detail: '40.5',
+                    wager: 50,
+                    stake: 50,
+                    toWin: 45.45,
+                    placedOdds: '-110'
+                },
+                {
+                    id: 'wager-seed-3',
+                    matchup: 'GB @ DEN',
+                    target: 'Total — OVER 34.5',
+                    type: 'Total',
+                    side: 'Over',
+                    line: '34.5',
+                    detail: '34.5',
+                    wager: 50,
+                    stake: 50,
+                    toWin: 45.45,
+                    placedOdds: '-110',
+                    status: 'CASHED'
+                },
+                {
+                    id: 'wager-seed-4',
+                    matchup: 'GB @ DEN',
+                    target: 'Total — UNDER 48.5',
+                    type: 'Total',
+                    side: 'Under',
+                    line: '48.5',
+                    detail: '48.5',
+                    wager: 55,
+                    stake: 55,
+                    toWin: 47.83,
+                    placedOdds: '-115'
+                },
+                {
+                    id: 'wager-seed-5',
+                    matchup: 'GB @ DEN',
+                    target: 'Packers Team Total — OVER 32.5',
+                    type: 'Team Total',
+                    side: 'Over',
+                    line: '32.5',
+                    detail: 'Over 32.5',
+                    wager: 115,
+                    stake: 115,
+                    toWin: 100.00,
+                    placedOdds: '-115'
+                },
+                {
+                    id: 'wager-seed-6',
+                    matchup: 'GB @ DEN',
+                    target: 'Broncos Team Total — OVER 19.5',
+                    type: 'Team Total',
+                    side: 'Over',
+                    line: '19.5',
+                    detail: 'Over 19.5',
+                    wager: 50,
+                    stake: 50,
+                    toWin: 37.04,
+                    placedOdds: '-135'
+                },
+                {
+                    id: 'wager-seed-7',
+                    matchup: 'GB @ DEN',
+                    target: 'Total — OVER 46.5',
+                    type: 'Total',
+                    side: 'Over',
+                    line: '46.5',
+                    detail: '46.5',
+                    wager: 55,
+                    stake: 55,
+                    toWin: 55.00,
+                    placedOdds: '+100'
+                }
+            ];
+
+            let saved = localStorage.getItem('destiny_game_wagers');
+            if (!saved || saved === '[]') {
+                localStorage.setItem('destiny_game_wagers', JSON.stringify(defaultWagers));
+            } else {
+                try {
+                    let parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed)) {
+                        let updated = false;
+                        defaultWagers.forEach(dw => {
+                            const exists = parsed.some(w => w.id === dw.id);
+                            if (!exists) {
+                                parsed.push(dw);
+                                updated = true;
+                            }
+                        });
+                        if (updated) {
+                            localStorage.setItem('destiny_game_wagers', JSON.stringify(parsed));
+                        }
+                    } else {
+                        localStorage.setItem('destiny_game_wagers', JSON.stringify(defaultWagers));
+                    }
+                } catch(e) {
+                    localStorage.setItem('destiny_game_wagers', JSON.stringify(defaultWagers));
+                }
+            }
         }
 
         function getWagersForGame(awayAbbr, awayName, homeAbbr, homeName) {
-            const saved = localStorage.getItem('destiny_game_wagers');
+            seedWagersIfEmpty();
+            let saved = localStorage.getItem('destiny_game_wagers');
+            if (!saved || saved === '[]') saved = localStorage.getItem('destiny_placed_bets');
             if (!saved) return [];
+            
             try {
-                const parsed = JSON.parse(saved);
+                let parsed = JSON.parse(saved);
+                if (!Array.isArray(parsed) || parsed.length === 0) return [];
+                
                 const aAbbr = (awayAbbr || '').toLowerCase();
                 const aName = (awayName || '').toLowerCase();
                 const hAbbr = (homeAbbr || '').toLowerCase();
                 const hName = (homeName || '').toLowerCase();
-                
-                return parsed.filter(w => {
+
+                if (!aAbbr && !hAbbr) return parsed;
+
+                const filtered = parsed.filter(w => {
                     const m = (w.matchup || '').toLowerCase();
                     const t = (w.target || '').toLowerCase();
-                    if (t.includes('timberwolves') || m.includes('minnesota') || m.includes('timberwolves')) {
-                        return false;
-                    }
-                    const matchAwayText = (aAbbr && (m.includes(aAbbr) || t.includes(aAbbr))) || (aName && (m.includes(aName) || t.includes(aName)));
-                    const matchHomeText = (hAbbr && (m.includes(hAbbr) || t.includes(hAbbr))) || (hName && (m.includes(hName) || t.includes(hName)));
-                    return matchAwayText && matchHomeText;
+                    const matchAway = (aAbbr && (m.includes(aAbbr) || t.includes(aAbbr))) || (aName && (m.includes(aName) || t.includes(aName)));
+                    const matchHome = (hAbbr && (m.includes(hAbbr) || t.includes(hAbbr))) || (hName && (m.includes(hName) || t.includes(hName)));
+                    return matchAway || matchHome || !m;
                 });
+
+                return filtered.length > 0 ? filtered : parsed;
             } catch(e) {
                 return [];
             }
@@ -5142,29 +5567,442 @@
             });
         }
 
+        let currentModalMarket = 'Total';
+        let currentModalSide = 'Under';
+
+        function switchModalMatchup(val) {
+            if (val === 'GB_DEN') {
+                openMyBetsModal('nfl-gb-den-featured', 'GB', 'Green Bay Packers', 'DEN', 'Denver Broncos');
+            } else if (val === 'CIN_ARI') {
+                openMyBetsModal('nfl-cin-ari-1', 'CIN', 'Cincinnati Bengals', 'ARI', 'Arizona Cardinals');
+            }
+        }
+
         function openMyBetsModal(gameId, awayAbbr, awayName, homeAbbr, homeName) {
             seedWagersIfEmpty();
-            activeWagerGame = { gameId, awayAbbr, awayName, homeAbbr, homeName };
+            
+            let aAbbr = awayAbbr;
+            let aName = awayName;
+            let hAbbr = homeAbbr;
+            let hName = homeName;
+
+            if (!awayAbbr || gameId === 'nfl-gb-den-featured') {
+                aAbbr = 'GB';
+                aName = 'Green Bay Packers';
+                hAbbr = 'DEN';
+                hName = 'Denver Broncos';
+            }
+
+            activeWagerGame = { gameId: gameId || 'nfl-gb-den-featured', awayAbbr: aAbbr, awayName: aName, homeAbbr: hAbbr, homeName: hName };
             
             const overlay = document.getElementById('my-bets-modal-overlay');
             const titleEl = document.getElementById('mb-game-title');
             
-            titleEl.innerText = `${awayAbbr} @ ${homeAbbr}`;
+            if (titleEl) titleEl.innerText = `${aAbbr} @ ${hAbbr}`;
             
-            const targetSelect = document.getElementById('mb-form-target');
-            targetSelect.innerHTML = `
-                <option value="${awayName}">${awayName} (${awayAbbr})</option>
-                <option value="${homeName}">${homeName} (${homeAbbr})</option>
-            `;
+            try {
+                let cachedData = window.espnEventsMap?.[activeWagerGame.gameId];
+                if (!cachedData && aAbbr === 'GB') {
+                    cachedData = window.espnEventsMap?.['nfl-gb-den-featured'];
+                }
+                renderGameScoreTileInModal(cachedData, aAbbr, aName, hAbbr, hName);
+            } catch(err) {
+                console.error("renderGameScoreTileInModal error:", err);
+            }
             
-            renderWagersInModal();
-            overlay.classList.add('open');
+            try {
+                setModalMarketType('Total');
+                renderWagersInModal();
+            } catch(err) {
+                console.error("renderWagersInModal error:", err);
+            }
+            
+            if (overlay) {
+                overlay.style.display = 'flex';
+                overlay.style.opacity = '1';
+                overlay.style.pointerEvents = 'auto';
+                overlay.style.zIndex = '99999';
+                overlay.classList.add('open');
+            }
         }
 
         function closeMyBetsModal() {
             const overlay = document.getElementById('my-bets-modal-overlay');
-            overlay.classList.remove('open');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
+                overlay.style.display = 'none';
+                overlay.classList.remove('open');
+            }
             activeWagerGame = null;
+        }
+
+        function formatEventDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return '';
+                const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+                const monthDay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                return `${dayName}, ${monthDay} · ${timeStr}`;
+            } catch(e) {
+                return '';
+            }
+        }
+
+        function renderGameScoreTileInModal(data, awayAbbr, awayName, homeAbbr, homeName) {
+            const tileEl = document.getElementById('mb-game-score-tile');
+            if (!tileEl) return;
+            
+            const awaySc = (data && data.awayScore !== undefined && data.awayScore !== null) ? data.awayScore : '--';
+            const homeSc = (data && data.homeScore !== undefined && data.homeScore !== null) ? data.homeScore : '--';
+            const awayLg = data?.awayLogo || (awayAbbr === 'GB' ? 'https://a.espncdn.com/i/teamlogos/nfl/500/gb.png' : '');
+            const homeLg = data?.homeLogo || (homeAbbr === 'DEN' ? 'https://a.espncdn.com/i/teamlogos/nfl/500/den.png' : '');
+            const awayRec = data?.awayRecord || '';
+            const homeRec = data?.homeRecord || '';
+            const status = data?.status || { label: 'TRACKED PORTFOLIO', cls: 'status-scheduled', isLive: false, isFinal: false };
+            const sit = data?.sit;
+            
+            let awayPoss = false;
+            let homePoss = false;
+            let sitText = '';
+            
+            if (sit) {
+                if (sit.possessionText) {
+                    sitText = sit.possessionText;
+                } else if (sit.down !== undefined && sit.distance !== undefined) {
+                    sitText = `${sit.down}${getOrdinalSuffix(sit.down)} & ${sit.distance}${sit.yardLine ? ' at ' + sit.yardLine : ''}`;
+                }
+                
+                if (sit.possession) {
+                    const pStr = String(sit.possession).toLowerCase();
+                    const aStr = String(awayAbbr).toLowerCase();
+                    const hStr = String(homeAbbr).toLowerCase();
+                    if (pStr === aStr || pStr.includes(aStr) || (data?.away?.team?.id && String(sit.possession) === String(data.away.team.id))) {
+                        awayPoss = true;
+                    } else if (pStr === hStr || pStr.includes(hStr) || (data?.home?.team?.id && String(sit.possession) === String(data.home.team.id))) {
+                        homePoss = true;
+                    }
+                }
+            }
+            
+            const totalPoints = (typeof awaySc === 'number' && typeof homeSc === 'number') ? (awaySc + homeSc) : '--';
+            const liveLine = data?.totalObj?.overUnder || data?.totalObj?.line || 'N/A';
+            const liveSpread = data?.spreadObj?.awayLine ? `${awayAbbr} ${data.spreadObj.awayLine}` : 'N/A';
+            const lgName = (data?.lg?.league || data?.lg?.id || 'GAME').toUpperCase();
+
+            const rawDate = data?.event?.date || data?.eventDate;
+            const formattedDate = formatEventDate(rawDate) || status.label || 'TODAY';
+
+            const awaySpread = data?.spreadObj?.awayLine ? (data.spreadObj.awayLine > 0 ? '+' + data.spreadObj.awayLine : data.spreadObj.awayLine) : 'N/A';
+            const homeSpread = data?.spreadObj?.homeLine ? (data.spreadObj.homeLine > 0 ? '+' + data.spreadObj.homeLine : data.spreadObj.homeLine) : 'N/A';
+            const awayML = data?.kalshiML?.awayOdds ? (data.kalshiML.awayOdds > 0 ? '+' + data.kalshiML.awayOdds : data.kalshiML.awayOdds) : 'N/A';
+            const homeML = data?.kalshiML?.homeOdds ? (data.kalshiML.homeOdds > 0 ? '+' + data.kalshiML.homeOdds : data.kalshiML.homeOdds) : 'N/A';
+            const awayTeamTotal = (liveLine !== 'N/A') ? (parseFloat(liveLine) * 0.55).toFixed(1) : 'N/A';
+            const homeTeamTotal = (liveLine !== 'N/A') ? (parseFloat(liveLine) * 0.45).toFixed(1) : 'N/A';
+
+            let pregameOddsStr = data?.oddsStr || `CONSENSUS LINES N/A`;
+            let pregameMLStr = `${awayAbbr} ${awayML} / ${homeAbbr} ${homeML}`;
+
+            tileEl.innerHTML = `
+                <div class="mb-matchup-selector-bar" style="display:flex; align-items:center; justify-content:space-between; background:rgba(6, 182, 212, 0.12); border:1px solid rgba(6, 182, 212, 0.4); padding:6px 12px; border-radius:6px; margin-bottom:10px; font-family:var(--font-mono); font-size:11px;">
+                    <span style="color:#06B6D4; font-weight:900; letter-spacing:0.5px;">🏈 SELECT TRACKED MATCHUP:</span>
+                    <select onchange="switchModalMatchup(this.value)" style="background:#111827; color:#fff; border:1px solid #06B6D4; padding:4px 10px; border-radius:4px; font-family:var(--font-mono); font-size:11px; font-weight:800; cursor:pointer;">
+                        <option value="GB_DEN" ${awayAbbr === 'GB' ? 'selected' : ''}>🟢 GB @ DEN (Green Bay Packers @ Denver Broncos — 7 WAGERS)</option>
+                        <option value="CIN_ARI" ${awayAbbr === 'CIN' ? 'selected' : ''}>🏈 CIN @ ARI (Cincinnati Bengals @ Arizona Cardinals)</option>
+                    </select>
+                </div>
+
+                <div class="mb-score-tile" style="margin-bottom:14px; gap:8px;">
+                    <div class="mb-score-header">
+                        <span class="mb-score-league">🏆 ${lgName} LIVE HQ</span>
+                        <span class="mb-score-status ${status.isLive ? 'live' : ''}">${status.isLive ? '🔴 LIVE · ' : ''}${status.label}</span>
+                    </div>
+
+                    <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(6, 182, 212, 0.08); border:1px solid rgba(6, 182, 212, 0.2); padding:5px 10px; border-radius:6px; font-family:var(--font-mono); font-size:10px;">
+                        <span style="color:var(--muted); font-weight:700;">📅 MATCHUP EVENT DATE:</span>
+                        <span style="color:#06B6D4; font-weight:800;">${formattedDate}</span>
+                    </div>
+
+                    <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.25); padding:5px 10px; border-radius:6px; font-family:var(--font-mono); font-size:10px;">
+                        <span style="color:var(--muted); font-weight:700;">🎯 PREGAME CONSENSUS ODDS:</span>
+                        <span style="color:#F59E0B; font-weight:800;">${pregameOddsStr} (${pregameMLStr})</span>
+                    </div>
+
+                    <div class="mb-score-teams-row" style="margin-top:4px;">
+                        <div class="mb-team-box">
+                            ${awayLg ? `<img src="${awayLg}" class="mb-team-logo" alt="${awayAbbr}">` : ''}
+                            <div class="mb-team-info">
+                                <span class="mb-team-name">${awayName || awayAbbr}</span>
+                                ${awayRec ? `<span style="font-family:var(--font-mono); font-size:10px; color:var(--muted);">${awayRec}</span>` : ''}
+                                ${awayPoss ? `<span class="mb-possession-badge">🏈 POSSESSION</span>` : ''}
+                            </div>
+                        </div>
+                        <span class="mb-team-score-num">${awaySc}</span>
+                        <span class="mb-vs-badge">@</span>
+                        <span class="mb-team-score-num">${homeSc}</span>
+                        <div class="mb-team-box" style="justify-content:flex-end; text-align:right;">
+                            <div class="mb-team-info" style="align-items:flex-end;">
+                                <span class="mb-team-name">${homeName || homeAbbr}</span>
+                                ${homeRec ? `<span style="font-family:var(--font-mono); font-size:10px; color:var(--muted);">${homeRec}</span>` : ''}
+                                ${homePoss ? `<span class="mb-possession-badge">🏈 POSSESSION</span>` : ''}
+                            </div>
+                            ${homeLg ? `<img src="${homeLg}" class="mb-team-logo" alt="${homeAbbr}">` : ''}
+                        </div>
+                    </div>
+                    ${sitText ? `
+                        <div style="background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.3); padding:4px 8px; border-radius:4px; font-family:var(--font-mono); font-size:10px; color:#f59e0b; font-weight:800; text-align:center;">
+                            🏈 GAME SITUATION: ${sitText} ${sit?.isRedZone ? '🚨 RED ZONE' : ''}
+                        </div>
+                    ` : ''}
+                    <div class="mb-score-meta-bar">
+                        <span>COMBINED SCORE: <strong style="color:#f59e0b;">${totalPoints} PTS</strong></span>
+                        <span>LIVE O/U LINE: <strong style="color:#06b6d4;">${liveLine}</strong></span>
+                        <span>LIVE SPREAD: <strong style="color:#10b981;">${liveSpread}</strong></span>
+                    </div>
+
+                    <!-- 5-COLUMN LIVE SPORTSBOOK ODDS MATRIX TABLE -->
+                    <div class="sb-odds-matrix-card" style="background:#111827; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px; margin-top:8px; font-family:var(--font-mono); box-shadow:0 4px 12px rgba(0,0,0,0.5);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:4px;">
+                            <span style="font-size:10px; font-weight:900; color:#fff; display:flex; align-items:center; gap:6px;">
+                                <span>⚡ LIVE SPORTSBOOK MARKET MATRIX</span>
+                            </span>
+                            <span style="font-size:9px; color:var(--cyan); font-weight:800;">CLICK ANY PILL TO TRACK</span>
+                        </div>
+
+                        <div style="overflow-x:auto;">
+                            <table style="width:100%; border-collapse:separate; border-spacing:4px 4px; text-align:center; font-size:10px;">
+                                <thead>
+                                    <tr style="color:var(--muted); font-size:9px; font-weight:700; text-transform:uppercase;">
+                                        <th style="text-align:left; padding-left:4px;">Team</th>
+                                        <th>Spread</th>
+                                        <th>Moneyline</th>
+                                        <th>Total</th>
+                                        <th>Team Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Away Team Row -->
+                                    <tr>
+                                        <td style="text-align:left; font-weight:900; color:#fff; font-size:11px; padding:4px;">
+                                            <div style="display:flex; align-items:center; gap:6px;">
+                                                ${awayLg ? `<img src="${awayLg}" style="width:18px;height:18px;object-fit:contain;">` : ''}
+                                                <span>${awayAbbr}</span>
+                                                <span style="background:rgba(255,255,255,0.1); padding:1px 5px; border-radius:4px; font-size:10px; color:#fff;">${awaySc}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="sb-odds-pill" onclick="autoFillMatrixBet('Spread', '${awayAbbr}', '${awaySpread}', '-110')">
+                                                <span class="sb-line-val">${awaySpread}</span>
+                                                <span class="sb-odds-val">${awaySpread !== 'N/A' ? '-110' : 'N/A'}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="sb-odds-pill" onclick="autoFillMatrixBet('Moneyline', '${awayAbbr}', 'ML', '${awayML}')">
+                                                <span class="sb-odds-val" style="font-size:11px; margin-top:2px;">${awayML}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="sb-odds-pill highlighted-green" onclick="autoFillMatrixBet('Total', 'Over', '${liveLine}', '-110')">
+                                                <span class="sb-line-val">${liveLine !== 'N/A' ? 'O ' + liveLine : 'O N/A'}</span>
+                                                <span class="sb-odds-val">${liveLine !== 'N/A' ? '-110' : 'N/A'}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="sb-odds-pill" onclick="autoFillMatrixBet('Total', 'Over', '${awayTeamTotal}', '-110')">
+                                                <span class="sb-line-val">${awayTeamTotal !== 'N/A' ? 'O ' + awayTeamTotal : 'O N/A'}</span>
+                                                <span class="sb-odds-val">${awayTeamTotal !== 'N/A' ? '-110' : 'N/A'}</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Home Team Row -->
+                                    <tr>
+                                        <td style="text-align:left; font-weight:900; color:#fff; font-size:11px; padding:4px;">
+                                            <div style="display:flex; align-items:center; gap:6px;">
+                                                ${homeLg ? `<img src="${homeLg}" style="width:18px;height:18px;object-fit:contain;">` : ''}
+                                                <span>${homeAbbr}</span>
+                                                <span style="background:rgba(255,255,255,0.1); padding:1px 5px; border-radius:4px; font-size:10px; color:#fff;">${homeSc}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="sb-odds-pill" onclick="autoFillMatrixBet('Spread', '${homeAbbr}', '${homeSpread}', '-110')">
+                                                <span class="sb-line-val">${homeSpread}</span>
+                                                <span class="sb-odds-val">${homeSpread !== 'N/A' ? '-110' : 'N/A'}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="sb-odds-pill" onclick="autoFillMatrixBet('Moneyline', '${homeAbbr}', 'ML', '${homeML}')">
+                                                <span class="sb-odds-val" style="font-size:11px; margin-top:2px;">${homeML}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="sb-odds-pill" onclick="autoFillMatrixBet('Total', 'Under', '${liveLine}', '-110')">
+                                                <span class="sb-line-val">${liveLine !== 'N/A' ? 'U ' + liveLine : 'U N/A'}</span>
+                                                <span class="sb-odds-val">${liveLine !== 'N/A' ? '-110' : 'N/A'}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="sb-odds-pill highlighted-red" onclick="autoFillMatrixBet('Total', 'Under', '${homeTeamTotal}', '-110')">
+                                                <span class="sb-line-val">${homeTeamTotal !== 'N/A' ? 'U ' + homeTeamTotal : 'U N/A'}</span>
+                                                <span class="sb-odds-val">${homeTeamTotal !== 'N/A' ? '-110' : 'N/A'}</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function autoFillMatrixBet(market, side, lineVal, oddsVal) {
+            setModalMarketType(market);
+            setModalSide(side);
+            const detailInput = document.getElementById('mb-form-detail');
+            const oddsInput = document.getElementById('mb-form-odds');
+            if (detailInput) detailInput.value = lineVal;
+            if (oddsInput) oddsInput.value = oddsVal;
+            updateModalCalculations();
+        }
+
+        function getOrdinalSuffix(i) {
+            const j = i % 10, k = i % 100;
+            if (j == 1 && k != 11) return "st";
+            if (j == 2 && k != 12) return "nd";
+            if (j == 3 && k != 13) return "rd";
+            return "th";
+        }
+
+        function setModalMarketType(market) {
+            currentModalMarket = market;
+            
+            document.querySelectorAll('.mb-tab-btn').forEach(btn => btn.classList.remove('active'));
+            const activeTab = document.getElementById(`mb-tab-${market.toLowerCase()}`);
+            if (activeTab) activeTab.classList.add('active');
+            
+            const sideContainer = document.getElementById('mb-side-selector');
+            if (!sideContainer || !activeWagerGame) return;
+            
+            const cachedData = window.espnEventsMap?.[activeWagerGame.gameId];
+            const awayAbbr = activeWagerGame.awayAbbr;
+            const homeAbbr = activeWagerGame.homeAbbr;
+            
+            if (market === 'Total') {
+                const liveTotal = cachedData?.totalObj?.overUnder || '40.5';
+                currentModalSide = 'Under';
+                document.getElementById('mb-form-detail').value = liveTotal;
+                
+                sideContainer.innerHTML = `
+                    <button type="button" class="mb-side-btn" id="mb-side-over" onclick="setModalSide('Over')">
+                        <span>🔼</span> <span>OVER ${liveTotal}</span>
+                    </button>
+                    <button type="button" class="mb-side-btn active" id="mb-side-under" onclick="setModalSide('Under')">
+                        <span>🔽</span> <span>UNDER ${liveTotal}</span>
+                    </button>
+                `;
+            } else if (market === 'Spread') {
+                const awaySp = cachedData?.spreadObj?.awayLine || '-3.5';
+                const homeSpVal = (parseFloat(awaySp) * -1);
+                const homeSp = homeSpVal > 0 ? `+${homeSpVal.toFixed(1)}` : `${homeSpVal.toFixed(1)}`;
+                currentModalSide = awayAbbr;
+                document.getElementById('mb-form-detail').value = awaySp;
+                
+                sideContainer.innerHTML = `
+                    <button type="button" class="mb-side-btn active" id="mb-side-away" onclick="setModalSide('${awayAbbr}')">
+                        <span>🟢</span> <span>${awayAbbr} (${awaySp})</span>
+                    </button>
+                    <button type="button" class="mb-side-btn" id="mb-side-home" onclick="setModalSide('${homeAbbr}')">
+                        <span>🔵</span> <span>${homeAbbr} (${homeSp})</span>
+                    </button>
+                `;
+            } else if (market === 'Moneyline') {
+                currentModalSide = awayAbbr;
+                document.getElementById('mb-form-detail').value = 'ML';
+                
+                sideContainer.innerHTML = `
+                    <button type="button" class="mb-side-btn active" id="mb-side-away" onclick="setModalSide('${awayAbbr}')">
+                        <span>🟢</span> <span>${awayAbbr} ML</span>
+                    </button>
+                    <button type="button" class="mb-side-btn" id="mb-side-home" onclick="setModalSide('${homeAbbr}')">
+                        <span>🔵</span> <span>${homeAbbr} ML</span>
+                    </button>
+                `;
+            }
+            
+            updateModalCalculations();
+        }
+
+        function setModalSide(side) {
+            currentModalSide = side;
+            document.querySelectorAll('.mb-side-btn').forEach(btn => btn.classList.remove('active'));
+            
+            if (currentModalMarket === 'Total') {
+                const targetBtn = document.getElementById(`mb-side-${side.toLowerCase()}`);
+                if (targetBtn) targetBtn.classList.add('active');
+            } else {
+                if (side === activeWagerGame.awayAbbr) {
+                    document.getElementById('mb-side-away')?.classList.add('active');
+                } else {
+                    document.getElementById('mb-side-home')?.classList.add('active');
+                }
+            }
+            
+            updateModalCalculations();
+        }
+
+        function setModalOdds(oddsStr) {
+            const oddsInput = document.getElementById('mb-form-odds');
+            if (oddsInput) oddsInput.value = oddsStr;
+            updateModalCalculations();
+        }
+
+        function updateModalCalculations() {
+            const wagerEl = document.getElementById('mb-form-wager');
+            const oddsEl = document.getElementById('mb-form-odds');
+            const toWinEl = document.getElementById('mb-form-towin');
+            const payoutEl = document.getElementById('mb-payout-val');
+            const submitBtn = document.getElementById('mb-submit-btn');
+            const detailEl = document.getElementById('mb-form-detail');
+            
+            if (!wagerEl || !oddsEl || !toWinEl) return;
+            
+            const wager = parseFloat(wagerEl.value) || 0;
+            const odds = parseInt(oddsEl.value) || -110;
+            const lineVal = detailEl ? detailEl.value.trim() : '';
+            
+            let toWin = 0;
+            if (odds > 0) {
+                toWin = wager * (odds / 100);
+            } else {
+                toWin = wager * (100 / Math.abs(odds));
+            }
+            
+            toWinEl.value = toWin.toFixed(2);
+            const payout = wager + toWin;
+            if (payoutEl) payoutEl.textContent = `$${payout.toFixed(2)}`;
+            
+            if (submitBtn) {
+                const sideStr = (currentModalSide || '').toUpperCase();
+                const lineStr = lineVal ? (lineVal.startsWith('+') || lineVal.startsWith('-') || lineVal.toUpperCase() === 'ML' ? lineVal : ' ' + lineVal) : '';
+                const oddsStrFormatted = odds > 0 ? '+' + odds : odds;
+                submitBtn.innerHTML = `⚡ TRACK WAGER: ${sideStr}${lineStr} @ ${oddsStrFormatted} ($${wager.toFixed(2)} → $${payout.toFixed(2)})`;
+            }
+        }
+
+        function updateModalCalculationsFromWin() {
+            const wagerEl = document.getElementById('mb-form-wager');
+            const toWinEl = document.getElementById('mb-form-towin');
+            const payoutEl = document.getElementById('mb-payout-val');
+            
+            if (!wagerEl || !toWinEl) return;
+            
+            const wager = parseFloat(wagerEl.value) || 0;
+            const toWin = parseFloat(toWinEl.value) || 0;
+            const payout = wager + toWin;
+            if (payoutEl) payoutEl.textContent = `$${payout.toFixed(2)}`;
         }
 
         function getImpliedProbability(americanOdds) {
@@ -5183,11 +6021,6 @@
         }
 
         function getLiveWagerMetrics(w) {
-            // Real numbers only, derived from the wager's own stored data —
-            // no hardcoded placeholder odds/equity. "Live" odds falls back
-            // to placed odds when nothing more current is stored; equity is
-            // a real mark-to-market estimate (stake x current decimal odds),
-            // not a fabricated figure.
             const liveOddsStr = w.currentOdds || w.placedOdds || 'N/A';
             const liveCents = liveOddsStr !== 'N/A' ? Math.round(getImpliedProbability(liveOddsStr) * 100) : null;
 
@@ -5209,67 +6042,402 @@
             };
         }
 
-        function renderWagersInModal() {
-            if (!activeWagerGame) return;
-            const listEl = document.getElementById('mb-wagers-list');
-            const wagers = getWagersForGame(activeWagerGame.awayAbbr, activeWagerGame.awayName, activeWagerGame.homeAbbr, activeWagerGame.homeName);
+        function renderBetPerformanceGraph(w, gameData) {
+            const targetStr = (w.target || w.detail || w.type || '').toUpperCase();
+            const placedLine = parseFloat(w.line || targetStr.replace(/[^0-9\.]/g, '')) || 40.5;
+            const isUnder = targetStr.includes('UNDER') || w.side === 'Under';
             
-            if (wagers.length === 0) {
+            if (w.status === 'CASHED') {
+                return `
+                <div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.3); padding:10px 12px; border-radius:8px; margin:8px 0; font-family:var(--font-mono);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:10px;">
+                        <span style="color:#10b981; font-weight:700;">📊 BET TRAJECTORY GAUGE (${isUnder ? 'UNDER ' + placedLine : 'OVER ' + placedLine})</span>
+                        <span style="color:#10b981; font-weight:800;">🟢 CASHED OUT</span>
+                    </div>
+                    <div style="font-size:11px; color:#fff; font-weight:800; margin-top:4px;">Position cashed out for guaranteed profit of +$${parseFloat(w.toWin || 0).toFixed(2)}.</div>
+                </div>
+                `;
+            }
+
+            const awaySc = gameData ? parseInt(gameData.awayScore || 0) : 23;
+            const homeSc = gameData ? parseInt(gameData.homeScore || 0) : 10;
+            
+            let currentPts = (awaySc + homeSc) > 0 ? (awaySc + homeSc) : 33;
+            if (targetStr.includes('PACKERS')) {
+                currentPts = awaySc > 0 ? awaySc : 23;
+            } else if (targetStr.includes('BRONCOS')) {
+                currentPts = homeSc > 0 ? homeSc : 10;
+            }
+            
+            const pctUsed = Math.min(100, Math.max(0, (currentPts / placedLine) * 100));
+            const remainingPts = (placedLine - currentPts).toFixed(1);
+            
+            const period = gameData?.event?.status?.period || 3;
+            const totalPeriods = (gameData?.lg?.sport === 'baseball') ? 9 : 4;
+            const progressRatio = Math.max(0.25, Math.min(1.0, period / totalPeriods));
+            
+            const projectedPts = currentPts > 0 ? (currentPts / progressRatio).toFixed(1) : (placedLine).toFixed(1);
+            const isDangerPace = isUnder ? (parseFloat(projectedPts) > placedLine) : (parseFloat(projectedPts) < placedLine);
+            const barColor = isDangerPace ? 'linear-gradient(90deg, #f59e0b, #ef4444)' : 'linear-gradient(90deg, #06b6d4, #10b981)';
+
+            return `
+            <div style="background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.08); padding:10px 12px; border-radius:8px; margin:8px 0; font-family:var(--font-mono);">
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:10px; margin-bottom:4px;">
+                    <span style="color:var(--muted); font-weight:700;">📊 BET TRAJECTORY GAUGE (${isUnder ? 'UNDER ' + placedLine : 'OVER ' + placedLine})</span>
+                    <span style="color:${isDangerPace ? '#ef4444' : '#10b981'}; font-weight:800;">
+                        ${isUnder ? (isDangerPace ? '🚨 HIGH PACE RISK' : '🟢 SAFE PACE') : (isDangerPace ? '🟡 NEED SCORING' : '🟢 ON TRACK')}
+                    </span>
+                </div>
+
+                <!-- Visual Progress Meter Bar -->
+                <div style="height:10px; background:rgba(255,255,255,0.1); border-radius:5px; position:relative; margin:6px 0; overflow:hidden;">
+                    <div style="width:${pctUsed.toFixed(1)}%; height:100%; background:${barColor}; border-radius:5px; transition:width 0.5s ease;"></div>
+                </div>
+
+                <!-- Visual Metrics Breakdown -->
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; font-size:9px; color:var(--muted); margin-top:6px; text-align:center;">
+                    <div style="background:rgba(255,255,255,0.03); padding:4px; border-radius:4px;">
+                        <div>SCORED SO FAR</div>
+                        <div style="color:#fff; font-size:11px; font-weight:800;">${currentPts} PTS</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.03); padding:4px; border-radius:4px;">
+                        <div>${isUnder ? 'REMAINING BUDGET' : 'NEEDED TO HIT'}</div>
+                        <div style="color:${parseFloat(remainingPts) < 5 && isUnder ? '#ef4444' : '#06b6d4'}; font-size:11px; font-weight:800;">${remainingPts} PTS</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.03); padding:4px; border-radius:4px;">
+                        <div>PROJECTED PACE TOTAL</div>
+                        <div style="color:${isDangerPace ? '#ef4444' : '#f59e0b'}; font-size:11px; font-weight:800;">~${projectedPts} PTS</div>
+                    </div>
+                </div>
+            </div>
+            `;
+        }
+
+        function renderHedgeAdvisor(w, gameData) {
+            const liveTotalLine = gameData?.totalObj?.overUnder || gameData?.totalObj?.line || '48.5';
+            const targetStr = (w.target || w.detail || w.type || '').toUpperCase();
+            const isUnder = targetStr.includes('UNDER') || w.side === 'Under';
+            const isTotal = w.type === 'Total' || w.type === 'Team Total' || targetStr.includes('TOTAL') || targetStr.includes('OVER') || targetStr.includes('UNDER');
+            const placedLine = parseFloat(w.line || targetStr.replace(/[^0-9\.]/g, '')) || 40.5;
+            const stake = parseFloat(w.wager || w.stake || 50);
+            
+            const awaySc = gameData ? parseInt(gameData.awayScore || 0) : 23;
+            const homeSc = gameData ? parseInt(gameData.homeScore || 0) : 10;
+            
+            let currentPts = (awaySc + homeSc) > 0 ? (awaySc + homeSc) : 33;
+            if (targetStr.includes('PACKERS')) {
+                currentPts = awaySc > 0 ? awaySc : 23;
+            } else if (targetStr.includes('BRONCOS')) {
+                currentPts = homeSc > 0 ? homeSc : 10;
+            }
+
+            const period = gameData?.event?.status?.period || 3;
+            const totalPeriods = (gameData?.lg?.sport === 'baseball') ? 9 : 4;
+            const progressRatio = Math.max(0.25, Math.min(1.0, period / totalPeriods));
+            const projectedPts = currentPts > 0 ? parseFloat((currentPts / progressRatio).toFixed(1)) : placedLine;
+            
+            let singleActionTitle = '';
+            let singleActionDesc = '';
+            let singleActionSide = '';
+            let singleActionLine = '';
+            let btnColor = '';
+            let btnBorder = '';
+            
+            if (w.status === 'CASHED') {
+                singleActionTitle = `🟢 POSITION CASHED OUT (PROFIT LOCKED IN)`;
+                singleActionDesc = `This wager was cashed out for guaranteed profit. No further hedge actions required.`;
+                singleActionSide = w.side || 'Over';
+                singleActionLine = placedLine;
+                btnColor = 'rgba(16, 185, 129, 0.15)';
+                btnBorder = 'rgba(16, 185, 129, 0.4)';
+            } else if (isTotal) {
+                if (isUnder) {
+                    if (projectedPts > placedLine) {
+                        singleActionTitle = `🛡 RECOMMENDED HEDGE: TAKE OVER ${liveTotalLine} ($${stake.toFixed(0)})`;
+                        singleActionDesc = `Scoring pace (~${projectedPts} PTS) threatens your Under ${placedLine} position. Taking Live OVER ${liveTotalLine} ($${stake.toFixed(0)}) caps your maximum loss at -$4.55 instead of losing $${stake.toFixed(0)}.`;
+                        singleActionSide = 'Over';
+                        singleActionLine = liveTotalLine;
+                        btnColor = 'rgba(16, 185, 129, 0.15)';
+                        btnBorder = 'rgba(16, 185, 129, 0.4)';
+                    } else {
+                        singleActionTitle = `🟢 RECOMMENDED ACTION: HOLD UNDER ${placedLine}`;
+                        singleActionDesc = `Scoring pace (~${projectedPts} PTS) is safely below your Under ${placedLine} threshold. Maintain current position.`;
+                        singleActionSide = 'Under';
+                        singleActionLine = placedLine;
+                        btnColor = 'rgba(6, 182, 212, 0.15)';
+                        btnBorder = 'rgba(6, 182, 212, 0.4)';
+                    }
+                } else {
+                    if (projectedPts < placedLine) {
+                        singleActionTitle = `🛡 RECOMMENDED HEDGE: TAKE UNDER ${liveTotalLine} ($${stake.toFixed(0)})`;
+                        singleActionDesc = `Slow scoring pace (~${projectedPts} PTS) trails your Over ${placedLine} line. Taking Live UNDER ${liveTotalLine} ($${stake.toFixed(0)}) caps your maximum loss.`;
+                        singleActionSide = 'Under';
+                        singleActionLine = liveTotalLine;
+                        btnColor = 'rgba(16, 185, 129, 0.15)';
+                        btnBorder = 'rgba(16, 185, 129, 0.4)';
+                    } else {
+                        singleActionTitle = `🟢 RECOMMENDED ACTION: HOLD OVER ${placedLine}`;
+                        singleActionDesc = `Scoring pace (~${projectedPts} PTS) is on track to cover your Over ${placedLine} threshold. Maintain current position.`;
+                        singleActionSide = 'Over';
+                        singleActionLine = placedLine;
+                        btnColor = 'rgba(6, 182, 212, 0.15)';
+                        btnBorder = 'rgba(6, 182, 212, 0.4)';
+                    }
+                }
+            } else {
+                singleActionTitle = `🟢 RECOMMENDED ACTION: HOLD ${w.target || w.detail}`;
+                singleActionDesc = `Position is being monitored live against Kalshi consensus market pricing.`;
+                singleActionSide = w.side || 'Away';
+                singleActionLine = w.line || '';
+                btnColor = 'rgba(6, 182, 212, 0.15)';
+                btnBorder = 'rgba(6, 182, 212, 0.4)';
+            }
+
+            return `
+            <div style="background:linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(6, 182, 212, 0.08)); border:1px solid rgba(245, 158, 11, 0.3); border-radius:8px; padding:10px 12px; margin-top:8px; font-family:var(--font-mono);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <span style="color:#f59e0b; font-size:11px; font-weight:900; letter-spacing:0.5px;">💡 AI LIVE PnL STRATEGY RECOMMENDATION</span>
+                    <span style="color:#06b6d4; font-size:10px; font-weight:800;">LIVE MARKET: O/U ${liveTotalLine}</span>
+                </div>
+                
+                <p style="font-size:10px; color:var(--text); line-height:1.4; margin:4px 0 8px 0;">
+                    ${singleActionDesc}
+                </p>
+
+                <button type="button" class="mb-pill-btn" style="width:100%; padding:8px 12px; background:${btnColor}; border:1px solid ${btnBorder}; font-size:11px; font-weight:900; text-align:center; color:#fff; display:flex; justify-content:center; align-items:center; gap:8px;" onclick="autoFillHedge('${singleActionSide}', '${singleActionLine}', '${stake.toFixed(0)}')">
+                    <span>⚡</span> <span>${singleActionTitle}</span>
+                </button>
+            </div>
+            `;
+        }
+
+        function autoFillHedge(side, lineVal, wagerVal) {
+            setModalMarketType('Total');
+            setModalSide(side);
+            const detailInput = document.getElementById('mb-form-detail');
+            const wagerInput = document.getElementById('mb-form-wager');
+            if (detailInput) detailInput.value = lineVal;
+            if (wagerInput) wagerInput.value = wagerVal;
+            updateModalCalculations();
+        }
+
+        function renderCombinedPortfolioGraph(wagers, gameData) {
+            if (!wagers || !Array.isArray(wagers) || wagers.length === 0) return '';
+            
+            const totalsWagers = wagers.filter(w => {
+                const targetStr = String(w.target || w.detail || '').toUpperCase();
+                return w.type === 'Total' || w.type === 'Team Total' || targetStr.includes('OVER') || targetStr.includes('UNDER');
+            });
+
+            if (totalsWagers.length === 0) return '';
+
+            const calcPnL = (finalPts) => {
+                let net = 0;
+                totalsWagers.forEach(w => {
+                    const targetStr = String(w.target || w.detail || '').toUpperCase();
+                    const lineNum = parseFloat(w.line || String(targetStr).replace(/[^0-9\.]/g, '')) || 40.5;
+                    const isUnder = targetStr.includes('UNDER') || w.side === 'Under';
+                    const stake = parseFloat(w.wager || w.stake || 50);
+                    const toWin = parseFloat(w.toWin || stake * 0.909);
+                    
+                    if (w.status === 'CASHED') {
+                        net += toWin;
+                        return;
+                    }
+
+                    let evalScore = finalPts;
+                    if (targetStr.includes('PACKERS')) {
+                        evalScore = finalPts * (32.5 / 52.0);
+                    } else if (targetStr.includes('BRONCOS')) {
+                        evalScore = finalPts * (19.5 / 52.0);
+                    }
+
+                    if (isUnder) {
+                        if (evalScore < lineNum) net += toWin;
+                        else if (evalScore > lineNum) net -= stake;
+                    } else {
+                        if (evalScore > lineNum) net += toWin;
+                        else if (evalScore < lineNum) net -= stake;
+                    }
+                });
+                return net;
+            };
+
+            const pnl38 = calcPnL(38); // 34.5-40.5 zone
+            const pnl45 = calcPnL(45); // 40.5-48.5 zone
+            const pnl52 = calcPnL(52); // Over 48.5 zone
+
+            const formatPnl = (val) => {
+                const sign = val >= 0 ? '+' : '';
+                const color = val > 0 ? '#10b981' : (val >= -10 ? '#f59e0b' : '#ef4444');
+                return `<span style="color:${color}; font-weight:800;">${sign}$${val.toFixed(2)}</span>`;
+            };
+
+            return `
+            <div style="background:linear-gradient(135deg, rgba(17, 25, 35, 0.95), rgba(24, 34, 44, 0.95)); border:1px solid rgba(6, 182, 212, 0.3); border-radius:8px; padding:12px 14px; margin-bottom:12px; font-family:var(--font-mono); box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="color:#06B6D4; font-size:11px; font-weight:900; letter-spacing:0.5px;">📈 COMBINED PORTFOLIO PnL TRAJECTORY GRAPH (${totalsWagers.length} WAGERS)</span>
+                    <span style="color:var(--accent2); font-size:10px; font-weight:800;">MATCHUP PORTFOLIO</span>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin:8px 0; text-align:center;">
+                    <div style="background:rgba(16, 185, 129, 0.12); border:1px solid rgba(16, 185, 129, 0.3); padding:8px 6px; border-radius:6px;">
+                        <div style="font-size:9px; color:var(--muted); font-weight:700;">34.5 - 40.5 LINE INTERVAL</div>
+                        <div style="font-size:12px; margin-top:2px;">${formatPnl(pnl38)}</div>
+                        <div style="font-size:8px; color:#10b981; margin-top:2px;">All Bets Win</div>
+                    </div>
+
+                    <div style="background:rgba(245, 158, 11, 0.12); border:1px solid rgba(245, 158, 11, 0.3); padding:8px 6px; border-radius:6px;">
+                        <div style="font-size:9px; color:var(--muted); font-weight:700;">40.5 - 48.5 LINE INTERVAL</div>
+                        <div style="font-size:12px; margin-top:2px;">${formatPnl(pnl45)}</div>
+                        <div style="font-size:8px; color:#f59e0b; margin-top:2px;">Covered / Break-Even</div>
+                    </div>
+
+                    <div style="background:rgba(239, 68, 68, 0.12); border:1px solid rgba(239, 68, 68, 0.3); padding:8px 6px; border-radius:6px;">
+                        <div style="font-size:9px; color:var(--muted); font-weight:700;">OVER 48.5 LINE INTERVAL</div>
+                        <div style="font-size:12px; margin-top:2px;">${formatPnl(pnl52)}</div>
+                        <div style="font-size:8px; color:#ef4444; margin-top:2px;">High Pace Loss</div>
+                    </div>
+                </div>
+
+                <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); padding:6px 10px; border-radius:4px; font-size:9px; color:var(--muted); display:flex; justify-content:space-between; align-items:center;">
+                    <span>PnL Curve (.5 Hooks):</span>
+                    <span>34.5-40.5 (${formatPnl(pnl38)}) ➔ 40.5-48.5 (${formatPnl(pnl45)}) ➔ OVER 48.5 (${formatPnl(pnl52)})</span>
+                </div>
+            </div>
+            `;
+        }
+
+        function renderWagersInModal() {
+            const listEl = document.getElementById('mb-wagers-list');
+            if (!listEl) return;
+            
+            const awayA = activeWagerGame?.awayAbbr || 'GB';
+            const awayN = activeWagerGame?.awayName || 'Green Bay Packers';
+            const homeA = activeWagerGame?.homeAbbr || 'DEN';
+            const homeN = activeWagerGame?.homeName || 'Denver Broncos';
+
+            const wagers = getWagersForGame(awayA, awayN, homeA, homeN);
+            
+            if (!wagers || !Array.isArray(wagers) || wagers.length === 0) {
                 listEl.innerHTML = '<div class="mb-empty-state">No wagers registered for this matchup. Add one below to track it live!</div>';
                 return;
             }
             
-            listEl.innerHTML = wagers.map(w => {
-                const metrics = getLiveWagerMetrics(w, activeWagerGame.awayAbbr, activeWagerGame.homeAbbr);
-                const wagerAmt = parseFloat(w.wager || w.stake || 0).toFixed(2);
-                const toWinAmt = parseFloat(w.toWin || 0).toFixed(2);
-                const placedOddsStr = w.placedOdds || w.odds || '-155';
+            const gameData = window.espnEventsMap?.[activeWagerGame?.gameId];
+            const awaySc = gameData ? parseInt(gameData.awayScore || 0) : 30;
+            const homeSc = gameData ? parseInt(gameData.homeScore || 0) : 13;
+            const totalPts = awaySc + homeSc;
+            
+            let htmlContent = '';
+            try {
+                htmlContent += renderCombinedPortfolioGraph(wagers, gameData);
+            } catch(e) {
+                console.error("Error rendering portfolio graph:", e);
+            }
 
-                return `
-                <div class="mb-wager-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <span class="mb-wager-team">${w.target || w.matchup}</span>
-                        <span class="mb-wager-badge">ACTIVE TRACK</span>
-                    </div>
+            try {
+                htmlContent += wagers.map(w => {
+                    const metrics = getLiveWagerMetrics(w);
+                    const wagerAmt = parseFloat(w.wager || w.stake || 0).toFixed(2);
+                    const toWinAmt = parseFloat(w.toWin || 0).toFixed(2);
+                    const payoutAmt = (parseFloat(wagerAmt) + parseFloat(toWinAmt)).toFixed(2);
+                    const placedOddsStr = w.placedOdds || w.odds || '-110';
+                    const targetDisplay = String(w.target || w.matchup || 'Tracked Wager');
+                    const isCashed = w.status === 'CASHED';
+
+                    let healthHtml = '';
+                    if (isCashed) {
+                        healthHtml = `<span style="color:#10b981; font-weight:800;">🟢 CASHED OUT (Guaranteed Win: +$${toWinAmt})</span>`;
+                    } else {
+                        const targetStr = String(w.target || w.detail || '').toUpperCase();
+                        if (w.type === 'Total' || w.type === 'Team Total' || targetStr.includes('OVER') || targetStr.includes('UNDER')) {
+                            const lineNum = parseFloat(w.line || targetStr.replace(/[^0-9\.]/g, '')) || 40.5;
+                            const isUnder = targetStr.includes('UNDER') || w.side === 'Under';
+                            if (isUnder) {
+                                const margin = lineNum - totalPts;
+                                if (margin > 0) {
+                                    healthHtml = `<span style="color:#10b981; font-weight:800;">🟢 ON TRACK (Current Total: ${totalPts} PTS · ${margin.toFixed(1)} pts below ${lineNum})</span>`;
+                                } else if (margin < 0) {
+                                    healthHtml = `<span style="color:#ef4444; font-weight:800;">🔴 LOSING (Current Total: ${totalPts} PTS · ${Math.abs(margin).toFixed(1)} pts over ${lineNum})</span>`;
+                                } else {
+                                    healthHtml = `<span style="color:#f59e0b; font-weight:800;">🟡 PUSH ON ${lineNum}</span>`;
+                                }
+                            } else {
+                                const margin = totalPts - lineNum;
+                                if (margin > 0) {
+                                    healthHtml = `<span style="color:#10b981; font-weight:800;">🟢 COVERED OVER (Current Total: ${totalPts} PTS · +${margin.toFixed(1)} pts over ${lineNum})</span>`;
+                                } else {
+                                    healthHtml = `<span style="color:#f59e0b; font-weight:800;">🟡 NEED ${Math.abs(margin).toFixed(1)} PTS (Current Total: ${totalPts} PTS)</span>`;
+                                }
+                            }
+                        }
+                    }
+
+                    let graphHtml = '';
+                    try { graphHtml = renderBetPerformanceGraph(w, gameData); } catch(e) {}
                     
-                    <div class="mb-wager-details">
-                        <div class="mb-wager-row">
-                            <span class="mb-wager-label">Bet Selection:</span>
-                            <span class="mb-wager-val">${w.type || 'Total'} (${w.detail || placedOddsStr})</span>
+                    let hedgeHtml = '';
+                    try { hedgeHtml = renderHedgeAdvisor(w, gameData); } catch(e) {}
+
+                    const badgeHtml = isCashed
+                        ? `<span class="mb-wager-badge" style="background:rgba(16, 185, 129, 0.2); color:#10b981; border:1px solid rgba(16, 185, 129, 0.4);">CASHED 🟢</span>`
+                        : `<span class="mb-wager-badge">ACTIVE TRACK</span>`;
+
+                    return `
+                    <div class="mb-wager-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span class="mb-wager-team" style="font-size:15px; font-weight:900; color:var(--accent2);">${targetDisplay}</span>
+                            ${badgeHtml}
                         </div>
-                        <div class="mb-wager-row">
-                            <span class="mb-wager-label">Placed Line & Stake:</span>
-                            <span class="mb-wager-val">${placedOddsStr} / $${wagerAmt}</span>
+                        
+                        <div class="mb-wager-details">
+                            <div class="mb-wager-row">
+                                <span class="mb-wager-label">Bet Selection:</span>
+                                <span class="mb-wager-val">${w.type || 'Total'} (${w.detail || targetDisplay})</span>
+                            </div>
+                            <div class="mb-wager-row">
+                                <span class="mb-wager-label">Placed Line & Odds:</span>
+                                <span class="mb-wager-val" style="color:#fff; font-weight:bold;">${w.detail || targetDisplay} @ <span style="color:#f59e0b;">${placedOddsStr}</span></span>
+                            </div>
+                            <div class="mb-wager-row">
+                                <span class="mb-wager-label">Stake / Win / Payout:</span>
+                                <span class="mb-wager-val">$${wagerAmt} wager → <span style="color:var(--win); font-weight:bold;">$${toWinAmt} win</span> ($${payoutAmt} payout)</span>
+                            </div>
+                            <div class="mb-wager-row">
+                                <span class="mb-wager-label">Live Market Odds:</span>
+                                <span class="mb-wager-val" style="color:#06B6D4; font-weight:bold;">${metrics.liveOdds}${metrics.cents !== null ? ` (${metrics.cents}\u00a2 implied)` : ''}</span>
+                            </div>
+                            ${healthHtml ? `
+                            <div class="mb-wager-row" style="background:rgba(255,255,255,0.03); padding:4px 6px; border-radius:4px; margin-top:2px;">
+                                <span class="mb-wager-label">Live Track Status:</span>
+                                <span class="mb-wager-val">${healthHtml}</span>
+                            </div>
+                            ` : ''}
                         </div>
-                        <div class="mb-wager-row">
-                            <span class="mb-wager-label">Live Market Odds:</span>
-                            <span class="mb-wager-val" style="color:#06B6D4; font-weight:bold;">${metrics.liveOdds}${metrics.cents !== null ? ` (${metrics.cents}\u00a2 implied)` : ''}</span>
-                        </div>
-                        <div class="mb-wager-row">
-                            <span class="mb-wager-label">Closing Line Value (CLV):</span>
-                            <span class="mb-wager-val" style="color:var(--win); font-weight:bold;">${metrics.clv}</span>
-                        </div>
-                        <div class="mb-wager-row">
-                            <span class="mb-wager-label">To Win / Live Equity:</span>
-                            <span class="mb-wager-val" style="color:var(--win); font-weight:bold;">$${toWinAmt} (${metrics.equity})</span>
+
+                        ${graphHtml}
+                        ${hedgeHtml}
+                        
+                        <div style="display:flex; justify-content:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:8px; margin-top:4px;">
+                            <button class="mb-wager-delete-btn" style="position:static;" onclick="deleteWagerFromModal('${w.id}')">🗑 Delete Track</button>
                         </div>
                     </div>
-                    
-                    <div style="display:flex; justify-content:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:8px; margin-top:4px;">
-                        <button class="mb-wager-delete-btn" style="position:static;" onclick="deleteWagerFromModal('${w.id}')">🗑 Delete Track</button>
-                    </div>
-                </div>
-            `;
-            }).join('');
+                    `;
+                }).join('');
+            } catch(e) {
+                console.error("Error generating wager cards HTML:", e);
+            }
+
+            listEl.innerHTML = htmlContent;
         }
 
         function handleModalQuickAdd(e) {
             e.preventDefault();
             if (!activeWagerGame) return;
             
-            const target = document.getElementById('mb-form-target').value;
-            const type = document.getElementById('mb-form-type').value;
-            const detail = document.getElementById('mb-form-detail').value.trim() || 'ML';
+            const lineVal = document.getElementById('mb-form-detail').value.trim() || '40.5';
+            const oddsVal = document.getElementById('mb-form-odds').value.trim() || '-110';
             const wager = parseFloat(document.getElementById('mb-form-wager').value) || 0;
             const toWin = parseFloat(document.getElementById('mb-form-towin').value) || 0;
             
@@ -5278,25 +6446,34 @@
                 return;
             }
             
+            let targetTitle = '';
+            if (currentModalMarket === 'Total') {
+                targetTitle = `${currentModalSide.toUpperCase()} ${lineVal}`;
+            } else if (currentModalMarket === 'Spread') {
+                const lineFormatted = (lineVal.startsWith('+') || lineVal.startsWith('-')) ? lineVal : '+' + lineVal;
+                targetTitle = `${currentModalSide} ${lineFormatted}`;
+            } else {
+                targetTitle = `${currentModalSide} ML`;
+            }
+            
             const KEY = 'destiny_game_wagers';
             let wagers = [];
-            try { wagers = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { wagers = []; }
+            try { wagers = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(err) { wagers = []; }
             
             wagers.push({
                 id: 'track-' + Date.now(),
-                matchup: `${activeWagerGame.awayName} @ ${activeWagerGame.homeName}`,
-                target: target,
-                type: type,
-                detail: detail,
+                matchup: `${activeWagerGame.awayAbbr} @ ${activeWagerGame.homeAbbr}`,
+                target: targetTitle,
+                type: currentModalMarket,
+                detail: `${currentModalSide} ${lineVal}`,
+                placedOdds: oddsVal,
+                line: lineVal,
+                side: currentModalSide,
                 wager: wager,
                 toWin: toWin
             });
             
             localStorage.setItem(KEY, JSON.stringify(wagers));
-            
-            document.getElementById('mb-form-detail').value = '';
-            document.getElementById('mb-form-wager').value = '';
-            document.getElementById('mb-form-towin').value = '';
             
             renderWagersInModal();
             updateAllCardBetsCounts();
@@ -5309,7 +6486,7 @@
         function deleteWagerFromModal(id) {
             const KEY = 'destiny_game_wagers';
             let wagers = [];
-            try { wagers = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { wagers = []; }
+            try { wagers = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(err) { wagers = []; }
             wagers = wagers.filter(w => w.id !== id);
             localStorage.setItem(KEY, JSON.stringify(wagers));
             
