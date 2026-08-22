@@ -1185,12 +1185,13 @@
 
             <div class="market-toolbar">
                 <div class="market-filters">
-                    <button class="filter-tab active" data-category="sports">🏆 Sports</button>
-                    <button class="filter-tab" data-category="all">🔥 All Markets</button>
-                    <button class="filter-tab" data-category="politics">🗳️ Politics</button>
-                    <button class="filter-tab" data-category="economics">📈 Economics</button>
-                    <button class="filter-tab" data-category="tech">💻 Tech & Science</button>
-                    <button class="filter-tab" data-category="culture">🎬 Pop Culture</button>
+                    <button class="filter-tab active" data-category="all">🔥 All Markets</button>
+                    <button class="filter-tab" data-category="nfl">🏈 NFL</button>
+                    <button class="filter-tab" data-category="mlb">⚾ MLB</button>
+                    <button class="filter-tab" data-category="nba">🏀 NBA</button>
+                    <button class="filter-tab" data-category="wnba">🏀 WNBA</button>
+                    <button class="filter-tab" data-category="nhl">🏒 NHL</button>
+                    <button class="filter-tab" data-category="props">🎯 Player Props</button>
                 </div>
                 <div class="search-box">
                     <input type="text" class="search-input" id="market-search" placeholder="Search markets...">
@@ -1415,8 +1416,7 @@
             return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         }
 
-        // Map one raw Kalshi market object into the shape this page's UI expects.
-        // Every number here comes straight from Kalshi — nothing invented.
+        // Map one raw Kalsh        // Every number here comes straight from Kalshi — nothing invented.
         function mapKalshiMarket(m) {
             const yesBid = parseFloat(m.yes_bid_dollars) || 0;
             const yesAsk = parseFloat(m.yes_ask_dollars) || 0;
@@ -1424,9 +1424,6 @@
             const noAsk = parseFloat(m.no_ask_dollars) || 0;
             const lastPrice = parseFloat(m.last_price_dollars) || 0;
 
-            // Prefer the real last traded price; fall back to the resting yes bid
-            // if nothing has traded yet. Clamp so a market never shows 0¢/100¢
-            // (which would just mean "no data" rather than a real price).
             const yesPriceRaw = lastPrice > 0 ? lastPrice : yesBid;
             const yesPrice = Math.max(1, Math.min(99, Math.round(yesPriceRaw * 100)));
             const noPrice = 100 - yesPrice;
@@ -1434,17 +1431,26 @@
             const yesBidSize = Math.round(parseFloat(m.yes_bid_size_fp) || 0);
             const yesAskSize = Math.round(parseFloat(m.yes_ask_size_fp) || 0);
 
+            const league = m._league || 'SPORTS';
+            const kind = m._kind || (m._stat ? 'prop' : 'game');
+            const cat = league.toLowerCase();
+
+            let displayType = 'Moneyline';
+            if (kind === 'spread') displayType = `Spread (${m.floor_strike || ''})`;
+            else if (kind === 'total') displayType = `Total (${m.floor_strike || ''})`;
+            else if (m._stat) displayType = `${m._stat} Prop`;
+
             return {
                 id: m.ticker,
                 ticker: m.ticker,
-                // yes_sub_title is the specific team this "yes" side represents;
-                // m.title is the full matchup ("Team A vs Team B Winner?")
-                title: `${m.yes_sub_title || m.title} — Moneyline`,
+                title: `${m.yes_sub_title || m.title} — ${displayType}`,
                 matchup: m.title,
-                category: 'sports',
+                category: cat,
+                league: league,
+                kind: kind,
                 yesPrice,
                 noPrice,
-                history: [yesPrice], // real ticks (via live-feed.js) extend this over time
+                history: [yesPrice],
                 volume: formatKalshiVolume(parseFloat(m.volume_fp)),
                 expiration: formatKalshiExpiration(m.close_time),
                 orderbook: {
@@ -1452,33 +1458,35 @@
                         bid: [Math.round(yesBid * 100) || Math.max(1, yesPrice - 1), yesBidSize],
                         ask: [Math.round(yesAsk * 100) || Math.min(99, yesPrice + 1), yesAskSize]
                     },
-                    // Kalshi's list endpoint doesn't return "no"-side size directly —
-                    // the no-side liquidity mirrors the yes-side from the other
-                    // direction, so we reuse those real size figures rather than
-                    // inventing new ones.
                     no: {
                         bid: [Math.round(noBid * 100) || Math.max(1, noPrice - 1), yesAskSize],
-                        ask: [Math.round(noAsk * 100) || Math.min(99, noPrice + 1), yesBidSize]
+                        ask: [Math.round(noAsk * 100) || Math.min(99, noPrice + 1), yesAskSize]
                     }
                 }
             };
         }
 
-        // Fetch real sports markets from our own /api/kalshi proxy.
-        // On failure, we show a visible error — we never fall back to fake data.
+        // Fetch real sports markets AND player props from our Kalshi proxies simultaneously.
         async function loadRealMarkets() {
             const listEl = document.getElementById('markets-list-el');
             try {
-                const res = await fetch('/api/kalshi');
-                if (!res.ok) throw new Error('Proxy returned status ' + res.status);
-                const data = await res.json();
-                if (data.error) throw new Error(data.error);
+                const [gameRes, propRes] = await Promise.allSettled([
+                    fetch('/api/kalshi'),
+                    fetch('/api/kalshi-props')
+                ]);
 
-                const raw = data.markets || [];
+                let raw = [];
+                if (gameRes.status === 'fulfilled' && gameRes.value.ok) {
+                    const gData = await gameRes.value.json();
+                    if (gData.markets) raw.push(...gData.markets);
+                }
+                if (propRes.status === 'fulfilled' && propRes.value.ok) {
+                    const pData = await propRes.value.json();
+                    if (pData.markets) raw.push(...pData.markets);
+                }
+
                 const mapped = raw.map(mapKalshiMarket);
 
-                // Preserve any live-tick price history already accumulated for
-                // markets we've already loaded, rather than resetting it.
                 const prevById = {};
                 marketsData.forEach(m => { prevById[m.id] = m; });
                 marketsData = mapped.map(m => {
@@ -1489,7 +1497,7 @@
                 if (marketsData.length === 0 && listEl) {
                     listEl.innerHTML = `
                         <div style="text-align: center; padding: 40px 20px; color: var(--muted); border: 1px dashed var(--border); border-radius: 6px;">
-                            ⛔ KALSHI DATA UNAVAILABLE — no open sports markets returned.
+                            ⛔ KALSHI DATA UNAVAILABLE — no open markets returned.
                         </div>
                     `;
                 }
@@ -1519,13 +1527,10 @@
                 selectMarket(marketsData[0].id);
             }
 
-            // Real live price ticks (via /api/kalshi, polled every 5s in live-feed.js)
             if (window.DestinyLiveFeed) {
                 window.DestinyLiveFeed.onKalshiTick(handleKalshiTick);
             }
 
-            // Refresh the market list itself periodically to pick up newly-listed
-            // games and drop ones that have closed.
             setInterval(loadRealMarkets, 60000);
         });
 
@@ -1542,8 +1547,6 @@
                 bankroll = saved !== null ? parseFloat(saved) : 10000.00;
             }
             updateBankrollUI();
-            // Real Kalshi price ticks are handled by the single handleKalshiTick()
-            // subscription set up in the DOMContentLoaded init below.
         }
 
         function updateBankrollUI() {
@@ -1573,7 +1576,7 @@
                 const secs = String(now.getSeconds()).padStart(2, '0');
                 const ampm = hrs >= 12 ? 'PM' : 'AM';
                 hrs = hrs % 12;
-                hrs = hrs ? hrs : 12; // the hour '0' should be '12'
+                hrs = hrs ? hrs : 12;
                 clockEl.textContent = `${String(hrs).padStart(2, '0')}:${mins}:${secs} ${ampm} EST`;
             };
             updateClock();
@@ -1581,7 +1584,7 @@
         }
 
         // Render markets list based on search and filters
-        let currentFilter = 'sports';
+        let currentFilter = 'all';
         let searchQuery = '';
 
         function renderMarkets() {
@@ -1589,9 +1592,17 @@
             listEl.innerHTML = '';
 
             const filtered = marketsData.filter(m => {
-                const matchesCat = currentFilter === 'all' || m.category === currentFilter;
+                const matchesCat = currentFilter === 'all' || 
+                                   m.category === currentFilter ||
+                                   (currentFilter === 'props' && m.kind === 'prop') ||
+                                   (currentFilter === 'nfl' && (m.category === 'nfl' || m.league === 'NFL')) ||
+                                   (currentFilter === 'mlb' && (m.category === 'mlb' || m.league === 'MLB')) ||
+                                   (currentFilter === 'nba' && (m.category === 'nba' || m.league === 'NBA')) ||
+                                   (currentFilter === 'wnba' && (m.category === 'wnba' || m.league === 'WNBA')) ||
+                                   (currentFilter === 'nhl' && (m.category === 'nhl' || m.league === 'NHL'));
                 const matchesSearch = m.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                      m.category.toLowerCase().includes(searchQuery.toLowerCase());
+                                      m.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                      (m.matchup && m.matchup.toLowerCase().includes(searchQuery.toLowerCase()));
                 return matchesCat && matchesSearch;
             });
 
