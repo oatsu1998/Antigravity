@@ -3190,22 +3190,31 @@
                 totalPaceText = `${liveTotalPoints} PTS SCORED`;
             }
 
-            const spreadAway = spreadObj?.awayLine ? (spreadObj.awayLine > 0 ? '+' + spreadObj.awayLine : spreadObj.awayLine) : '-7.5';
-            const spreadHome = spreadObj?.homeLine ? (spreadObj.homeLine > 0 ? '+' + spreadObj.homeLine : spreadObj.homeLine) : '+7.5';
-            const spreadAwayOdds = spreadObj?.awayAmerican || '-115';
-            const spreadHomeOdds = spreadObj?.homeAmerican || '-115';
-            const totalLine = totalObj?.line || totalObj?.overUnder || '47.5';
-            const totalOverOdds = totalObj?.overAmerican || '+100';
-            const totalUnderOdds = totalObj?.underAmerican || '-130';
-            const mlAway = kalshiML?.awayAmerican || '-800';
-            const mlHome = kalshiML?.homeAmerican || '+450';
-            const awayTeamTot = (parseFloat(totalLine) * 0.55).toFixed(1);
-            const homeTeamTot = (parseFloat(totalLine) * 0.45).toFixed(1);
+            const spreadAway = (spreadObj && spreadObj.awayLine !== undefined && spreadObj.awayLine !== null) ? (spreadObj.awayLine > 0 ? '+' + spreadObj.awayLine : spreadObj.awayLine) : 'N/A';
+            const spreadHome = (spreadObj && spreadObj.homeLine !== undefined && spreadObj.homeLine !== null) ? (spreadObj.homeLine > 0 ? '+' + spreadObj.homeLine : spreadObj.homeLine) : 'N/A';
+            const spreadAwayOdds = (spreadAway !== 'N/A' && spreadObj?.awayAmerican) ? spreadObj.awayAmerican : (spreadAway !== 'N/A' ? '-110' : 'N/A');
+            const spreadHomeOdds = (spreadHome !== 'N/A' && spreadObj?.homeAmerican) ? spreadObj.homeAmerican : (spreadHome !== 'N/A' ? '-110' : 'N/A');
+
+            const totalLine = (totalObj && (totalObj.line !== undefined || totalObj.overUnder !== undefined)) ? (totalObj.line || totalObj.overUnder) : 'N/A';
+            const totalOverOdds = (totalLine !== 'N/A' && totalObj?.overAmerican) ? totalObj.overAmerican : (totalLine !== 'N/A' ? '-110' : 'N/A');
+            const totalUnderOdds = (totalLine !== 'N/A' && totalObj?.underAmerican) ? totalObj.underAmerican : (totalLine !== 'N/A' ? '-110' : 'N/A');
+
+            const mlAway = kalshiML?.awayAmerican || 'N/A';
+            const mlHome = kalshiML?.homeAmerican || 'N/A';
+
+            const awayTeamTot = (totalLine !== 'N/A') ? (parseFloat(totalLine) * 0.55).toFixed(1) : 'N/A';
+            const homeTeamTot = (totalLine !== 'N/A') ? (parseFloat(totalLine) * 0.45).toFixed(1) : 'N/A';
+            const awayTeamTotOdds = (awayTeamTot !== 'N/A') ? '-110' : 'N/A';
+            const homeTeamTotOdds = (homeTeamTot !== 'N/A') ? '-110' : 'N/A';
+
+            const isKalshiLive = (spreadAway !== 'N/A' || totalLine !== 'N/A' || mlAway !== 'N/A');
 
             bettingWidgetHtml = `
             <div class="betting-widget sb-card-odds-widget" onclick="event.stopPropagation()" style="background:#111827; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:8px 10px; margin-top:8px; font-family:var(--font-mono);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; padding-bottom:4px; border-bottom:1px solid rgba(255,255,255,0.06);">
-                    <span style="font-size:9px; font-weight:800; color:var(--cyan);">⚡ LIVE SPORTSBOOK CONSENSUS</span>
+                    <span style="font-size:9px; font-weight:800; color:${isKalshiLive ? 'var(--cyan)' : 'var(--muted)'};">
+                        ${isKalshiLive ? '⚡ LIVE KALSHI WEBSOCKET PRICING' : '⚡ KALSHI MARKET LINES N/A'}
+                    </span>
                     <span style="font-size:8px; color:var(--muted);">CLICK ANY PILL TO ADD TO BETSLIP</span>
                 </div>
                 <div style="overflow-x:auto;">
@@ -3239,15 +3248,15 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill highlighted-green" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Total', 'O ${totalLine} (${totalOverOdds})')">
-                                        <span class="sb-line-val">O ${totalLine}</span>
-                                        <span class="sb-odds-val" style="color:#10b981;">${totalOverOdds} ⇡</span>
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Total', 'O ${totalLine} (${totalOverOdds})')">
+                                        <span class="sb-line-val">${totalLine !== 'N/A' ? 'O ' + totalLine : 'O N/A'}</span>
+                                        <span class="sb-odds-val">${totalOverOdds}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Team Total', 'O ${awayTeamTot} (-115)')">
-                                        <span class="sb-line-val">O ${awayTeamTot}</span>
-                                        <span class="sb-odds-val">-115</span>
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Team Total', 'O ${awayTeamTot} (${awayTeamTotOdds})')">
+                                        <span class="sb-line-val">${awayTeamTot !== 'N/A' ? 'O ' + awayTeamTot : 'O N/A'}</span>
+                                        <span class="sb-odds-val">${awayTeamTotOdds}</span>
                                     </div>
                                 </td>
                             </tr>
@@ -3271,14 +3280,14 @@
                                 </td>
                                 <td>
                                     <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Total', 'U ${totalLine} (${totalUnderOdds})')">
-                                        <span class="sb-line-val">U ${totalLine}</span>
+                                        <span class="sb-line-val">${totalLine !== 'N/A' ? 'U ' + totalLine : 'U N/A'}</span>
                                         <span class="sb-odds-val">${totalUnderOdds}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill highlighted-red" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Team Total', 'U ${homeTeamTot} (-140)')">
-                                        <span class="sb-line-val">U ${homeTeamTot}</span>
-                                        <span class="sb-odds-val" style="color:#ef4444;">-140 ⇣</span>
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Team Total', 'U ${homeTeamTot} (${homeTeamTotOdds})')">
+                                        <span class="sb-line-val">${homeTeamTot !== 'N/A' ? 'U ' + homeTeamTot : 'U N/A'}</span>
+                                        <span class="sb-odds-val">${homeTeamTotOdds}</span>
                                     </div>
                                 </td>
                             </tr>
