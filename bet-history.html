@@ -571,19 +571,37 @@
             renderTable();
         }
 
+        function parseMatchupTeams(eventStr, matchupStr) {
+            let text = (matchupStr && matchupStr.includes('@')) ? matchupStr : (eventStr || '');
+            text = text.trim();
+
+            let awayStr = 'MIN';
+            let homeStr = 'DEN';
+
+            if (text.includes('@')) {
+                const parts = text.split('@');
+                awayStr = parts[0].trim();
+                homeStr = parts[1].trim();
+            } else if (text.toUpperCase().includes(' AT ')) {
+                const parts = text.toUpperCase().split(' AT ');
+                awayStr = parts[0].trim();
+                homeStr = parts[1].trim();
+            } else if (text.toUpperCase().includes(' VS ')) {
+                const parts = text.toUpperCase().split(' VS ');
+                awayStr = parts[0].trim();
+                homeStr = parts[1].trim();
+            } else {
+                awayStr = text;
+                homeStr = text;
+            }
+
+            return { awayStr, homeStr };
+        }
+
         function getTeamLogoBadge(teamKey) {
             const key = (teamKey || '').toUpperCase().trim();
-            if (key.includes('MIN') || key.includes('VIKINGS')) {
-                return `
-                    <div class="team-logo-badge" title="Minnesota Vikings">
-                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="16" cy="16" r="15" fill="#4F2683" stroke="#FFC62F" stroke-width="2"/>
-                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="13" fill="#FFC62F" text-anchor="middle">MIN</text>
-                        </svg>
-                    </div>
-                `;
-            }
-            if (key.includes('DEN') || key.includes('BRONCOS')) {
+
+            if (key.includes('DEN') || key.includes('BRONCO')) {
                 return `
                     <div class="team-logo-badge" title="Denver Broncos">
                         <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -593,7 +611,17 @@
                     </div>
                 `;
             }
-            if (key.includes('PHI') || key.includes('EAGLES')) {
+            if (key.includes('MIN') || key.includes('VIKING')) {
+                return `
+                    <div class="team-logo-badge" title="Minnesota Vikings">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#4F2683" stroke="#FFC62F" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="13" fill="#FFC62F" text-anchor="middle">MIN</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('PHI') || key.includes('EAGLE')) {
                 return `
                     <div class="team-logo-badge" title="Philadelphia Eagles">
                         <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -603,7 +631,7 @@
                     </div>
                 `;
             }
-            if (key.includes('KC') || key.includes('CHIEFS')) {
+            if (key.includes('KC') || key.includes('CHIEF')) {
                 return `
                     <div class="team-logo-badge" title="Kansas City Chiefs">
                         <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -613,7 +641,7 @@
                     </div>
                 `;
             }
-            if (key.includes('SJSU') || key.includes('SAN JOSE STATE')) {
+            if (key.includes('SJSU') || key.includes('SAN JOSE')) {
                 return `
                     <div class="team-logo-badge" title="San Jose State Spartans">
                         <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -623,7 +651,7 @@
                     </div>
                 `;
             }
-            if (key.includes('USC') || key.includes('TROJANS')) {
+            if (key.includes('USC') || key.includes('TROJAN')) {
                 return `
                     <div class="team-logo-badge" title="USC Trojans">
                         <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -646,27 +674,10 @@
         }
 
         function getTeamLogosForEvent(eventStr, matchupStr) {
-            const raw = ((eventStr || '') + ' ' + (matchupStr || '')).toUpperCase();
-            let awayTag = 'MIN';
-            let homeTag = 'DEN';
-
-            if (raw.includes('AT')) {
-                const parts = raw.split('AT');
-                awayTag = parts[0].trim();
-                homeTag = parts[1].trim();
-            } else if (raw.includes('@')) {
-                const parts = raw.split('@');
-                awayTag = parts[0].trim();
-                homeTag = parts[1].trim();
-            } else if (raw.includes('VS')) {
-                const parts = raw.split('VS');
-                awayTag = parts[0].trim();
-                homeTag = parts[1].trim();
-            }
-
+            const { awayStr, homeStr } = parseMatchupTeams(eventStr, matchupStr);
             return {
-                awayLogo: getTeamLogoBadge(awayTag),
-                homeLogo: getTeamLogoBadge(homeTag)
+                awayLogo: getTeamLogoBadge(awayStr),
+                homeLogo: getTeamLogoBadge(homeStr)
             };
         }
 
