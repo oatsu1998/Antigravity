@@ -109,6 +109,8 @@
 
                 wagers = wagers.map(w => ({
                     ...w,
+                    odds: w.placedOdds || w.odds || '-110',
+                    placedOdds: w.placedOdds || w.odds || '-110',
                     sportsbook: 'BetOnline',
                     bookmaker: 'BetOnline'
                 }));

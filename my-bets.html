@@ -949,8 +949,31 @@
         // Normalize wagers to ensure cross-page compatibility and prevent errors
         function normalizeWager(w) {
             const stakeVal = parseFloat(w.stake !== undefined ? w.stake : (w.wager !== undefined ? w.wager : 0));
-            const winVal = parseFloat(w.toWin !== undefined ? w.toWin : 0);
-            const payoutOdds = w.placedOdds || w.odds || w.detail || '-110';
+            let payoutOdds = w.placedOdds || w.odds || w.detail;
+            let winVal = parseFloat(w.toWin !== undefined ? w.toWin : 0);
+
+            // Calculate American odds from Stake and To Win if odds are missing
+            if ((!payoutOdds || payoutOdds === 'undefined') && stakeVal > 0 && winVal > 0) {
+                if (winVal >= stakeVal) {
+                    payoutOdds = `+${Math.round((winVal / stakeVal) * 100)}`;
+                } else {
+                    payoutOdds = `-${Math.round((stakeVal / winVal) * 100)}`;
+                }
+            }
+            if (!payoutOdds || payoutOdds === 'undefined') payoutOdds = '-110';
+
+            // Calculate To Win from Stake and Odds if To Win is missing
+            if ((!winVal || isNaN(winVal) || winVal === 0) && stakeVal > 0) {
+                const numOdds = parseInt(String(payoutOdds).replace('+', ''), 10);
+                if (!isNaN(numOdds)) {
+                    if (numOdds > 0) {
+                        winVal = stakeVal * (numOdds / 100);
+                    } else if (numOdds < 0) {
+                        winVal = stakeVal * (100 / Math.abs(numOdds));
+                    }
+                }
+            }
+
             const eventTitle = w.event || w.target || 'VIKINGS at BRONCOS';
             const selectionTitle = w.selection || w.matchup || w.description || 'Selection';
 
@@ -963,6 +986,7 @@
                 stake: stakeVal,
                 toWin: winVal,
                 placedOdds: payoutOdds,
+                odds: payoutOdds,
                 currentOdds: w.currentOdds || payoutOdds,
                 sportsbook: 'BetOnline',
                 bookmaker: 'BetOnline',

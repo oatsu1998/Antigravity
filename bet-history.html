@@ -492,6 +492,41 @@
             renderTable();
         }
 
+        function getWagerOddsAndToWin(w) {
+            let odds = w.placedOdds || w.odds || w.currentOdds;
+            let stake = parseFloat(w.stake !== undefined ? w.stake : (w.wager !== undefined ? w.wager : 0)) || 0;
+            let toWin = parseFloat(w.toWin !== undefined ? w.toWin : 0);
+
+            // Calculate American odds from Risk (Stake) and To Win if odds are missing
+            if ((!odds || odds === 'undefined' || odds === 'N/A') && stake > 0 && toWin > 0) {
+                if (toWin >= stake) {
+                    const plus = Math.round((toWin / stake) * 100);
+                    odds = `+${plus}`;
+                } else {
+                    const minus = Math.round((stake / toWin) * 100);
+                    odds = `-${minus}`;
+                }
+            }
+
+            // Calculate To Win from Stake and American odds if To Win is missing
+            if ((!toWin || isNaN(toWin) || toWin === 0) && stake > 0 && odds) {
+                const numOdds = parseInt(String(odds).replace('+', ''), 10);
+                if (!isNaN(numOdds)) {
+                    if (numOdds > 0) {
+                        toWin = stake * (numOdds / 100);
+                    } else if (numOdds < 0) {
+                        toWin = stake * (100 / Math.abs(numOdds));
+                    }
+                }
+            }
+
+            if (!odds || odds === 'undefined') {
+                odds = '-110';
+            }
+
+            return { odds, stake, toWin };
+        }
+
         function parseOddsToDec(oddsStr) {
             const us = parseInt(String(oddsStr).replace('+', ''), 10);
             if (isNaN(us)) return 1.91;
@@ -510,12 +545,11 @@
             let netProfit = 0;
 
             allWagers.forEach(w => {
-                const stake = parseFloat(w.stake) || 0;
+                const { odds, stake, toWin } = getWagerOddsAndToWin(w);
                 totalVolume += stake;
 
                 if (w.status === 'WON') {
-                    const dec = parseOddsToDec(w.odds);
-                    netProfit += (stake * dec) - stake;
+                    netProfit += toWin > 0 ? toWin : ((stake * parseOddsToDec(odds)) - stake);
                 } else if (w.status === 'LOST') {
                     netProfit -= stake;
                 }
@@ -548,18 +582,15 @@
             // Sort chronologically
             const sorted = [...allWagers].sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
 
-            sorted.forEach((w, idx) => {
-                const stake = parseFloat(w.stake) || 0;
+            sorted.forEach((w, i) => {
+                const { odds, stake, toWin } = getWagerOddsAndToWin(w);
+                labels.push(`Wager #${i + 1}`);
                 if (w.status === 'WON') {
-                    const dec = parseOddsToDec(w.odds);
-                    cumulative += (stake * dec) - stake;
-                    labels.push(`Bet #${idx + 1}`);
-                    data.push(cumulative);
+                    cumulative += toWin > 0 ? toWin : ((stake * parseOddsToDec(odds)) - stake);
                 } else if (w.status === 'LOST') {
                     cumulative -= stake;
-                    labels.push(`Bet #${idx + 1}`);
-                    data.push(cumulative);
                 }
+                data.push(cumulative);
             });
 
             chartInstance = new Chart(ctx, {
@@ -567,7 +598,7 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Net Cumulative Profit ($)',
+                        label: 'Net Profit ($)',
                         data: data,
                         borderColor: '#10b981',
                         backgroundColor: 'rgba(16, 185, 129, 0.1)',
@@ -604,7 +635,7 @@
             let filtered = allWagers.filter(w => {
                 if (activeFilter !== 'ALL' && w.status !== activeFilter) return false;
                 if (search) {
-                    const haystack = `${w.event} ${w.matchup} ${w.bookmaker} ${w.type}`.toLowerCase();
+                    const haystack = `${w.event} ${w.matchup || w.selection} ${w.bookmaker || w.sportsbook} ${w.type}`.toLowerCase();
                     if (!haystack.includes(search)) return false;
                 }
                 return true;
@@ -624,17 +655,19 @@
 
             tbody.innerHTML = filtered.map(w => {
                 const dateStr = w.timestamp ? new Date(w.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent';
-                const stake = parseFloat(w.stake) || 0;
-                const dec = parseOddsToDec(w.odds);
+                const { odds, stake, toWin } = getWagerOddsAndToWin(w);
                 let payout = 0;
                 let profit = 0;
 
                 if (w.status === 'WON') {
-                    payout = stake * dec;
-                    profit = payout - stake;
+                    payout = stake + toWin;
+                    profit = toWin;
                 } else if (w.status === 'LOST') {
                     payout = 0;
                     profit = -stake;
+                } else {
+                    payout = stake + toWin;
+                    profit = toWin;
                 }
 
                 const statusClass = w.status.toLowerCase();
@@ -644,12 +677,12 @@
                     <tr>
                         <td style="color: var(--muted); font-size: 11px;">${dateStr}</td>
                         <td>
-                            <div style="font-weight: bold; color: #fff;">${w.event}</div>
-                            <div style="font-size: 10px; color: var(--muted);">${w.matchup || ''}</div>
+                            <div style="font-weight: bold; color: #fff;">${w.event || w.target}</div>
+                            <div style="font-size: 10px; color: var(--muted);">${w.matchup || w.selection || ''}</div>
                         </td>
                         <td>${w.type || 'Straight'}</td>
-                        <td style="color: var(--cyan);">${w.bookmaker || 'Sportsbook'}</td>
-                        <td><span class="odds-pill">${w.odds}</span></td>
+                        <td style="color: var(--cyan);">${w.bookmaker || w.sportsbook || 'BetOnline'}</td>
+                        <td><span class="odds-pill">${odds}</span></td>
                         <td style="font-weight: bold;">$${stake.toFixed(2)}</td>
                         <td style="color: var(--muted);">$${payout.toFixed(2)}</td>
                         <td style="font-weight: bold;" class="${profitClass}">
