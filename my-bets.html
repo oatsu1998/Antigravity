@@ -940,11 +940,10 @@
 
     <!-- CORE SCRIPT IMPLEMENTATION -->
     <script>
-        // Placed bets schema
-        let wagers = [];
+        // Placed bets sc        let wagers = [];
         let selectedWagerId = null;
         let chartInstance = null;
-        let activeFilter = 'ALL';
+        let activeFilter = 'ACTIVE';
 
         // Normalize wagers to ensure cross-page compatibility and prevent errors
         function normalizeWager(w) {
@@ -1039,11 +1038,8 @@
                 return 0;
             }
             const clv = calculateCLV(placedOdds, currentOdds);
-            // Vig cut is usually 3-5% for bookmaker cashout calculations
             const vigCut = 0.04;
             const cashVal = stake * (1 + clv) * (1 - vigCut);
-
-            // Return at least 10% of stake or cap it at max win payout minus 5%
             const maxPayout = stake * americanToDecimal(placedOdds);
             const minCash = stake * 0.1;
             const cappedCash = Math.min(Math.max(cashVal, minCash), maxPayout * 0.95);
@@ -1133,7 +1129,6 @@
 
             fetched = gradedWagers;
             localStorage.setItem('destiny_game_wagers', JSON.stringify(fetched));
-            }
 
             wagers = fetched.map(normalizeWager);
         }
@@ -1145,13 +1140,25 @@
 
             const filtered = wagers.filter(w => {
                 if (activeFilter === 'ALL') return true;
-                if (activeFilter === 'PENDING') return w.status === 'PENDING';
+                if (activeFilter === 'ACTIVE' || activeFilter === 'PENDING') return w.status === 'PENDING';
                 if (activeFilter === 'SETTLED') return w.status === 'WON' || w.status === 'LOST';
                 return true;
             });
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:11px; padding:30px 10px;">No matching positions found. Click below to add one!</div>`;
+                container.innerHTML = `
+                    <div style="text-align:center; color:var(--muted); font-size:12px; padding:40px 15px; font-family:var(--font-mono);">
+                        <div style="font-size:28px; margin-bottom:10px;">🎟️</div>
+                        <div style="font-weight:700; color:#e4e4e7; font-size:13px;">No Active Wager Positions</div>
+                        <div style="font-size:11px; margin-top:4px; color:#a1a1aa;">All live bets have cleared and settled. Ready for tomorrow's action!</div>
+                        <div style="margin-top:14px;">
+                            <a href="bet-history.html" style="color:#06b6d4; text-decoration:none; font-weight:700; font-size:11px; background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.25); padding:6px 12px; border-radius:4px; display:inline-block;">
+                                View Settled Bet History →
+                            </a>
+                        </div>
+                    </div>
+                `;
+                recalculateOverallMetrics();
                 return;
             }
 
@@ -1217,54 +1224,42 @@
 
         // Recalculate Portfolio Metric Cards
         function recalculateOverallMetrics() {
-            let totalStakes = 0;
-            let netProfit = 0;
+            let activeStakes = 0;
+            let netEstProfit = 0;
             let clvSum = 0;
             let pendingCount = 0;
             let wins = 0;
             let losses = 0;
 
             wagers.forEach(w => {
-                totalStakes += w.stake;
-
                 if (w.status === 'PENDING') {
                     pendingCount++;
+                    activeStakes += w.stake;
                     const liveCash = calculateCashoutValue(w.stake, w.placedOdds, w.currentOdds, w.status);
-                    netProfit += (liveCash - w.stake);
+                    netEstProfit += (liveCash - w.stake);
                     clvSum += calculateCLV(w.placedOdds, w.currentOdds);
                 } else if (w.status === 'WON') {
                     wins++;
-                    const payout = w.stake * americanToDecimal(w.placedOdds);
-                    netProfit += (payout - w.stake);
-                } else {
+                } else if (w.status === 'LOST') {
                     losses++;
-                    netProfit -= w.stake;
                 }
             });
 
-            const avgCLV = pendingCount > 0 ? (clvSum / pendingCount) * 100 : 11.6;
+            const avgCLV = pendingCount > 0 ? (clvSum / pendingCount) * 100 : 0.0;
 
             // Render to DOM
-            document.getElementById('totalStakes').textContent = `$${totalStakes.toFixed(2)}`;
+            document.getElementById('totalStakes').textContent = `$${activeStakes.toFixed(2)}`;
 
             const profitEl = document.getElementById('overallProfit');
-            profitEl.textContent = `${netProfit >= 0 ? '+' : ''}$${netProfit.toFixed(2)}`;
-            if (netProfit >= 0) {
-                profitEl.className = 'metric-val text-win';
-            } else {
-                profitEl.className = 'metric-val text-lost';
-            }
+            profitEl.textContent = `${netEstProfit >= 0 ? '+' : ''}$${netEstProfit.toFixed(2)}`;
+            profitEl.className = 'metric-val ' + (netEstProfit >= 0 ? 'text-win' : 'text-lost');
 
             const roiEl = document.getElementById('overallROI');
             roiEl.textContent = `${avgCLV >= 0 ? '+' : ''}${avgCLV.toFixed(1)}%`;
-            if (avgCLV >= 0) {
-                roiEl.className = 'metric-val text-win';
-            } else {
-                roiEl.className = 'metric-val text-lost';
-            }
+            roiEl.className = 'metric-val ' + (avgCLV >= 0 ? 'text-win' : 'text-lost');
 
             document.getElementById('activeBetsCount').textContent = `${pendingCount} Position(s)`;
-            document.getElementById('overallRecord').textContent = `${wins}W - ${losses}L · ${pendingCount} Pending`;
+            document.getElementById('overallRecord').textContent = `${pendingCount} Pending · ${wins}W - ${losses}L`;
         }
 
         // Select Wager to render detailed Traders Terminal & Chart
