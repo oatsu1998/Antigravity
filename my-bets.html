@@ -962,15 +962,21 @@
         // Normalize wagers to ensure cross-page compatibility and prevent errors
         function normalizeWager(w) {
             const stakeVal = parseFloat(w.stake !== undefined ? w.stake : (w.wager !== undefined ? w.wager : 0));
-            const payoutOdds = w.placedOdds || w.detail || '+100';
+            const winVal = parseFloat(w.toWin !== undefined ? w.toWin : 0);
+            const payoutOdds = w.placedOdds || w.odds || w.detail || '-110';
+            const eventTitle = w.event || w.target || 'Custom Bet';
+            const selectionTitle = w.selection || w.matchup || w.description || 'Selection';
+
             return {
                 id: w.id || ('wager-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)),
-                target: w.target || 'Unknown Selection',
-                matchup: w.matchup || 'Unknown Matchup',
+                ticketNumber: w.ticketNumber || '',
+                target: eventTitle,
+                matchup: selectionTitle,
                 stake: stakeVal,
+                toWin: winVal,
                 placedOdds: payoutOdds,
                 currentOdds: w.currentOdds || payoutOdds,
-                sportsbook: w.sportsbook || 'FanDuel',
+                sportsbook: w.sportsbook || w.bookmaker || 'FanDuel',
                 status: w.status || 'PENDING',
                 history: Array.isArray(w.history) ? w.history : [payoutOdds],
                 type: w.type || 'GAME'
@@ -1031,61 +1037,16 @@
             return cappedCash;
         }
 
-        // Load real wagers from storage and merge in synced player props.
-        // (Previously this also force-injected two hardcoded demo wagers —
-        // Red Sox/Dodgers Over 13.5 and a Thunder +7 spread — every time this
-        // ran, so they kept reappearing in the ledger even after being
-        // "removed". That's gone; only real data lands here now.)
         function seedInitialWagers() {
-            const savedWagers = localStorage.getItem('destiny_game_wagers');
-            const savedProps = localStorage.getItem('destiny_tracked_picks');
-
-            let parsedProps = [];
-            if (savedProps) {
+            if (window.DestinyState) {
+                wagers = DestinyState.getWagers().map(normalizeWager);
+            } else {
                 try {
-                    parsedProps = JSON.parse(savedProps);
-                } catch (e) {
-                    console.error("Failed to parse local stored tracked props:", e);
+                    wagers = JSON.parse(localStorage.getItem('destiny_game_wagers') || '[]').map(normalizeWager);
+                } catch(e) {
+                    wagers = [];
                 }
             }
-
-            if (savedWagers) {
-                try {
-                    wagers = JSON.parse(savedWagers).map(normalizeWager).filter(w => !String(w.id).startsWith('wager-seed-') && !String(w.id).startsWith('demo_'));
-                } catch (e) {
-                    console.error("Failed to parse local stored wagers:", e);
-                }
-            }
-
-            // Group existing tracked player props from props.html slip as active wagers!
-            const syncedPropWagers = parsedProps.map(p => {
-                const placed = p.odds || '+100';
-                const valNum = parseInt(placed);
-                const liveInit = valNum > 0 ? (valNum - 10) : (valNum - 15);
-                const liveInitStr = liveInit > 0 ? `+${liveInit}` : `${liveInit}`;
-
-                return {
-                    id: p.id,
-                    target: `${p.player} — ${p.choice} ${p.line} ${p.stat}`,
-                    matchup: p.matchup,
-                    stake: 100.00, // Default stake for synced props
-                    placedOdds: placed,
-                    currentOdds: placed, // Initially equal
-                    sportsbook: p.sportsbook || 'FanDuel',
-                    status: p.status || 'PENDING',
-                    history: [placed, placed, placed], // Sparkline series
-                    type: 'PROP'
-                };
-            });
-
-            // Merge in any synced player props that aren't already in the ledger
-            const combined = [...wagers];
-            syncedPropWagers.forEach(sp => {
-                if (!combined.some(c => c.id === sp.id)) {
-                    combined.push(sp);
-                }
-            });
-            wagers = combined.map(normalizeWager);
             localStorage.setItem('destiny_game_wagers', JSON.stringify(wagers));
         }
 
@@ -1121,6 +1082,8 @@
                 if (clv > 0) { clvColor = 'var(--win)'; clvSign = '+'; }
                 else if (clv < 0) { clvColor = 'var(--live)'; }
 
+                const payoutReturn = w.toWin > 0 ? (w.stake + w.toWin) : (w.stake * americanToDecimal(w.placedOdds));
+
                 card.innerHTML = `
                     <div class="wager-card-top">
                         <div>
@@ -1140,7 +1103,7 @@
                         </div>
                         <div>
                             <div class="body-label">Stake / Return</div>
-                            <div class="body-val">$${w.stake.toFixed(0)} → $${(w.stake * americanToDecimal(w.placedOdds)).toFixed(0)}</div>
+                            <div class="body-val">$${w.stake.toFixed(0)} → $${payoutReturn.toFixed(0)}</div>
                         </div>
                     </div>
                     <div class="wager-card-footer">
