@@ -36,7 +36,7 @@
         getWagers: function() {
             try {
                 let wagers = JSON.parse(localStorage.getItem(KEYS.WAGERS) || '[]');
-                const vikingsWagers = [
+                const defaultWagers = [
                     {
                         id: 'ticket-991363123',
                         ticketNumber: '991363123',
@@ -96,16 +96,40 @@
                         wager: 25.00,
                         toWin: 63.50,
                         placedOdds: '+254',
+                        odds: '+254',
                         currentOdds: '+254',
                         status: 'LOST',
                         acceptedDate: '8/28/26',
                         timestamp: '2026-08-28T21:00:00.000Z',
                         description: 'Football - NFL - Minnesota Vikings vs Denver Broncos - Parlay | 127 Minnesota Vikings +3½ -117 for GAME',
                         history: ['+254', '+254', '+254']
+                    },
+                    {
+                        id: 'ticket-991397407',
+                        ticketNumber: '991397407',
+                        event: 'SAN JOSE STATE at USC',
+                        matchup: 'SJSU @ USC',
+                        target: 'SAN JOSE STATE at USC',
+                        selection: 'Total — UNDER 61.5 (-115)',
+                        type: 'Total',
+                        side: 'Under 61.5',
+                        sportsbook: 'BetOnline',
+                        bookmaker: 'BetOnline',
+                        stake: 115.00,
+                        wager: 115.00,
+                        toWin: 100.00,
+                        placedOdds: '-115',
+                        odds: '-115',
+                        currentOdds: '-115',
+                        status: 'PENDING',
+                        acceptedDate: '8/29/26',
+                        timestamp: '2026-08-29T15:00:00.000Z',
+                        description: 'Football - NCAA - San Jose State vs USC - Total | 314 San Jose State/USC under 61½ -115 for GAME | 08/29/2026 03:00:00 PM (EST) | Pending',
+                        history: ['-115', '-115', '-115']
                     }
                 ];
 
-                wagers = vikingsWagers;
+                wagers = defaultWagers;
 
                 wagers = wagers.map(w => ({
                     ...w,

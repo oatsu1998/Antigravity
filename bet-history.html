@@ -613,6 +613,26 @@
                     </div>
                 `;
             }
+            if (key.includes('SJSU') || key.includes('SAN JOSE STATE')) {
+                return `
+                    <div class="team-logo-badge" title="San Jose State Spartans">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#0055A5" stroke="#E5A823" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#E5A823" text-anchor="middle">SJSU</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('USC') || key.includes('TROJANS')) {
+                return `
+                    <div class="team-logo-badge" title="USC Trojans">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#990000" stroke="#FFCC00" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="12" fill="#FFCC00" text-anchor="middle">USC</text>
+                        </svg>
+                    </div>
+                `;
+            }
 
             const tag = key.substring(0, 3) || 'BET';
             return `
