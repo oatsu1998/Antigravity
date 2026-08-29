@@ -3610,6 +3610,9 @@
                 try { activeWagers = JSON.parse(localStorage.getItem('destiny_game_wagers') || '[]'); } catch(e) { activeWagers = []; }
             }
 
+            // Filter strictly PENDING active wagers
+            activeWagers = activeWagers.filter(w => w.status === 'PENDING');
+
             if (activeWagers.length === 0) {
                 return `
                     <div class="next-event-countdown-card" style="max-width:580px; margin:36px auto;">
@@ -4006,7 +4009,7 @@
             </div>
             <span style="font-family:var(--font-head); font-weight:900; color:var(--accent);">LIVE WAGERS</span>
         </div>
-        <span style="font-size:10px; font-weight:900; font-family:var(--font-mono); color:#000; background:var(--accent); padding:2px 7px; border-radius:10px;">${(window.DestinyState ? DestinyState.getWagers().length : (JSON.parse(localStorage.getItem('destiny_game_wagers') || '[]').length))}</span>
+        <span style="font-size:10px; font-weight:900; font-family:var(--font-mono); color:#000; background:var(--accent); padding:2px 7px; border-radius:10px;">${(window.DestinyState ? DestinyState.getWagers().filter(w => w.status === 'PENDING').length : JSON.parse(localStorage.getItem('destiny_game_wagers') || '[]').filter(w => w.status === 'PENDING').length)}</span>
       </button>
 
       <button class="tab fixed-destiny ${activeTab === 'destiny' ? 'active' : ''}" onclick="switchTab('destiny')" draggable="false" style="display:flex; align-items:center; justify-content:space-between; width:100%; cursor:pointer;">
