@@ -53,21 +53,26 @@ function initGlobalNav() {
             display: flex;
             align-items: center;
             justify-content: center;
-            filter: drop-shadow(0 2px 8px rgba(6, 182, 212, 0.4));
+            filter: drop-shadow(0 2px 8px rgba(6, 182, 212, 0.45));
         }
-        .global-nav-brand-text {
+        .brand-top-text {
             font-family: 'Barlow Condensed', sans-serif;
-            font-size: 21px;
+            font-size: 16px;
             font-weight: 900;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             color: #ffffff;
             text-transform: uppercase;
             line-height: 1;
         }
-        .brand-net-accent {
-            color: #06b6d4;
-            margin-left: 4px;
+        .brand-bottom-text {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 12px;
             font-weight: 800;
+            letter-spacing: 2.2px;
+            color: #06b6d4;
+            text-transform: uppercase;
+            line-height: 1;
+            margin-top: 1px;
         }
         .global-nav-brand {
             color: #f59e0b;
@@ -246,11 +251,9 @@ function initGlobalNav() {
         <div style="display:flex; align-items:center;">
             <a href="index.html" class="global-nav-brand-wrap" style="display:flex; align-items:center; gap:10px; text-decoration:none; margin-right:28px;">
                 <div class="destiny-logo-badge">
-                    <svg width="32" height="32" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="34" height="34" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect width="36" height="36" rx="9" fill="url(#destiny_grad)"/>
-                        <path d="M11 9H19.5C24.1944 9 28 12.8056 28 17.5C28 22.1944 24.1944 26 19.5 26H11V9Z" fill="white"/>
-                        <path d="M14.5 12.5H19C21.7614 12.5 24 14.7386 24 17.5C24 20.2614 21.7614 22.5 19 22.5H14.5V12.5Z" fill="#0A0C0F"/>
-                        <path d="M16 15L21.5 17.5L16 20V15Z" fill="#06B6D4"/>
+                        <text x="18" y="25" font-family="'Barlow Condensed', 'Arial Black', sans-serif" font-weight="900" font-size="20" fill="#FFFFFF" text-anchor="middle" letter-spacing="-0.5">DN</text>
                         <defs>
                             <linearGradient id="destiny_grad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
                                 <stop stop-color="#06B6D4"/>
@@ -259,8 +262,9 @@ function initGlobalNav() {
                         </defs>
                     </svg>
                 </div>
-                <div style="display:flex; flex-direction:column; justify-content:center;">
-                    <span class="global-nav-brand-text">DESTINY<span class="brand-net-accent">NETWORK</span></span>
+                <div style="display:flex; flex-direction:column; justify-content:center; line-height:0.95;">
+                    <span class="brand-top-text">DESTINY</span>
+                    <span class="brand-bottom-text">NETWORK</span>
                 </div>
             </a>
 
