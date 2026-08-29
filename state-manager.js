@@ -5,6 +5,14 @@
 (function() {
     'use strict';
 
+    // Purge all old wager storage completely as requested by user
+    try {
+        localStorage.removeItem('destiny_placed_bets');
+        localStorage.removeItem('destiny_tracked_picks');
+        localStorage.removeItem('wagers');
+        localStorage.setItem('destiny_game_wagers', '[]');
+    } catch(e) {}
+
     const KEYS = {
         BANKROLL: 'bankroll',
         WAGERS: 'destiny_game_wagers',
@@ -33,115 +41,9 @@
             return sanitized;
         },
 
-        // ── Game Wagers (My Bets) ────────────────────────────────────────────
         getWagers: function() {
             try {
-                let wagers = JSON.parse(localStorage.getItem(KEYS.WAGERS) || '[]');
-                const realUserTickets = [
-                    {
-                        id: 'ticket-991363123',
-                        ticketNumber: '991363123',
-                        event: 'VIKINGS at BRONCOS',
-                        matchup: 'VIKINGS at BRONCOS',
-                        target: 'Total — UNDER 40.5',
-                        selection: 'UNDER 40.5',
-                        type: 'Live',
-                        side: 'Under 40.5',
-                        bookmaker: 'FanDuel',
-                        sportsbook: 'FanDuel',
-                        stake: 120.00,
-                        wager: 120.00,
-                        toWin: 100.00,
-                        placedOdds: '-120',
-                        currentOdds: '-120',
-                        status: 'PENDING',
-                        acceptedDate: '8/29/26',
-                        timestamp: '2026-08-29T00:00:00.000Z',
-                        description: 'VIKINGS at BRONCOS - Total - UNDER 40.5',
-                        history: ['-120', '-120', '-120']
-                    },
-                    {
-                        id: 'ticket-991340733',
-                        ticketNumber: '991340733',
-                        event: 'BENGALS at EAGLES',
-                        matchup: 'BENGALS at EAGLES',
-                        target: 'Side — EAGLES +5.5',
-                        selection: 'EAGLES +5.5',
-                        type: 'Live',
-                        side: 'Eagles +5.5',
-                        bookmaker: 'FanDuel',
-                        sportsbook: 'FanDuel',
-                        stake: 50.00,
-                        wager: 50.00,
-                        toWin: 43.48,
-                        placedOdds: '-115',
-                        currentOdds: '-115',
-                        status: 'PENDING',
-                        acceptedDate: '8/29/26',
-                        timestamp: '2026-08-29T00:00:00.000Z',
-                        description: 'BENGALS at EAGLES - Side - EAGLES +5.5',
-                        history: ['-115', '-115', '-115']
-                    },
-                    {
-                        id: 'ticket-991291159',
-                        ticketNumber: '991291159',
-                        event: '2-Team Teaser (NFL)',
-                        matchup: 'MIN vs DEN / NYG vs NYJ',
-                        target: 'Teaser: MIN Vikings +9½ (-117) | NYG/NYJ Under 43 (-110)',
-                        selection: 'MIN Vikings +9½ | NYG/NYJ Under 43',
-                        type: 'Teaser',
-                        side: 'Teaser (2 Teams)',
-                        bookmaker: 'DraftKings',
-                        sportsbook: 'DraftKings',
-                        stake: 25.00,
-                        wager: 25.00,
-                        toWin: 22.73,
-                        placedOdds: '-110',
-                        currentOdds: '-110',
-                        status: 'PENDING',
-                        acceptedDate: '8/28/26',
-                        timestamp: '2026-08-28T21:00:00.000Z',
-                        description: 'Football - NFL - Minnesota Vikings vs Denver Broncos - Teaser | 127 Minnesota Vikings +9½ -117 for GAME | Football - NFL - New York Giants vs New York Jets - Teaser | 118 New York Giants/New York Jets under 43 -110 for GAME',
-                        history: ['-110', '-110', '-110']
-                    },
-                    {
-                        id: 'ticket-991291089',
-                        ticketNumber: '991291089',
-                        event: '2-Team Parlay (NFL)',
-                        matchup: 'MIN vs DEN / NYG vs NYJ',
-                        target: 'Parlay: MIN Vikings +3½ (-117) | NYG/NYJ Under 37 (-110)',
-                        selection: 'MIN Vikings +3½ | NYG/NYJ Under 37',
-                        type: 'Parlay',
-                        side: 'Parlay (2 Teams)',
-                        bookmaker: 'Caesars',
-                        sportsbook: 'Caesars',
-                        stake: 25.00,
-                        wager: 25.00,
-                        toWin: 63.50,
-                        placedOdds: '+254',
-                        currentOdds: '+254',
-                        status: 'PENDING',
-                        acceptedDate: '8/28/26',
-                        timestamp: '2026-08-28T21:00:00.000Z',
-                        description: 'Football - NFL - Minnesota Vikings vs Denver Broncos - Parlay | 127 Minnesota Vikings +3½ -117 for GAME | Football - NFL - New York Giants vs New York Jets - Parlay | 118 New York Giants/New York Jets under 37 -110 for GAME',
-                        history: ['+254', '+254', '+254']
-                    }
-                ];
-
-                const validTicketIds = realUserTickets.map(t => t.id);
-                const validTicketNums = realUserTickets.map(t => t.ticketNumber);
-
-                // Keep ONLY valid real user tickets!
-                wagers = wagers.filter(w => validTicketIds.includes(w.id) || validTicketNums.includes(String(w.ticketNumber)));
-
-                realUserTickets.forEach(rt => {
-                    if (!wagers.some(w => w.id === rt.id || String(w.ticketNumber) === rt.ticketNumber)) {
-                        wagers.push(rt);
-                    }
-                });
-
-                localStorage.setItem(KEYS.WAGERS, JSON.stringify(wagers));
-                return wagers;
+                return JSON.parse(localStorage.getItem(KEYS.WAGERS) || '[]');
             } catch (e) {
                 console.error('[DestinyState] Error reading wagers:', e);
                 return [];
