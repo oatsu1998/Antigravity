@@ -2355,6 +2355,19 @@
             color: var(--accent);
         }
 
+        .possession-icon {
+            font-size: 10px;
+            margin-left: 3px;
+            filter: drop-shadow(0 0 4px #f59e0b);
+            display: inline-block;
+            animation: possPulse 1.8s infinite ease-in-out;
+        }
+
+        @keyframes possPulse {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.2); opacity: 1; filter: drop-shadow(0 0 6px #f59e0b); }
+        }
+
         .weather-chip {
             display: inline-flex;
             align-items: center;
@@ -3936,8 +3949,13 @@
                     html += `<div class="espn-ticker-divider">${leagueName}</div>`;
                 }
 
+                const sit = comp.situation;
+                const possessionId = String(sit?.possession || sit?.possessionText || sit?.lastPlay?.team?.id || '');
+                const isAwayPoss = status.isLive && (possessionId === String(away.team?.id || away.id || '') || (awayAbbr && possessionId.toUpperCase().includes(awayAbbr)));
+                const isHomePoss = status.isLive && (possessionId === String(home.team?.id || home.id || '') || (homeAbbr && possessionId.toUpperCase().includes(homeAbbr)));
+                const possIcon = (lg.id === 'nfl' || lg.id === 'college-football' || lg.id === 'ncaaf') ? '🏈' : (lg.id === 'mlb') ? '⚾' : '🟡';
+
                 const situationText = (() => {
-                    const sit = comp.situation;
                     if (!sit || !status.isLive) return '';
                     if (sit.down !== undefined && sit.distance !== undefined && sit.yardLine !== undefined) {
                         return `${sit.down}${getOrdinalSuffix(sit.down)} & ${sit.distance} at ${sit.possessionText || ''} ${sit.yardLine}`;
@@ -3960,6 +3978,7 @@
                             <div style="display:flex; align-items:center; gap:5px;">
                                 ${away.team?.logo ? `<img src="${away.team.logo}" style="width:12px; height:12px; object-fit:contain;">` : ''}
                                 <span class="${awayWin ? 'winner' : ''}">${awayAbbr}</span>
+                                ${isAwayPoss ? `<span class="possession-icon" title="${awayAbbr} Has Possession">${possIcon}</span>` : ''}
                             </div>
                             <span class="score ${awayWin ? 'winner' : ''}">${awayScore}</span>
                         </div>
@@ -3967,6 +3986,7 @@
                             <div style="display:flex; align-items:center; gap:5px;">
                                 ${home.team?.logo ? `<img src="${home.team.logo}" style="width:12px; height:12px; object-fit:contain;">` : ''}
                                 <span class="${homeWin ? 'winner' : ''}">${homeAbbr}</span>
+                                ${isHomePoss ? `<span class="possession-icon" title="${homeAbbr} Has Possession">${possIcon}</span>` : ''}
                             </div>
                             <span class="score ${homeWin ? 'winner' : ''}">${homeScore}</span>
                         </div>
