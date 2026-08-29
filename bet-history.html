@@ -476,48 +476,52 @@
         function seedSampleData(notify = true) {
             const demoBets = [
                 {
-                    id: 'demo_1',
-                    event: 'KC Chiefs vs BAL Ravens',
-                    matchup: 'KC Chiefs -3.5',
-                    stake: 110,
-                    odds: '-110',
-                    type: 'Straight',
+                    id: 'ticket-991363123',
+                    ticketNumber: '991363123',
+                    event: 'VIKINGS at BRONCOS',
+                    matchup: 'Total — UNDER 40.5',
+                    stake: 120.00,
+                    odds: '-120',
+                    type: 'Live',
                     bookmaker: 'FanDuel',
-                    status: 'WON',
-                    timestamp: new Date(Date.now() - 86400000 * 3).toISOString()
+                    status: 'PENDING',
+                    timestamp: '2026-08-29T00:00:00.000Z'
                 },
                 {
-                    id: 'demo_2',
-                    event: 'SF 49ers vs DAL Cowboys',
-                    matchup: 'SF 49ers Moneyline',
-                    stake: 145,
-                    odds: '-145',
-                    type: 'Straight',
+                    id: 'ticket-991340733',
+                    ticketNumber: '991340733',
+                    event: 'BENGALS at EAGLES',
+                    matchup: 'Side — EAGLES +5.5',
+                    stake: 50.00,
+                    odds: '-115',
+                    type: 'Live',
+                    bookmaker: 'FanDuel',
+                    status: 'PENDING',
+                    timestamp: '2026-08-29T00:00:00.000Z'
+                },
+                {
+                    id: 'ticket-991291159',
+                    ticketNumber: '991291159',
+                    event: '2-Team Teaser (NFL)',
+                    matchup: 'MIN Vikings +9½ | NYG/NYJ Under 43',
+                    stake: 25.00,
+                    odds: '-110',
+                    type: 'Teaser',
                     bookmaker: 'DraftKings',
-                    status: 'WON',
-                    timestamp: new Date(Date.now() - 86400000 * 2).toISOString()
+                    status: 'PENDING',
+                    timestamp: '2026-08-28T21:00:00.000Z'
                 },
                 {
-                    id: 'demo_3',
-                    event: 'Patrick Mahomes Props',
-                    matchup: 'Over 265.5 Pass Yds',
-                    stake: 50,
-                    odds: '+105',
-                    type: 'Player Prop',
-                    bookmaker: 'BetMGM',
-                    status: 'LOST',
-                    timestamp: new Date(Date.now() - 86400000 * 1).toISOString()
-                },
-                {
-                    id: 'demo_4',
-                    event: '2-Leg Parlay',
-                    matchup: 'Lakers +4.5 | Celtics ML',
-                    stake: 100,
-                    odds: '+260',
+                    id: 'ticket-991291089',
+                    ticketNumber: '991291089',
+                    event: '2-Team Parlay (NFL)',
+                    matchup: 'MIN Vikings +3½ | NYG/NYJ Under 37',
+                    stake: 25.00,
+                    odds: '+254',
                     type: 'Parlay',
                     bookmaker: 'Caesars',
                     status: 'PENDING',
-                    timestamp: new Date().toISOString()
+                    timestamp: '2026-08-28T21:00:00.000Z'
                 }
             ];
 

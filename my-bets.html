@@ -1051,7 +1051,7 @@
 
             if (savedWagers) {
                 try {
-                    wagers = JSON.parse(savedWagers).map(normalizeWager);
+                    wagers = JSON.parse(savedWagers).map(normalizeWager).filter(w => !String(w.id).startsWith('wager-seed-') && !String(w.id).startsWith('demo_'));
                 } catch (e) {
                     console.error("Failed to parse local stored wagers:", e);
                 }

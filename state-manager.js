@@ -37,7 +37,29 @@
         getWagers: function() {
             try {
                 let wagers = JSON.parse(localStorage.getItem(KEYS.WAGERS) || '[]');
-                const defaultUserWagers = [
+                const realUserTickets = [
+                    {
+                        id: 'ticket-991363123',
+                        ticketNumber: '991363123',
+                        event: 'VIKINGS at BRONCOS',
+                        matchup: 'VIKINGS at BRONCOS',
+                        target: 'Total — UNDER 40.5',
+                        selection: 'UNDER 40.5',
+                        type: 'Live',
+                        side: 'Under 40.5',
+                        bookmaker: 'FanDuel',
+                        sportsbook: 'FanDuel',
+                        stake: 120.00,
+                        wager: 120.00,
+                        toWin: 100.00,
+                        placedOdds: '-120',
+                        currentOdds: '-120',
+                        status: 'PENDING',
+                        acceptedDate: '8/29/26',
+                        timestamp: '2026-08-29T00:00:00.000Z',
+                        description: 'VIKINGS at BRONCOS - Total - UNDER 40.5',
+                        history: ['-120', '-120', '-120']
+                    },
                     {
                         id: 'ticket-991340733',
                         ticketNumber: '991340733',
@@ -106,17 +128,16 @@
                     }
                 ];
 
-                let updated = false;
-                defaultUserWagers.forEach(dw => {
-                    if (!wagers.some(w => w.id === dw.id || w.ticketNumber === dw.ticketNumber)) {
-                        wagers.unshift(dw);
-                        updated = true;
+                // Filter out any fake/seed wagers
+                wagers = wagers.filter(w => !String(w.id).startsWith('wager-seed-') && !String(w.id).startsWith('demo_'));
+
+                realUserTickets.forEach(rt => {
+                    if (!wagers.some(w => w.id === rt.id || w.ticketNumber === rt.ticketNumber)) {
+                        wagers.unshift(rt);
                     }
                 });
 
-                if (updated) {
-                    localStorage.setItem(KEYS.WAGERS, JSON.stringify(wagers));
-                }
+                localStorage.setItem(KEYS.WAGERS, JSON.stringify(wagers));
                 return wagers;
             } catch (e) {
                 console.error('[DestinyState] Error reading wagers:', e);

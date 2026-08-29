@@ -5418,6 +5418,26 @@
         function seedWagersIfEmpty() {
             const defaultWagers = [
                 {
+                    id: 'ticket-991363123',
+                    ticketNumber: '991363123',
+                    matchup: 'MIN @ DEN',
+                    event: 'VIKINGS at BRONCOS',
+                    target: 'Total — UNDER 40.5',
+                    selection: 'UNDER 40.5',
+                    type: 'Live',
+                    side: 'Under 40.5',
+                    bookmaker: 'FanDuel',
+                    sportsbook: 'FanDuel',
+                    stake: 120.00,
+                    wager: 120.00,
+                    toWin: 100.00,
+                    placedOdds: '-120',
+                    currentOdds: '-120',
+                    status: 'PENDING',
+                    acceptedDate: '8/29/26',
+                    description: 'VIKINGS at BRONCOS - Total - UNDER 40.5'
+                },
+                {
                     id: 'ticket-991340733',
                     ticketNumber: '991340733',
                     matchup: 'CIN @ PHI',
@@ -5476,126 +5496,25 @@
                     status: 'PENDING',
                     acceptedDate: '8/28/26',
                     description: 'Football - NFL - Minnesota Vikings vs Denver Broncos - Parlay | Football - NFL - New York Giants vs New York Jets - Parlay'
-                },
-                {
-                    id: 'wager-seed-1',
-                    matchup: 'GB @ DEN',
-                    target: 'Total — UNDER 40.5',
-                    type: 'Total',
-                    side: 'Under',
-                    line: '40.5',
-                    detail: '40.5',
-                    wager: 50,
-                    stake: 50,
-                    toWin: 45.45,
-                    placedOdds: '-110'
-                },
-                {
-                    id: 'wager-seed-2',
-                    matchup: 'GB @ DEN',
-                    target: 'Total — UNDER 40.5',
-                    type: 'Total',
-                    side: 'Under',
-                    line: '40.5',
-                    detail: '40.5',
-                    wager: 50,
-                    stake: 50,
-                    toWin: 45.45,
-                    placedOdds: '-110'
-                },
-                {
-                    id: 'wager-seed-3',
-                    matchup: 'GB @ DEN',
-                    target: 'Total — OVER 34.5',
-                    type: 'Total',
-                    side: 'Over',
-                    line: '34.5',
-                    detail: '34.5',
-                    wager: 50,
-                    stake: 50,
-                    toWin: 45.45,
-                    placedOdds: '-110',
-                    status: 'CASHED'
-                },
-                {
-                    id: 'wager-seed-4',
-                    matchup: 'GB @ DEN',
-                    target: 'Total — UNDER 48.5',
-                    type: 'Total',
-                    side: 'Under',
-                    line: '48.5',
-                    detail: '48.5',
-                    wager: 55,
-                    stake: 55,
-                    toWin: 47.83,
-                    placedOdds: '-115'
-                },
-                {
-                    id: 'wager-seed-5',
-                    matchup: 'GB @ DEN',
-                    target: 'Packers Team Total — OVER 32.5',
-                    type: 'Team Total',
-                    side: 'Over',
-                    line: '32.5',
-                    detail: 'Over 32.5',
-                    wager: 115,
-                    stake: 115,
-                    toWin: 100.00,
-                    placedOdds: '-115'
-                },
-                {
-                    id: 'wager-seed-6',
-                    matchup: 'GB @ DEN',
-                    target: 'Broncos Team Total — OVER 19.5',
-                    type: 'Team Total',
-                    side: 'Over',
-                    line: '19.5',
-                    detail: 'Over 19.5',
-                    wager: 50,
-                    stake: 50,
-                    toWin: 37.04,
-                    placedOdds: '-135'
-                },
-                {
-                    id: 'wager-seed-7',
-                    matchup: 'GB @ DEN',
-                    target: 'Total — OVER 46.5',
-                    type: 'Total',
-                    side: 'Over',
-                    line: '46.5',
-                    detail: '46.5',
-                    wager: 55,
-                    stake: 55,
-                    toWin: 55.00,
-                    placedOdds: '+100'
                 }
             ];
 
             let saved = localStorage.getItem('destiny_game_wagers');
-            if (!saved || saved === '[]') {
-                localStorage.setItem('destiny_game_wagers', JSON.stringify(defaultWagers));
-            } else {
-                try {
-                    let parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed)) {
-                        let updated = false;
-                        defaultWagers.forEach(dw => {
-                            const exists = parsed.some(w => w.id === dw.id);
-                            if (!exists) {
-                                parsed.push(dw);
-                                updated = true;
-                            }
-                        });
-                        if (updated) {
-                            localStorage.setItem('destiny_game_wagers', JSON.stringify(parsed));
-                        }
-                    } else {
-                        localStorage.setItem('destiny_game_wagers', JSON.stringify(defaultWagers));
-                    }
-                } catch(e) {
-                    localStorage.setItem('destiny_game_wagers', JSON.stringify(defaultWagers));
-                }
+            let parsed = [];
+            if (saved) {
+                try { parsed = JSON.parse(saved); } catch(e) { parsed = []; }
             }
+            
+            // Clean out any fake seed or old demo wagers
+            parsed = parsed.filter(w => !String(w.id).startsWith('wager-seed-') && !String(w.id).startsWith('demo_'));
+
+            defaultWagers.forEach(dw => {
+                if (!parsed.some(w => w.id === dw.id || w.ticketNumber === dw.ticketNumber)) {
+                    parsed.unshift(dw);
+                }
+            });
+
+            localStorage.setItem('destiny_game_wagers', JSON.stringify(parsed));
         }
 
         function getWagersForGame(awayAbbr, awayName, homeAbbr, homeName) {
