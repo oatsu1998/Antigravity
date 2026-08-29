@@ -3322,11 +3322,11 @@
                     const hAbbr = (homeAbbr || '').toLowerCase();
                     const hName = (homeName || '').toLowerCase();
                     return parsed.filter(w => {
-                        const m = (w.matchup || '').toLowerCase();
-                        const t = (w.target || '').toLowerCase();
+                        const m = (w.matchup || '').toLowerCase() + ' ' + (w.event || '').toLowerCase() + ' ' + (w.description || '').toLowerCase();
+                        const t = (w.target || '').toLowerCase() + ' ' + (w.selection || '').toLowerCase();
                         const matchAwayText = (aAbbr && (m.includes(aAbbr) || t.includes(aAbbr))) || (aName && (m.includes(aName) || t.includes(aName)));
                         const matchHomeText = (hAbbr && (m.includes(hAbbr) || t.includes(hAbbr))) || (hName && (m.includes(hName) || t.includes(hName)));
-                        return matchAwayText && matchHomeText;
+                        return matchAwayText || matchHomeText;
                     });
                 } catch(e) {
                     return [];
@@ -3622,7 +3622,12 @@
         }
 
         function renderLiveWagersPanel() {
-            const activeWagers = (typeof placedBets !== 'undefined') ? placedBets : [];
+            let activeWagers = [];
+            if (window.DestinyState) {
+                activeWagers = DestinyState.getWagers();
+            } else {
+                try { activeWagers = JSON.parse(localStorage.getItem('destiny_game_wagers') || '[]'); } catch(e) { activeWagers = []; }
+            }
 
             if (activeWagers.length === 0) {
                 return `
@@ -4020,7 +4025,7 @@
             </div>
             <span style="font-family:var(--font-head); font-weight:900; color:var(--accent);">LIVE WAGERS</span>
         </div>
-        <span style="font-size:10px; font-weight:900; font-family:var(--font-mono); color:#000; background:var(--accent); padding:2px 7px; border-radius:10px;">${(typeof placedBets !== 'undefined' ? placedBets.length : 0)}</span>
+        <span style="font-size:10px; font-weight:900; font-family:var(--font-mono); color:#000; background:var(--accent); padding:2px 7px; border-radius:10px;">${(window.DestinyState ? DestinyState.getWagers().length : (JSON.parse(localStorage.getItem('destiny_game_wagers') || '[]').length))}</span>
       </button>
 
       <button class="tab fixed-destiny ${activeTab === 'destiny' ? 'active' : ''}" onclick="switchTab('destiny')" draggable="false" style="display:flex; align-items:center; justify-content:space-between; width:100%; cursor:pointer;">
@@ -5520,8 +5525,7 @@
         function getWagersForGame(awayAbbr, awayName, homeAbbr, homeName) {
             seedWagersIfEmpty();
             let saved = localStorage.getItem('destiny_game_wagers');
-            if (!saved || saved === '[]') saved = localStorage.getItem('destiny_placed_bets');
-            if (!saved) return [];
+            if (!saved || saved === '[]') return [];
             
             try {
                 let parsed = JSON.parse(saved);
@@ -5532,17 +5536,17 @@
                 const hAbbr = (homeAbbr || '').toLowerCase();
                 const hName = (homeName || '').toLowerCase();
 
-                if (!aAbbr && !hAbbr) return parsed;
+                if (!aAbbr && !hAbbr) return [];
 
                 const filtered = parsed.filter(w => {
-                    const m = (w.matchup || '').toLowerCase();
-                    const t = (w.target || '').toLowerCase();
+                    const m = (w.matchup || '').toLowerCase() + ' ' + (w.event || '').toLowerCase() + ' ' + (w.description || '').toLowerCase();
+                    const t = (w.target || '').toLowerCase() + ' ' + (w.selection || '').toLowerCase();
                     const matchAway = (aAbbr && (m.includes(aAbbr) || t.includes(aAbbr))) || (aName && (m.includes(aName) || t.includes(aName)));
                     const matchHome = (hAbbr && (m.includes(hAbbr) || t.includes(hAbbr))) || (hName && (m.includes(hName) || t.includes(hName)));
-                    return matchAway || matchHome || !m;
+                    return matchAway || matchHome;
                 });
 
-                return filtered.length > 0 ? filtered : parsed;
+                return filtered;
             } catch(e) {
                 return [];
             }

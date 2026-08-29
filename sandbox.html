@@ -1907,8 +1907,7 @@
         function getWagersForGame(awayAbbr, awayName, homeAbbr, homeName) {
             seedWagersIfEmpty();
             let saved = localStorage.getItem('destiny_game_wagers');
-            if (!saved || saved === '[]') saved = localStorage.getItem('destiny_placed_bets');
-            if (!saved) return [];
+            if (!saved || saved === '[]') return [];
             
             try {
                 let parsed = JSON.parse(saved);
@@ -1918,16 +1917,18 @@
                 const aName = (awayName || '').toLowerCase();
                 const hAbbr = (homeAbbr || '').toLowerCase();
                 const hName = (homeName || '').toLowerCase();
+
+                if (!aAbbr && !hAbbr) return [];
                 
                 const filtered = parsed.filter(w => {
-                    const m = (w.matchup || '').toLowerCase();
-                    const t = (w.target || '').toLowerCase();
+                    const m = (w.matchup || '').toLowerCase() + ' ' + (w.event || '').toLowerCase() + ' ' + (w.description || '').toLowerCase();
+                    const t = (w.target || '').toLowerCase() + ' ' + (w.selection || '').toLowerCase();
                     const matchAway = (aAbbr && (m.includes(aAbbr) || t.includes(aAbbr))) || (aName && (m.includes(aName) || t.includes(aName)));
                     const matchHome = (hAbbr && (m.includes(hAbbr) || t.includes(hAbbr))) || (hName && (m.includes(hName) || t.includes(hName)));
-                    return matchAway || matchHome || !m;
+                    return matchAway || matchHome;
                 });
 
-                return filtered.length > 0 ? filtered : parsed;
+                return filtered;
             } catch(e) {
                 return [];
             }
