@@ -3312,26 +3312,7 @@
 
             const kalshiTileHtml = '';
 
-            const wagersList = (() => {
-                const saved = localStorage.getItem('destiny_game_wagers');
-                if (!saved) return [];
-                try {
-                    const parsed = JSON.parse(saved);
-                    const aAbbr = (awayAbbr || '').toLowerCase();
-                    const aName = (awayName || '').toLowerCase();
-                    const hAbbr = (homeAbbr || '').toLowerCase();
-                    const hName = (homeName || '').toLowerCase();
-                    return parsed.filter(w => {
-                        const m = (w.matchup || '').toLowerCase() + ' ' + (w.event || '').toLowerCase() + ' ' + (w.description || '').toLowerCase();
-                        const t = (w.target || '').toLowerCase() + ' ' + (w.selection || '').toLowerCase();
-                        const matchAwayText = (aAbbr && (m.includes(aAbbr) || t.includes(aAbbr))) || (aName && (m.includes(aName) || t.includes(aName)));
-                        const matchHomeText = (hAbbr && (m.includes(hAbbr) || t.includes(hAbbr))) || (hName && (m.includes(hName) || t.includes(hName)));
-                        return matchAwayText || matchHomeText;
-                    });
-                } catch(e) {
-                    return [];
-                }
-            })();
+            const wagersList = getWagersForGame(awayAbbr, awayName, homeAbbr, homeName);
             const betsCount = wagersList.length;
             const showScoreBlock = status.isLive || status.isFinal;
 
@@ -5424,6 +5405,27 @@
             // No-op: do not seed mock or demo wagers automatically
         }
 
+        function matchesTeamWager(w, teamAbbr, teamName) {
+            if (!w) return false;
+            const text = ((w.matchup || '') + ' ' + (w.event || '') + ' ' + (w.description || '') + ' ' + (w.target || '') + ' ' + (w.selection || '') + ' ' + (w.side || '')).toLowerCase();
+            
+            if (teamAbbr && teamAbbr.length >= 2) {
+                const cleanAbbr = teamAbbr.toLowerCase().trim();
+                const abbrRegex = new RegExp('\\b' + cleanAbbr.replace(/[^a-z0-9]/g, '') + '\\b', 'i');
+                if (abbrRegex.test(text)) return true;
+            }
+
+            if (teamName && teamName.length >= 3) {
+                const words = teamName.toLowerCase().split(/\s+/).filter(word => word.length >= 3 && !['the', 'and', 'for', 'game', 'over', 'under'].includes(word));
+                for (const word of words) {
+                    const wordRegex = new RegExp('\\b' + word.replace(/[^a-z0-9]/g, '') + '\\b', 'i');
+                    if (wordRegex.test(text)) return true;
+                }
+            }
+
+            return false;
+        }
+
         function getWagersForGame(awayAbbr, awayName, homeAbbr, homeName) {
             seedWagersIfEmpty();
             let saved = localStorage.getItem('destiny_game_wagers');
@@ -5432,19 +5434,10 @@
             try {
                 let parsed = JSON.parse(saved);
                 if (!Array.isArray(parsed) || parsed.length === 0) return [];
-                
-                const aAbbr = (awayAbbr || '').toLowerCase();
-                const aName = (awayName || '').toLowerCase();
-                const hAbbr = (homeAbbr || '').toLowerCase();
-                const hName = (homeName || '').toLowerCase();
-
-                if (!aAbbr && !hAbbr) return [];
 
                 const filtered = parsed.filter(w => {
-                    const m = (w.matchup || '').toLowerCase() + ' ' + (w.event || '').toLowerCase() + ' ' + (w.description || '').toLowerCase();
-                    const t = (w.target || '').toLowerCase() + ' ' + (w.selection || '').toLowerCase();
-                    const matchAway = (aAbbr && (m.includes(aAbbr) || t.includes(aAbbr))) || (aName && (m.includes(aName) || t.includes(aName)));
-                    const matchHome = (hAbbr && (m.includes(hAbbr) || t.includes(hAbbr))) || (hName && (m.includes(hName) || t.includes(hName)));
+                    const matchAway = matchesTeamWager(w, awayAbbr, awayName);
+                    const matchHome = matchesTeamWager(w, homeAbbr, homeName);
                     return matchAway || matchHome;
                 });
 
