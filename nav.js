@@ -50,35 +50,50 @@ function initGlobalNav() {
             font-size: 13px;
             line-height: 1.1;
         }
+        .nav-clock-pill {
+            background: rgba(6, 182, 212, 0.08);
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            color: #06b6d4;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            height: 32px;
+            white-space: nowrap;
+        }
         .global-nav-clock {
-            font-size: 10px;
             color: #06b6d4;
             font-weight: 700;
-            letter-spacing: 0.5px;
-            margin-top: 2px;
             font-family: 'JetBrains Mono', monospace;
-            line-height: 1.1;
+            line-height: 1;
         }
         .nav-refresh-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: #a1a1aa;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 9px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 5px 10px;
+            border-radius: 4px;
             cursor: pointer;
             letter-spacing: 0.5px;
-            margin-top: 4px;
-            width: fit-content;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
             transition: all 0.2s;
         }
         .nav-refresh-btn:hover {
             background: rgba(245, 158, 11, 0.15);
             border-color: #f59e0b;
             color: #f59e0b;
-            box-shadow: 0 0 6px rgba(245, 158, 11, 0.25);
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.25);
         }
         .universal-menu-btn {
             background: rgba(255, 255, 255, 0.06);
@@ -93,6 +108,8 @@ function initGlobalNav() {
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            height: 32px;
+            white-space: nowrap;
             transition: all 0.2s;
         }
         .universal-menu-btn:hover {
@@ -161,13 +178,15 @@ function initGlobalNav() {
             background: rgba(245, 158, 11, 0.1);
             border: 1px solid rgba(245, 158, 11, 0.3);
             border-radius: 4px;
-            padding: 4px 10px;
+            padding: 5px 12px;
             font-size: 11px;
             font-weight: bold;
             color: #f59e0b;
             display: flex;
             align-items: center;
             gap: 6px;
+            height: 32px;
+            white-space: nowrap;
         }
         .nav-bankroll-val {
             color: #fff;
@@ -218,14 +237,16 @@ function initGlobalNav() {
             </div>
         </div>
 
-        <!-- Right: Date/Time + Force Refresh + Bankroll Pill + Menu Button -->
-        <div style="display:flex; align-items:center; gap:14px; position:relative;">
-            <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                <div id="global-nav-clock" class="global-nav-clock">Loading date...</div>
-                <button class="nav-refresh-btn" onclick="handleNavRefresh()" title="Force Refresh Live Data" style="margin-top:2px;">
-                    ↻ FORCE REFRESH
-                </button>
+        <!-- Right: Clock Pill + Refresh Button + Bankroll Pill + Menu Button in Single Row -->
+        <div style="display:flex; align-items:center; gap:10px; position:relative;">
+            <div class="nav-clock-pill">
+                <span>🕒</span>
+                <span id="global-nav-clock" class="global-nav-clock">Loading date...</span>
             </div>
+
+            <button class="nav-refresh-btn" onclick="handleNavRefresh()" title="Force Refresh Live Data">
+                <span>↻</span> <span>REFRESH</span>
+            </button>
 
             <div class="nav-bankroll-pill">
                 <span>BANKROLL:</span>
