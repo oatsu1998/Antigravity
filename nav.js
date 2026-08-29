@@ -196,14 +196,10 @@ function initGlobalNav() {
     const nav = document.createElement('nav');
     nav.className = 'global-nav';
     nav.innerHTML = `
-        <!-- Left: Brand + Date/Time + Force Refresh Button directly under -->
+        <!-- Left: Brand Logo -->
         <div style="display:flex; align-items:center;">
             <div style="display:flex; flex-direction:column; justify-content:center; margin-right:28px;">
                 <div class="global-nav-brand">DESTINY NETWORK</div>
-                <div id="global-nav-clock" class="global-nav-clock">Loading date...</div>
-                <button class="nav-refresh-btn" onclick="handleNavRefresh()" title="Force Refresh Live Data">
-                    ↻ FORCE REFRESH
-                </button>
             </div>
 
             <!-- Center: Desktop Horizontal Links -->
@@ -222,8 +218,15 @@ function initGlobalNav() {
             </div>
         </div>
 
-        <!-- Right: Bankroll Pill + Far Right Universal Menu Button -->
+        <!-- Right: Date/Time + Force Refresh + Bankroll Pill + Menu Button -->
         <div style="display:flex; align-items:center; gap:14px; position:relative;">
+            <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                <div id="global-nav-clock" class="global-nav-clock">Loading date...</div>
+                <button class="nav-refresh-btn" onclick="handleNavRefresh()" title="Force Refresh Live Data" style="margin-top:2px;">
+                    ↻ FORCE REFRESH
+                </button>
+            </div>
+
             <div class="nav-bankroll-pill">
                 <span>BANKROLL:</span>
                 <span class="nav-bankroll-val bankroll-amount">${formattedBankroll}</span>
