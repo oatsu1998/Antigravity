@@ -114,6 +114,12 @@
                     }
                 });
 
+                wagers = wagers.map(w => ({
+                    ...w,
+                    sportsbook: 'BetOnline',
+                    bookmaker: 'BetOnline'
+                }));
+
                 localStorage.setItem(KEYS.WAGERS, JSON.stringify(wagers));
                 return wagers;
             } catch (e) {

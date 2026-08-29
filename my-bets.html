@@ -951,7 +951,7 @@
             const stakeVal = parseFloat(w.stake !== undefined ? w.stake : (w.wager !== undefined ? w.wager : 0));
             const winVal = parseFloat(w.toWin !== undefined ? w.toWin : 0);
             const payoutOdds = w.placedOdds || w.odds || w.detail || '-110';
-            const eventTitle = w.event || w.target || 'Custom Bet';
+            const eventTitle = w.event || w.target || 'VIKINGS at BRONCOS';
             const selectionTitle = w.selection || w.matchup || w.description || 'Selection';
 
             return {
@@ -959,11 +959,13 @@
                 ticketNumber: w.ticketNumber || '',
                 target: eventTitle,
                 matchup: selectionTitle,
+                selection: selectionTitle,
                 stake: stakeVal,
                 toWin: winVal,
                 placedOdds: payoutOdds,
                 currentOdds: w.currentOdds || payoutOdds,
-                sportsbook: w.sportsbook || w.bookmaker || 'BetOnline',
+                sportsbook: 'BetOnline',
+                bookmaker: 'BetOnline',
                 status: w.status || 'PENDING',
                 history: Array.isArray(w.history) ? w.history : [payoutOdds],
                 type: w.type || 'GAME'
@@ -1146,30 +1148,30 @@
                 const payoutReturn = w.toWin > 0 ? (w.stake + w.toWin) : (w.stake * americanToDecimal(w.placedOdds));
 
                 card.innerHTML = `
-                    <div class="wager-card-top">
+                    <div class="wager-card-top" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                         <div>
-                            <div class="wager-event">${w.target}</div>
-                            <div class="wager-matchup">${w.matchup}</div>
+                            <div style="font-size:10px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px;">${w.target}</div>
+                            <div style="font-size:16px; font-weight:900; color:#f59e0b; margin-top:2px; font-family:var(--font-mono); letter-spacing:0.2px;">${w.matchup || w.selection}</div>
                         </div>
                         <span class="badge ${w.status.toLowerCase()}">${w.status}</span>
                     </div>
-                    <div class="wager-card-body">
+                    <div class="wager-card-body" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; font-size:11px; border-top:1px solid rgba(255,255,255,0.06); padding-top:10px; margin-top:8px;">
                         <div>
                             <div class="body-label">Bookmaker</div>
-                            <div class="body-val" style="text-transform: uppercase;">${w.sportsbook}</div>
+                            <div class="body-val" style="color:#06b6d4; font-weight:900; text-transform:uppercase; font-size:12px;">BETONLINE</div>
                         </div>
                         <div>
                             <div class="body-label">Placed Odds</div>
-                            <div class="body-val" style="color:var(--accent);">${w.placedOdds}</div>
+                            <div class="body-val" style="color:var(--accent); font-weight:900; font-size:12px;">${w.placedOdds}</div>
                         </div>
                         <div>
                             <div class="body-label">Stake / Return</div>
-                            <div class="body-val">$${w.stake.toFixed(0)} → $${payoutReturn.toFixed(0)}</div>
+                            <div class="body-val" style="color:#fff; font-weight:800; font-size:12px;">$${w.stake.toFixed(0)} → <span style="color:var(--win); font-weight:900;">$${payoutReturn.toFixed(0)}</span></div>
                         </div>
                     </div>
-                    <div class="wager-card-footer">
+                    <div class="wager-card-footer" style="display:flex; align-items:center; justify-content:space-between; font-size:10px; margin-top:10px; padding-top:8px; border-top:1px dashed rgba(255,255,255,0.06);">
                         <span style="color: var(--muted);">Live Odds: <strong style="color:#fff;">${w.currentOdds}</strong></span>
-                        <span class="footer-clv" style="color: ${clvColor};">
+                        <span class="footer-clv" style="color: ${clvColor}; font-weight:800;">
                             CLV: ${clvSign}${clvPercent}%
                         </span>
                     </div>
@@ -1256,8 +1258,8 @@
             if (!w) return;
 
             // Bind terminal details
-            document.getElementById('termTarget').textContent = w.target;
-            document.getElementById('termMatchup').textContent = `${w.matchup} · ${w.sportsbook.toUpperCase()}`;
+            document.getElementById('termTarget').textContent = w.matchup || w.selection;
+            document.getElementById('termMatchup').textContent = `${w.target} · BETONLINE`;
 
             const badgeEl = document.getElementById('termStatusBadge');
             badgeEl.className = `live-ticker ${w.status.toLowerCase()}`;
