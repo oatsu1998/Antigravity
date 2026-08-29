@@ -180,7 +180,9 @@ function initGlobalNav() {
     const isLineTracker = currentPath.toLowerCase().includes('line-tracker');
     const isProps = currentPath.toLowerCase().includes('props');
     const isMyBets = currentPath.toLowerCase().includes('my-bets');
-    const isHistory = currentPath.toLowerCase().includes('history');
+    const isBetSlip = currentPath.toLowerCase().includes('bet-slip') || currentPath.toLowerCase().includes('betslip');
+    const isBetHistory = currentPath.toLowerCase().includes('bet-history') || currentPath.toLowerCase().includes('bethistory');
+    const isHistory = currentPath.toLowerCase().includes('history') && !isBetHistory;
     const isKalshi = currentPath.toLowerCase().includes('kalshi');
     const isSandbox = currentPath.toLowerCase().includes('sandbox');
     const isPortfolio = currentPath.toLowerCase().includes('portfolio');
@@ -206,11 +208,13 @@ function initGlobalNav() {
 
             <!-- Center: Desktop Horizontal Links -->
             <div class="global-nav-links">
-                <a href="index.html" class="global-nav-link ${(!isLineTracker && !isProps && !isMyBets && !isHistory && !isKalshi && !isSandbox && !isPortfolio && !isLayout) ? 'active' : ''}">Command Center</a>
+                <a href="index.html" class="global-nav-link ${(!isLineTracker && !isProps && !isMyBets && !isHistory && !isBetSlip && !isBetHistory && !isKalshi && !isSandbox && !isPortfolio && !isLayout) ? 'active' : ''}">Command Center</a>
                 <a href="line-tracker.html" class="global-nav-link ${isLineTracker ? 'active' : ''}">Line Tracker</a>
                 <a href="history.html" class="global-nav-link ${isHistory ? 'active' : ''}">History</a>
                 <a href="props.html" class="global-nav-link ${isProps ? 'active' : ''}">Props</a>
                 <a href="my-bets.html" class="global-nav-link ${isMyBets ? 'active' : ''}">My Bets</a>
+                <a href="bet-slip.html" class="global-nav-link ${isBetSlip ? 'active' : ''}">Bet Slip</a>
+                <a href="bet-history.html" class="global-nav-link ${isBetHistory ? 'active' : ''}">Bet History</a>
                 <a href="kalshi.html" class="global-nav-link ${isKalshi ? 'active' : ''}">Kalshi</a>
                 <a href="sandbox.html" class="global-nav-link ${isSandbox ? 'active' : ''}">Sandbox</a>
                 <a href="portfolio.html" class="global-nav-link ${isPortfolio ? 'active' : ''}">Portfolio</a>
@@ -235,13 +239,16 @@ function initGlobalNav() {
                 <div style="padding:6px 16px 8px; font-size:10px; color:#f59e0b; font-weight:800; border-bottom:1px solid rgba(255,255,255,0.08); letter-spacing:1px;">UNIVERSAL NAVIGATION</div>
                 <a href="index.html" class="universal-menu-item">⚡ Command Center</a>
                 <a href="line-tracker.html" class="universal-menu-item">📈 Line Tracker</a>
-                <a href="history.html" class="universal-menu-item">📜 History & Logs</a>
+                <a href="history.html" class="universal-menu-item">📜 Line History & Logs</a>
                 <a href="props.html" class="universal-menu-item">🎯 Player Props</a>
                 <a href="my-bets.html" class="universal-menu-item">🎟️ My Bets Tracking</a>
+                <a href="bet-slip.html" class="universal-menu-item">🧾 Bet Slip Builder</a>
+                <a href="bet-history.html" class="universal-menu-item">📑 Bet History Ledger</a>
                 <a href="kalshi.html" class="universal-menu-item">📊 Kalshi Live Markets</a>
                 <a href="sandbox.html" class="universal-menu-item">🧪 Strategy Sandbox</a>
                 <a href="portfolio.html" class="universal-menu-item">💼 Portfolio & Ledger</a>
                 <a href="layout.html" class="universal-menu-item">📐 Layout & Widgets</a>
+                <a href="walkthrough.html" class="universal-menu-item">📋 System Walkthrough</a>
                 <a href="about.html" class="universal-menu-item">ℹ️ About</a>
             </div>
         </div>
