@@ -713,6 +713,50 @@
             `;
         }
 
+        function getWagerLegs(w) {
+            if (w.legs && Array.isArray(w.legs) && w.legs.length > 0) {
+                return w.legs;
+            }
+
+            const desc = (w.description || w.selection || w.target || '').toUpperCase();
+
+            if (desc.includes('NC STATE') && desc.includes('MEMPHIS')) {
+                const isTeaser = (w.type || '').toLowerCase().includes('teaser') || desc.includes('+10');
+                return [
+                    {
+                        matchup: 'NC STATE at VIRGINIA',
+                        event: 'NC STATE at VIRGINIA',
+                        awayTag: 'NCST',
+                        homeTag: 'UVA',
+                        selection: isTeaser ? 'NC State +10.5' : 'NC State +4',
+                        odds: '-115',
+                        status: w.status || 'PENDING'
+                    },
+                    {
+                        matchup: 'MEMPHIS at UNLV',
+                        event: 'MEMPHIS at UNLV',
+                        awayTag: 'MEM',
+                        homeTag: 'UNLV',
+                        selection: isTeaser ? 'Memphis +10.5' : 'Memphis +4',
+                        odds: '-108',
+                        status: w.status || 'PENDING'
+                    }
+                ];
+            }
+
+            return [
+                {
+                    matchup: w.matchup || w.event || w.target || 'GAME MATCHUP',
+                    event: w.event || w.target || 'GAME MATCHUP',
+                    awayTag: w.awayTag || '',
+                    homeTag: w.homeTag || '',
+                    selection: w.selection || w.side || w.target || 'Selection',
+                    odds: w.placedOdds || w.odds || '-110',
+                    status: w.status || 'PENDING'
+                }
+            ];
+        }
+
         function getTeamLogosForEvent(eventStr, matchupStr) {
             const { awayStr, homeStr } = parseMatchupTeams(eventStr, matchupStr);
             return {
@@ -906,6 +950,35 @@
                     const statusClass = w.status.toLowerCase();
                     const profitClass = profit > 0 ? 'win' : profit < 0 ? 'lost' : '';
                     const teamLogos = getTeamLogosForEvent(w.event, w.matchup || w.selection);
+                    const legs = getWagerLegs(w);
+
+                    let legsHtml = '';
+                    if (legs && legs.length > 0) {
+                        legsHtml = `
+                            <div class="wager-legs-grid" style="display:flex; flex-direction:column; gap:6px; margin:8px 0;">
+                                ${legs.map((leg, legIdx) => {
+                                    const logos = getTeamLogosForEvent(leg.event || leg.matchup, leg.matchup);
+                                    return `
+                                        <div class="wager-leg-item" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-family:var(--font-mono);">
+                                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed var(--border); padding-bottom:4px; margin-bottom:4px;">
+                                                <div style="display:flex; align-items:center; gap:6px;">
+                                                    ${legs.length > 1 ? `<span style="font-size:8px; color:var(--accent); font-weight:800; background:rgba(245,158,11,0.15); padding:1px 4px; border-radius:3px;">LEG #${legIdx + 1}</span>` : ''}
+                                                    ${logos.awayLogo}
+                                                    <span style="font-size:10px; font-weight:800; color:#fff; text-transform:uppercase;">${leg.matchup || leg.event}</span>
+                                                    ${logos.homeLogo}
+                                                </div>
+                                                <span style="font-size:9px; color:var(--muted); font-weight:700;">${leg.odds || '-110'}</span>
+                                            </div>
+                                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                                <span style="font-size:12px; font-weight:900; color:#f59e0b;">${leg.selection}</span>
+                                                <span class="badge-status ${leg.status.toLowerCase()}" style="font-size:8px; padding:1px 5px;">${leg.status}</span>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `;
+                    }
 
                     return `
                         <div class="history-wager-card" id="card-${w.id}">
@@ -923,8 +996,10 @@
 
                             <div style="margin-top:4px;">
                                 <div style="font-size:10px; color:var(--muted); font-family:var(--font-mono);">${dateStr} · <span style="color:#06b6d4; font-weight:700;">${w.type || 'Straight'}</span></div>
-                                <div style="font-size:16px; font-weight:900; color:#f59e0b; font-family:var(--font-mono); margin-top:3px; letter-spacing:0.2px;">${w.selection || w.matchup || w.target}</div>
+                                <div style="font-size:15px; font-weight:900; color:#f59e0b; font-family:var(--font-mono); margin-top:3px; letter-spacing:0.2px;">${w.selection || w.matchup || w.target}</div>
                             </div>
+
+                            ${legsHtml}
 
                             <div class="wager-card-metrics" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; background:rgba(0,0,0,0.3); padding:10px 12px; border-radius:8px; border:1px solid var(--border); margin-top:4px; font-size:11px;">
                                 <div>

@@ -148,7 +148,11 @@
                         acceptedDate: '8/29/26',
                         timestamp: '2026-08-29T15:30:00.000Z',
                         description: 'Football - NCAA - NC State vs Virginia - Teaser | 317 NC State +10½ -115 for GAME | 08/29/2026 03:30:00 PM (EST) | Pending | Neutral Field | Football - NCAA - Memphis vs UNLV - Teaser | 315 Memphis +10½ -108 for GAME | 08/29/2026 10:00:00 PM (EST) | Pending',
-                        history: ['-120', '-120', '-120']
+                        history: ['-120', '-120', '-120'],
+                        legs: [
+                            { matchup: 'NC STATE at VIRGINIA', awayTag: 'NCST', homeTag: 'UVA', selection: 'NC State +10.5', odds: '-115', status: 'PENDING' },
+                            { matchup: 'MEMPHIS at UNLV', awayTag: 'MEM', homeTag: 'UNLV', selection: 'Memphis +10.5', odds: '-108', status: 'PENDING' }
+                        ]
                     },
                     {
                         id: 'ticket-991399310',
@@ -171,7 +175,11 @@
                         acceptedDate: '8/29/26',
                         timestamp: '2026-08-29T15:30:00.000Z',
                         description: 'Football - NCAA - NC State vs Virginia - Parlay | 317 NC State +4 -115 for GAME | 08/29/2026 03:30:00 PM (EST) | Pending | Neutral Field | Football - NCAA - Memphis vs UNLV - Parlay | 315 Memphis +4 -108 for GAME | 08/29/2026 10:00:00 PM (EST) | Pending',
-                        history: ['+260', '+260', '+260']
+                        history: ['+260', '+260', '+260'],
+                        legs: [
+                            { matchup: 'NC STATE at VIRGINIA', awayTag: 'NCST', homeTag: 'UVA', selection: 'NC State +4', odds: '-115', status: 'PENDING' },
+                            { matchup: 'MEMPHIS at UNLV', awayTag: 'MEM', homeTag: 'UNLV', selection: 'Memphis +4', odds: '-108', status: 'PENDING' }
+                        ]
                     }
                 ];
 
