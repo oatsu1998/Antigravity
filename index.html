@@ -3602,6 +3602,137 @@
             `;
         }
 
+        function parseMatchupTeams(eventStr = '', matchupStr = '') {
+            let cleanStr = (eventStr + ' ' + matchupStr).toUpperCase().trim();
+            let awayStr = '';
+            let homeStr = '';
+
+            if (cleanStr.includes(' AT ')) {
+                const parts = cleanStr.split(' AT ');
+                awayStr = parts[0].trim();
+                homeStr = parts[1].trim();
+            } else if (cleanStr.includes('@')) {
+                const parts = cleanStr.split('@');
+                awayStr = parts[0].trim();
+                homeStr = parts[1].trim();
+            } else if (cleanStr.includes(' VS ')) {
+                const parts = cleanStr.split(' VS ');
+                awayStr = parts[0].trim();
+                homeStr = parts[1].trim();
+            } else {
+                awayStr = cleanStr;
+                homeStr = cleanStr;
+            }
+
+            const cleanTag = (s) => {
+                return s.replace(/FOOTBALL|BASKETBALL|BASEBALL|NCAA|NFL|NBA|GAME|TOTAL|SPREAD|MONEYLINE|UNDER|OVER|\d+|½|\.5|[-+]/g, '').trim();
+            };
+
+            return { awayStr: cleanTag(awayStr), homeStr: cleanTag(homeStr) };
+        }
+
+        function getTeamLogoBadge(teamStr = '') {
+            const key = (teamStr || '').toUpperCase();
+            if (key.includes('MIN') || key.includes('VIKINGS') || key.includes('MINNESOTA')) {
+                return `
+                    <div class="team-logo-badge" title="Minnesota Vikings" style="display:inline-flex; align-items:center;">
+                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#4F2683" stroke="#FFC62F" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#FFC62F" text-anchor="middle">MIN</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('DEN') || key.includes('BRONCOS') || key.includes('DENVER')) {
+                return `
+                    <div class="team-logo-badge" title="Denver Broncos" style="display:inline-flex; align-items:center;">
+                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#002244" stroke="#FB4F14" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#FB4F14" text-anchor="middle">DEN</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('NCST') || key.includes('NC STATE') || key.includes('WOLFPACK')) {
+                return `
+                    <div class="team-logo-badge" title="NC State Wolfpack" style="display:inline-flex; align-items:center;">
+                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#CC0000" stroke="#FFFFFF" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="10" fill="#FFFFFF" text-anchor="middle">NCST</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('UVA') || key.includes('VIRGINIA') || key.includes('CAVALIERS')) {
+                return `
+                    <div class="team-logo-badge" title="Virginia Cavaliers" style="display:inline-flex; align-items:center;">
+                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#232D4B" stroke="#F84C1E" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="10" fill="#F84C1E" text-anchor="middle">UVA</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('MEM') || key.includes('MEMPHIS') || key.includes('TIGERS')) {
+                return `
+                    <div class="team-logo-badge" title="Memphis Tigers" style="display:inline-flex; align-items:center;">
+                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#003087" stroke="#8D9093" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="10" fill="#FFFFFF" text-anchor="middle">MEM</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('UNLV') || key.includes('REBELS')) {
+                return `
+                    <div class="team-logo-badge" title="UNLV Rebels" style="display:inline-flex; align-items:center;">
+                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#CF102D" stroke="#666666" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="9" fill="#FFFFFF" text-anchor="middle">UNLV</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('SJSU') || key.includes('SAN JOSE STATE') || key.includes('SPARTANS')) {
+                return `
+                    <div class="team-logo-badge" title="San Jose State" style="display:inline-flex; align-items:center;">
+                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#0055A5" stroke="#E5A823" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="10" fill="#E5A823" text-anchor="middle">SJSU</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('USC') || key.includes('TROJANS')) {
+                return `
+                    <div class="team-logo-badge" title="USC Trojans" style="display:inline-flex; align-items:center;">
+                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#990000" stroke="#FFC72C" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#FFC72C" text-anchor="middle">USC</text>
+                        </svg>
+                    </div>
+                `;
+            }
+
+            const tag = key.substring(0, 3) || 'BET';
+            return `
+                <div class="team-logo-badge" title="${key}" style="display:inline-flex; align-items:center;">
+                    <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="16" cy="16" r="15" fill="#181c22" stroke="#06b6d4" stroke-width="2"/>
+                        <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#06b6d4" text-anchor="middle">${tag}</text>
+                    </svg>
+                </div>
+            `;
+        }
+
+        function getTeamLogosForEvent(eventStr, matchupStr) {
+            const { awayStr, homeStr } = parseMatchupTeams(eventStr, matchupStr);
+            return {
+                awayLogo: getTeamLogoBadge(awayStr),
+                homeLogo: getTeamLogoBadge(homeStr)
+            };
+        }
+
         function getWagerLegs(w) {
             if (w.legs && Array.isArray(w.legs) && w.legs.length > 0) {
                 return w.legs;
@@ -3657,18 +3788,52 @@
             // Filter strictly PENDING active wagers
             activeWagers = activeWagers.filter(w => w.status === 'PENDING');
 
+            let upcomingGamesHtml = '';
+            let allUpcomingEvents = [];
+            LEAGUES.forEach(lg => {
+                if (leagueData[lg.id] && leagueData[lg.id].events) {
+                    leagueData[lg.id].events.forEach(e => {
+                        allUpcomingEvents.push({ event: e, lg: lg });
+                    });
+                }
+            });
+
+            if (allUpcomingEvents.length > 0) {
+                allUpcomingEvents.sort((a, b) => {
+                    const sa = gameStatus(a.event), sb = gameStatus(b.event);
+                    if (sa.isLive !== sb.isLive) return sa.isLive ? -1 : 1;
+                    return new Date(a.event.date || 0) - new Date(b.event.date || 0);
+                });
+
+                upcomingGamesHtml = `
+                    <div style="margin-top:32px;">
+                        <div class="league-header">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="font-size:22px;">📅</span>
+                                <div class="league-title">UPCOMING FEATURED MATCHUPS & LINES</div>
+                            </div>
+                            <div style="font-family:var(--font-mono); font-size:11px; color:var(--accent2); font-weight:700;">PRO AI ALGORITHM FEATURED GAMES</div>
+                        </div>
+                        <div class="games-grid">
+                            ${allUpcomingEvents.slice(0, 8).map(item => renderCard(item.event, item.lg, 'live-wagers-upcoming')).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
             if (activeWagers.length === 0) {
                 return `
                     <div class="next-event-countdown-card" style="max-width:580px; margin:36px auto;">
                         <div class="next-event-badge">🎯 LIVE ACTIVE BET TICKETS</div>
                         <div class="next-event-title">NO LIVE WAGERS PLACED</div>
                         <div style="font-family:var(--font-mono); font-size:12px; color:var(--muted); line-height:1.6;">
-                            You have zero active wager tickets currently in play.<br>Select any live or scheduled game from the sidebar to place a wager and track your ticket in real time.
+                            You have zero active wager tickets currently in play.<br>Select any live or scheduled game below to place a wager and track your ticket in real time.
                         </div>
                         <button onclick="toggleBetSlip()" class="mb-add-btn" style="margin-top:8px; display:inline-flex; align-items:center; gap:8px;">
                             📋 OPEN BET SLIP (<span id="live-wagers-slip-cnt">${typeof betSlip !== 'undefined' && Array.isArray(betSlip) ? betSlip.length : 0}</span> DRAFT BETS)
                         </button>
                     </div>
+                    ${upcomingGamesHtml}
                 `;
             }
 
@@ -3765,7 +3930,7 @@
                 `;
             });
 
-            html += `</div>`;
+            html += `</div>${upcomingGamesHtml}`;
             return html;
         }
 

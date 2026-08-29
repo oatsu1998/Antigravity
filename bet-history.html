@@ -571,31 +571,33 @@
             renderTable();
         }
 
-        function parseMatchupTeams(eventStr, matchupStr) {
-            let text = (matchupStr && matchupStr.includes('@')) ? matchupStr : (eventStr || '');
-            text = text.trim();
+        function parseMatchupTeams(eventStr = '', matchupStr = '') {
+            let cleanStr = (matchupStr || eventStr || '').toUpperCase().trim();
+            let awayStr = '';
+            let homeStr = '';
 
-            let awayStr = 'MIN';
-            let homeStr = 'DEN';
-
-            if (text.includes('@')) {
-                const parts = text.split('@');
+            if (cleanStr.includes(' AT ')) {
+                const parts = cleanStr.split(' AT ');
                 awayStr = parts[0].trim();
                 homeStr = parts[1].trim();
-            } else if (text.toUpperCase().includes(' AT ')) {
-                const parts = text.toUpperCase().split(' AT ');
+            } else if (cleanStr.includes('@')) {
+                const parts = cleanStr.split('@');
                 awayStr = parts[0].trim();
                 homeStr = parts[1].trim();
-            } else if (text.toUpperCase().includes(' VS ')) {
-                const parts = text.toUpperCase().split(' VS ');
+            } else if (cleanStr.includes(' VS ')) {
+                const parts = cleanStr.split(' VS ');
                 awayStr = parts[0].trim();
                 homeStr = parts[1].trim();
             } else {
-                awayStr = text;
-                homeStr = text;
+                awayStr = cleanStr;
+                homeStr = cleanStr;
             }
 
-            return { awayStr, homeStr };
+            const cleanTag = (s) => {
+                return s.replace(/FOOTBALL|BASKETBALL|BASEBALL|NCAA|NFL|NBA|GAME|TOTAL|SPREAD|MONEYLINE|UNDER|OVER|\d+|½|\.5|[-+]/g, '').trim();
+            };
+
+            return { awayStr: cleanTag(awayStr), homeStr: cleanTag(homeStr) };
         }
 
         function getTeamLogoBadge(teamKey) {
