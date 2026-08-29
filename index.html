@@ -3331,8 +3331,8 @@
           <span class="${status.cls}">${status.label}</span>
           ${status.isLive ? '<span class="live-dot"></span>' : ''}
         </div>
-        <button class="card-my-bets-btn" onclick="event.stopPropagation(); openMyBetsModal('${event.id}', '${(awayAbbr || '').replace(/'/g, "\\'")}', '${(awayName || '').replace(/'/g, "\\'")}', '${(homeAbbr || '').replace(/'/g, "\\'")}', '${(homeName || '').replace(/'/g, "\\'")}')">
-          My Bets ${betsCount > 0 ? `<span class="bets-count">${betsCount}</span>` : ''}
+        <button class="card-my-bets-btn" onclick="event.stopPropagation(); window.location.href='my-bets.html'">
+          Live Bets ${betsCount > 0 ? `<span class="bets-count">${betsCount}</span>` : ''}
         </button>
         <button class="pin-btn ${espnPinned.has(event.id) ? 'active' : ''}" onclick="event.stopPropagation(); toggleEspnPin('${event.id}', this)" title="${espnPinned.has(event.id) ? 'Unpin' : 'Pin'}">★</button>
       </div>
@@ -5452,11 +5452,11 @@
                 const myBetsBtn = card.querySelector('.card-my-bets-btn');
                 if (!myBetsBtn) return;
                 
-                const onclickStr = myBetsBtn.getAttribute('onclick') || '';
-                const match = onclickStr.match(/openMyBetsModal\([^,]+,\s*'([^']+)',\s*'([^']+)',\s*'([^']+)',\s*'([^']+)'\)/);
-                if (match) {
-                    const [, awayAbbr, awayName, homeAbbr, homeName] = match;
-                    const wagers = getWagersForGame(awayAbbr, awayName, homeAbbr, homeName);
+                const teamNames = card.querySelectorAll('.team-name');
+                if (teamNames.length >= 2) {
+                    const awayText = teamNames[0].innerText.trim();
+                    const homeText = teamNames[1].innerText.trim();
+                    const wagers = getWagersForGame(awayText, awayText, homeText, homeText);
                     const countEl = myBetsBtn.querySelector('.bets-count');
                     if (wagers.length > 0) {
                         if (countEl) {

@@ -212,7 +212,7 @@ function initGlobalNav() {
                 <a href="line-tracker.html" class="global-nav-link ${isLineTracker ? 'active' : ''}">Line Tracker</a>
                 <a href="history.html" class="global-nav-link ${isHistory ? 'active' : ''}">History</a>
                 <a href="props.html" class="global-nav-link ${isProps ? 'active' : ''}">Props</a>
-                <a href="my-bets.html" class="global-nav-link ${isMyBets ? 'active' : ''}">My Bets</a>
+                <a href="my-bets.html" class="global-nav-link ${isMyBets ? 'active' : ''}">Live Bets</a>
                 <a href="bet-slip.html" class="global-nav-link ${isBetSlip ? 'active' : ''}">Bet Slip</a>
                 <a href="bet-history.html" class="global-nav-link ${isBetHistory ? 'active' : ''}">Bet History</a>
                 <a href="kalshi.html" class="global-nav-link ${isKalshi ? 'active' : ''}">Kalshi</a>
@@ -241,7 +241,7 @@ function initGlobalNav() {
                 <a href="line-tracker.html" class="universal-menu-item">📈 Line Tracker</a>
                 <a href="history.html" class="universal-menu-item">📜 Line History & Logs</a>
                 <a href="props.html" class="universal-menu-item">🎯 Player Props</a>
-                <a href="my-bets.html" class="universal-menu-item">🎟️ My Bets Tracking</a>
+                <a href="my-bets.html" class="universal-menu-item">🎟️ Live Bets Tracking</a>
                 <a href="bet-slip.html" class="universal-menu-item">🧾 Bet Slip Builder</a>
                 <a href="bet-history.html" class="universal-menu-item">📑 Bet History Ledger</a>
                 <a href="kalshi.html" class="universal-menu-item">📊 Kalshi Live Markets</a>
