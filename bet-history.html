@@ -661,6 +661,46 @@
                     </div>
                 `;
             }
+            if (key.includes('NCST') || key.includes('NC STATE') || key.includes('WOLFPACK')) {
+                return `
+                    <div class="team-logo-badge" title="NC State Wolfpack">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#CC0000" stroke="#FFFFFF" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="10" fill="#FFFFFF" text-anchor="middle">NCST</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('UVA') || key.includes('VIRGINIA') || key.includes('CAVALIERS')) {
+                return `
+                    <div class="team-logo-badge" title="Virginia Cavaliers">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#232D4B" stroke="#F84C1E" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#F84C1E" text-anchor="middle">UVA</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('MEM') || key.includes('MEMPHIS') || key.includes('TIGERS')) {
+                return `
+                    <div class="team-logo-badge" title="Memphis Tigers">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#003087" stroke="#8D9093" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#FFFFFF" text-anchor="middle">MEM</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('UNLV') || key.includes('REBELS')) {
+                return `
+                    <div class="team-logo-badge" title="UNLV Rebels">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#CF102D" stroke="#666666" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="10" fill="#FFFFFF" text-anchor="middle">UNLV</text>
+                        </svg>
+                    </div>
+                `;
+            }
 
             const tag = key.substring(0, 3) || 'BET';
             return `
