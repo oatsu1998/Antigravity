@@ -5613,14 +5613,6 @@
             let pregameMLStr = `${awayAbbr} ${awayML} / ${homeAbbr} ${homeML}`;
 
             tileEl.innerHTML = `
-                <div class="mb-matchup-selector-bar" style="display:flex; align-items:center; justify-content:space-between; background:rgba(6, 182, 212, 0.12); border:1px solid rgba(6, 182, 212, 0.4); padding:6px 12px; border-radius:6px; margin-bottom:10px; font-family:var(--font-mono); font-size:11px;">
-                    <span style="color:#06B6D4; font-weight:900; letter-spacing:0.5px;">🏈 SELECT TRACKED MATCHUP:</span>
-                    <select onchange="switchModalMatchup(this.value)" style="background:#111827; color:#fff; border:1px solid #06B6D4; padding:4px 10px; border-radius:4px; font-family:var(--font-mono); font-size:11px; font-weight:800; cursor:pointer;">
-                        <option value="GB_DEN" ${awayAbbr === 'GB' ? 'selected' : ''}>🟢 GB @ DEN (Green Bay Packers @ Denver Broncos — 7 WAGERS)</option>
-                        <option value="CIN_ARI" ${awayAbbr === 'CIN' ? 'selected' : ''}>🏈 CIN @ ARI (Cincinnati Bengals @ Arizona Cardinals)</option>
-                    </select>
-                </div>
-
                 <div class="mb-score-tile" style="margin-bottom:14px; gap:8px;">
                     <div class="mb-score-header">
                         <span class="mb-score-league">🏆 ${lgName} LIVE HQ</span>
