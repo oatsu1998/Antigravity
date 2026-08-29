@@ -22,7 +22,16 @@ function loadGlobalResources() {
     }
 }
 
+let isGlobalNavInitialized = false;
+
 function initGlobalNav() {
+    if (isGlobalNavInitialized) return;
+    if (document.getElementById('destiny-global-nav') || document.querySelector('nav.global-nav')) {
+        isGlobalNavInitialized = true;
+        return;
+    }
+    isGlobalNavInitialized = true;
+
     loadGlobalResources();
 
     // Inject CSS for Nav
@@ -78,19 +87,52 @@ function initGlobalNav() {
             color: #f59e0b;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 13px;
-            line-height: 1.1;
+            letter-spacing: 1.5px;
+            font-size: 15px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .global-nav-links {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+        .global-nav-link {
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 6px 10px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .global-nav-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .global-nav-link.active {
+            color: #f59e0b;
+            font-weight: 800;
+        }
+        .global-nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -16px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #f59e0b;
         }
         .nav-clock-pill {
-            background: rgba(6, 182, 212, 0.08);
-            border: 1px solid rgba(6, 182, 212, 0.25);
-            color: #06b6d4;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 4px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -104,107 +146,82 @@ function initGlobalNav() {
             line-height: 1;
         }
         .nav-refresh-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #a1a1aa;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            font-weight: 800;
-            padding: 5px 10px;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.3);
             border-radius: 4px;
-            cursor: pointer;
-            letter-spacing: 0.5px;
-            height: 32px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #06b6d4;
             display: flex;
             align-items: center;
-            gap: 5px;
-            white-space: nowrap;
+            gap: 6px;
+            cursor: pointer;
             transition: all 0.2s;
+            height: 32px;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap;
         }
         .nav-refresh-btn:hover {
-            background: rgba(245, 158, 11, 0.15);
-            border-color: #f59e0b;
-            color: #f59e0b;
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.25);
+            background: rgba(6, 182, 212, 0.2);
+            color: #fff;
+            border-color: #06b6d4;
+            transform: translateY(-1px);
         }
         .universal-menu-btn {
             background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            color: #fff;
-            font-family: 'JetBrains Mono', monospace;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+            padding: 5px 12px;
             font-size: 11px;
             font-weight: 800;
-            padding: 5px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: inline-flex;
+            color: #e4e4e7;
+            display: flex;
             align-items: center;
             gap: 6px;
-            height: 32px;
-            white-space: nowrap;
+            cursor: pointer;
             transition: all 0.2s;
+            height: 32px;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap;
         }
         .universal-menu-btn:hover {
-            background: rgba(245, 158, 11, 0.18);
-            border-color: #f59e0b;
-            color: #f59e0b;
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.25);
         }
         .universal-menu-dropdown {
             position: absolute;
-            top: 58px;
+            top: 42px;
             right: 0;
-            left: auto;
-            background: #11151c;
+            background: #111418;
             border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 6px;
-            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            min-width: 220px;
             padding: 8px 0;
-            min-width: 240px;
             display: none;
-            z-index: 99999;
+            flex-direction: column;
+            z-index: 1001;
         }
         .universal-menu-dropdown.open {
-            display: block;
+            display: flex;
         }
         .universal-menu-item {
+            padding: 8px 16px;
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.15s;
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 18px;
-            color: #e4e4e7;
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 700;
-            transition: background 0.15s, color 0.15s;
+            gap: 8px;
         }
         .universal-menu-item:hover {
-            background: rgba(245, 158, 11, 0.15);
-            color: #f59e0b;
-        }
-        .global-nav-links {
-            display: flex;
-            gap: 18px;
-            align-items: center;
-        }
-        .global-nav-link {
-            color: #a1a1aa;
-            text-decoration: none;
-            text-transform: uppercase;
-            transition: color 0.2s;
-            position: relative;
-        }
-        .global-nav-link:hover, .global-nav-link.active {
-            color: #fff;
-        }
-        .global-nav-link.active::after {
-            content: '';
-            position: absolute;
-            bottom: -16px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #f59e0b;
+            background: rgba(255, 255, 255, 0.06);
+            color: #06b6d4;
+            padding-left: 20px;
         }
         .nav-bankroll-pill {
             background: rgba(245, 158, 11, 0.1);
@@ -245,6 +262,7 @@ function initGlobalNav() {
 
     // Inject HTML
     const nav = document.createElement('nav');
+    nav.id = 'destiny-global-nav';
     nav.className = 'global-nav';
     nav.innerHTML = `
         <!-- Left: Brand Logo -->
@@ -324,6 +342,11 @@ function initGlobalNav() {
             </div>
         </div>
     `;
+
+    // Remove any existing nav element before inserting
+    const existingNavs = document.querySelectorAll('#destiny-global-nav, nav.global-nav');
+    existingNavs.forEach(el => el.remove());
+
     document.body.insertBefore(nav, document.body.firstChild);
 
     // Live Clock Update
