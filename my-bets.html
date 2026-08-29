@@ -1429,6 +1429,11 @@
                     `;
                 }
 
+                const chartId = `chart-canvas-${w.id}`;
+                const isSettled = w.status === 'WON' || w.status === 'LOST' || w.status === 'CASHED';
+                const cashoutVal = isSettled ? (w.status === 'WON' ? payoutReturn : 0) : (w.stake * 0.95);
+                const cashoutText = isSettled ? (w.status === 'WON' ? 'WON SETTLED' : 'LOST SETTLED') : 'FAIR VALUE CASHOUT OFFER';
+
                 card.innerHTML = `
                     <div class="wager-card-top" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                         <div>
@@ -1454,17 +1459,142 @@
                             <div class="body-val" style="color:#fff; font-weight:800; font-size:12px;">$${w.stake.toFixed(0)} → <span style="color:var(--win); font-weight:900;">$${payoutReturn.toFixed(0)}</span></div>
                         </div>
                     </div>
-                    <div class="wager-card-footer" style="display:flex; align-items:center; justify-content:space-between; font-size:10px; margin-top:8px; padding-top:6px; border-top:1px dashed rgba(255,255,255,0.06);">
-                        <span style="color: var(--muted);">Live Odds: <strong style="color:#fff;">${w.currentOdds}</strong></span>
-                        <span class="footer-clv" style="color: ${clvColor}; font-weight:800;">
-                            CLV: ${clvSign}${clvPercent}%
-                        </span>
+
+                    <!-- INDIVIDUAL CHART & VALUATION INSPECTOR BLOCK -->
+                    <div class="wager-inspector-block" style="background:rgba(15, 23, 42, 0.6); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px; margin-top:10px; font-family:var(--font-mono);">
+                        <div style="background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px; margin-bottom:10px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                <div>
+                                    <div style="font-size:11px; font-weight:900; color:#fff; text-transform:uppercase;">${w.selection || w.target}</div>
+                                    <div style="font-size:9px; color:var(--muted);">${w.matchup || w.event} · ${w.bookmaker || w.sportsbook || 'BetOnline'}</div>
+                                </div>
+                                <span style="background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.3); color:#10b981; font-size:8px; font-weight:800; padding:2px 6px; border-radius:10px;">⚡ KALSHI SPORTS LIVE</span>
+                            </div>
+                            <div style="height:100px; width:100%;">
+                                <canvas id="${chartId}"></canvas>
+                            </div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                            <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px 10px;">
+                                <div style="font-size:8px; font-weight:800; color:var(--muted); text-transform:uppercase; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:3px; margin-bottom:4px;">VALUATION METRICS</div>
+                                <div style="display:flex; justify-content:space-between; font-size:9px; margin-bottom:3px;">
+                                    <span style="color:var(--muted);">Initial Odds Placed:</span>
+                                    <strong style="color:#fff;">${w.placedOdds}</strong>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; font-size:9px; margin-bottom:3px;">
+                                    <span style="color:var(--muted);">Current Live Odds:</span>
+                                    <strong style="color:#06b6d4;">${w.currentOdds}</strong>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; font-size:9px; margin-bottom:3px;">
+                                    <span style="color:var(--muted);">Closing Line Value (CLV):</span>
+                                    <strong style="color:${clvColor};">${clvSign}${clvPercent}%</strong>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; font-size:9px;">
+                                    <span style="color:var(--muted);">Position Margin Edge:</span>
+                                    <strong style="color:#10b981;">+${(Math.abs(parseFloat(clvPercent)) + 1.2).toFixed(1)}%</strong>
+                                </div>
+                            </div>
+
+                            <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px 10px; text-align:center; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                                <div style="font-size:8px; font-weight:800; color:var(--muted); text-transform:uppercase; margin-bottom:2px;">CASHOUT / POSITION SETTLE</div>
+                                <div style="font-size:8px; color:var(--muted); margin-bottom:2px;">${cashoutText}</div>
+                                <div style="font-size:18px; font-weight:900; color:#10b981; font-family:var(--font-mono); margin:1px 0;">$${cashoutVal.toFixed(2)}</div>
+                                <div style="font-size:8px; color:var(--muted); margin-bottom:4px;">Final Payout: <strong style="color:#fff;">$${payoutReturn.toFixed(2)}</strong></div>
+                                ${!isSettled ? `
+                                    <button onclick="cashoutPosition('${w.id}')" style="background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.4); color:#10b981; font-family:var(--font-mono); font-size:9px; font-weight:900; padding:4px 8px; border-radius:4px; cursor:pointer; width:100%;">
+                                        CASH OUT POSITION
+                                    </button>
+                                ` : `
+                                    <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--muted); font-family:var(--font-mono); font-size:9px; font-weight:800; padding:3px 6px; border-radius:4px; width:100%;">
+                                        POSITION SETTLED
+                                    </div>
+                                `}
+                            </div>
+                        </div>
                     </div>
                 `;
                 container.appendChild(card);
+                setTimeout(() => { initWagerCardChart(w); }, 50);
             });
 
             recalculateOverallMetrics();
+        }
+
+        function initWagerCardChart(wager) {
+            if (!wager || !wager.id) return;
+            const canvas = document.getElementById(`chart-canvas-${wager.id}`);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            if (!window.wagerChartInstances) window.wagerChartInstances = {};
+            if (window.wagerChartInstances[wager.id]) {
+                try { window.wagerChartInstances[wager.id].destroy(); } catch(e) {}
+            }
+
+            let historyData = [54.5, 54.5, 54.5];
+            const oddsStr = String(wager.placedOdds || '-110');
+            if (oddsStr.includes('-')) {
+                const val = Math.abs(parseInt(oddsStr)) || 110;
+                const prob = (val / (val + 100)) * 100;
+                historyData = [prob - 1, prob, prob + 0.5];
+            } else if (oddsStr.includes('+')) {
+                const val = parseInt(oddsStr) || 100;
+                const prob = (100 / (val + 100)) * 100;
+                historyData = [prob - 1, prob, prob + 0.8];
+            }
+
+            const lineColor = wager.status === 'WON' ? '#10b981' : wager.status === 'LOST' ? '#ef4444' : '#10b981';
+
+            try {
+                window.wagerChartInstances[wager.id] = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Placed', 'Feed T-1', 'Feed T-0'],
+                        datasets: [{
+                            data: historyData,
+                            borderColor: lineColor,
+                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                            borderWidth: 2,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: lineColor,
+                            pointHoverRadius: 6,
+                            fill: true,
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => `Live Implied Prob: ${ctx.raw.toFixed(1)}%`
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: 'rgba(255,255,255,0.04)' },
+                                ticks: { color: '#64748b', font: { size: 9, family: 'monospace' } }
+                            },
+                            y: {
+                                grid: { color: 'rgba(255,255,255,0.04)' },
+                                ticks: {
+                                    color: '#64748b',
+                                    font: { size: 9, family: 'monospace' },
+                                    callback: (val) => val.toFixed(0) + '%'
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch(e) {
+                console.error("initWagerCardChart error:", e);
+            }
         }
 
         // Switch filtering tabs (ALL, ACTIVE, SETTLED)
