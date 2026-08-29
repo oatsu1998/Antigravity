@@ -1038,16 +1038,90 @@
         }
 
         function seedInitialWagers() {
+            let fetched = [];
             if (window.DestinyState) {
-                wagers = DestinyState.getWagers().map(normalizeWager);
+                fetched = DestinyState.getWagers();
             } else {
                 try {
-                    wagers = JSON.parse(localStorage.getItem('destiny_game_wagers') || '[]').map(normalizeWager);
+                    fetched = JSON.parse(localStorage.getItem('destiny_game_wagers') || '[]');
                 } catch(e) {
-                    wagers = [];
+                    fetched = [];
                 }
             }
-            localStorage.setItem('destiny_game_wagers', JSON.stringify(wagers));
+
+            if (!fetched || fetched.length === 0) {
+                fetched = [
+                    {
+                        id: 'ticket-991363123',
+                        ticketNumber: '991363123',
+                        event: 'VIKINGS at BRONCOS',
+                        matchup: 'MIN @ DEN',
+                        target: 'VIKINGS at BRONCOS',
+                        selection: 'Total — UNDER 40.5',
+                        type: 'Live',
+                        side: 'Under 40.5',
+                        sportsbook: 'FanDuel',
+                        bookmaker: 'FanDuel',
+                        stake: 120.00,
+                        wager: 120.00,
+                        toWin: 100.00,
+                        placedOdds: '-120',
+                        currentOdds: '-120',
+                        status: 'PENDING',
+                        acceptedDate: '8/29/26',
+                        timestamp: '2026-08-29T00:00:00.000Z',
+                        description: 'VIKINGS at BRONCOS - Total - UNDER 40.5',
+                        history: ['-120', '-120', '-120']
+                    },
+                    {
+                        id: 'ticket-991291159',
+                        ticketNumber: '991291159',
+                        event: 'VIKINGS at BRONCOS',
+                        matchup: 'MIN @ DEN',
+                        target: 'Teaser — MIN Vikings +9.5',
+                        selection: 'MIN Vikings +9.5 (-117)',
+                        type: 'Teaser',
+                        side: 'MIN Vikings +9.5',
+                        sportsbook: 'DraftKings',
+                        bookmaker: 'DraftKings',
+                        stake: 25.00,
+                        wager: 25.00,
+                        toWin: 22.73,
+                        placedOdds: '-110',
+                        currentOdds: '-110',
+                        status: 'PENDING',
+                        acceptedDate: '8/28/26',
+                        timestamp: '2026-08-28T21:00:00.000Z',
+                        description: 'Football - NFL - Minnesota Vikings vs Denver Broncos - Teaser | 127 Minnesota Vikings +9½ -117 for GAME',
+                        history: ['-110', '-110', '-110']
+                    },
+                    {
+                        id: 'ticket-991291089',
+                        ticketNumber: '991291089',
+                        event: 'VIKINGS at BRONCOS',
+                        matchup: 'MIN @ DEN',
+                        target: 'Parlay — MIN Vikings +3.5',
+                        selection: 'MIN Vikings +3.5 (-117)',
+                        type: 'Parlay',
+                        side: 'MIN Vikings +3.5',
+                        sportsbook: 'Caesars',
+                        bookmaker: 'Caesars',
+                        stake: 25.00,
+                        wager: 25.00,
+                        toWin: 63.50,
+                        placedOdds: '+254',
+                        currentOdds: '+254',
+                        status: 'PENDING',
+                        acceptedDate: '8/28/26',
+                        timestamp: '2026-08-28T21:00:00.000Z',
+                        description: 'Football - NFL - Minnesota Vikings vs Denver Broncos - Parlay | 127 Minnesota Vikings +3½ -117 for GAME',
+                        history: ['+254', '+254', '+254']
+                    }
+                ];
+                localStorage.setItem('destiny_game_wagers', JSON.stringify(fetched));
+            }
+
+            wagers = fetched.map(normalizeWager);
         }
 
         // Render Positions Ledger List

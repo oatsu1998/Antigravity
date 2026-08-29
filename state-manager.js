@@ -5,14 +5,6 @@
 (function() {
     'use strict';
 
-    // Purge all old wager storage completely as requested by user
-    try {
-        localStorage.removeItem('destiny_placed_bets');
-        localStorage.removeItem('destiny_tracked_picks');
-        localStorage.removeItem('wagers');
-        localStorage.setItem('destiny_game_wagers', '[]');
-    } catch(e) {}
-
     const KEYS = {
         BANKROLL: 'bankroll',
         WAGERS: 'destiny_game_wagers',

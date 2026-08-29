@@ -6250,65 +6250,31 @@
                     const toWinAmt = parseFloat(w.toWin || 0).toFixed(2);
                     const payoutAmt = (parseFloat(wagerAmt) + parseFloat(toWinAmt)).toFixed(2);
                     const placedOddsStr = w.placedOdds || w.odds || '-110';
-                    const targetDisplay = String(w.target || w.matchup || 'Tracked Wager');
-                    const isCashed = w.status === 'CASHED';
-
-                    let healthHtml = '';
-                    if (isCashed) {
-                        healthHtml = `<span style="color:#10b981; font-weight:800;">🟢 CASHED OUT (Guaranteed Win: +$${toWinAmt})</span>`;
-                    } else {
-                        const targetStr = String(w.target || w.detail || '').toUpperCase();
-                        if (w.type === 'Total' || w.type === 'Team Total' || targetStr.includes('OVER') || targetStr.includes('UNDER')) {
-                            const lineNum = parseFloat(w.line || targetStr.replace(/[^0-9\.]/g, '')) || 40.5;
-                            const isUnder = targetStr.includes('UNDER') || w.side === 'Under';
-                            if (isUnder) {
-                                const margin = lineNum - totalPts;
-                                if (margin > 0) {
-                                    healthHtml = `<span style="color:#10b981; font-weight:800;">🟢 ON TRACK (Current Total: ${totalPts} PTS · ${margin.toFixed(1)} pts below ${lineNum})</span>`;
-                                } else if (margin < 0) {
-                                    healthHtml = `<span style="color:#ef4444; font-weight:800;">🔴 LOSING (Current Total: ${totalPts} PTS · ${Math.abs(margin).toFixed(1)} pts over ${lineNum})</span>`;
-                                } else {
-                                    healthHtml = `<span style="color:#f59e0b; font-weight:800;">🟡 PUSH ON ${lineNum}</span>`;
-                                }
-                            } else {
-                                const margin = totalPts - lineNum;
-                                if (margin > 0) {
-                                    healthHtml = `<span style="color:#10b981; font-weight:800;">🟢 COVERED OVER (Current Total: ${totalPts} PTS · +${margin.toFixed(1)} pts over ${lineNum})</span>`;
-                                } else {
-                                    healthHtml = `<span style="color:#f59e0b; font-weight:800;">🟡 NEED ${Math.abs(margin).toFixed(1)} PTS (Current Total: ${totalPts} PTS)</span>`;
-                                }
-                            }
-                        }
-                    }
-
-                    let graphHtml = '';
-                    try { graphHtml = renderBetPerformanceGraph(w, gameData); } catch(e) {}
-                    
-                    let hedgeHtml = '';
-                    try { hedgeHtml = renderHedgeAdvisor(w, gameData); } catch(e) {}
-
-                    const badgeHtml = isCashed
-                        ? `<span class="mb-wager-badge" style="background:rgba(16, 185, 129, 0.2); color:#10b981; border:1px solid rgba(16, 185, 129, 0.4);">CASHED 🟢</span>`
-                        : `<span class="mb-wager-badge">ACTIVE TRACK</span>`;
+                    const selTitle = w.selection || w.side || w.target || 'Tracked Selection';
+                    const eventTitle = w.event || w.target || 'VIKINGS at BRONCOS';
+                    const bookTitle = w.sportsbook || w.bookmaker || 'Sportsbook';
 
                     return `
-                    <div class="mb-wager-card">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                            <span class="mb-wager-team" style="font-size:15px; font-weight:900; color:var(--accent2);">${targetDisplay}</span>
+                    <div class="mb-wager-card" style="border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(18, 24, 38, 0.95); margin-bottom: 12px; border-radius: 8px; padding: 12px;">
+                        <div style="display:flex; justify-space-between; align-items:center; margin-bottom:6px;">
+                            <div>
+                                <span class="mb-wager-team" style="font-size:15px; font-weight:900; color:#fff;">${selTitle}</span>
+                                <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">${eventTitle} • <strong style="color:var(--accent);">${bookTitle}</strong></div>
+                            </div>
                             ${badgeHtml}
                         </div>
                         
-                        <div class="mb-wager-details">
+                        <div class="mb-wager-details" style="background: rgba(0, 0, 0, 0.25); padding: 8px 10px; border-radius: 6px;">
                             <div class="mb-wager-row">
-                                <span class="mb-wager-label">Bet Selection:</span>
-                                <span class="mb-wager-val">${w.type || 'Total'} (${w.detail || targetDisplay})</span>
+                                <span class="mb-wager-label">Bet Type / Selection:</span>
+                                <span class="mb-wager-val" style="color:#fff; font-weight:bold;">${w.type || 'Game'} (${selTitle})</span>
                             </div>
                             <div class="mb-wager-row">
-                                <span class="mb-wager-label">Placed Line & Odds:</span>
-                                <span class="mb-wager-val" style="color:#fff; font-weight:bold;">${w.detail || targetDisplay} @ <span style="color:#f59e0b;">${placedOddsStr}</span></span>
+                                <span class="mb-wager-label">Placed Odds:</span>
+                                <span class="mb-wager-val" style="color:#f59e0b; font-weight:bold;">${placedOddsStr}</span>
                             </div>
                             <div class="mb-wager-row">
-                                <span class="mb-wager-label">Stake / Win / Payout:</span>
+                                <span class="mb-wager-label">Stake / Win / Return:</span>
                                 <span class="mb-wager-val">$${wagerAmt} wager → <span style="color:var(--win); font-weight:bold;">$${toWinAmt} win</span> ($${payoutAmt} payout)</span>
                             </div>
                             <div class="mb-wager-row">
@@ -6326,7 +6292,7 @@
                         ${graphHtml}
                         ${hedgeHtml}
                         
-                        <div style="display:flex; justify-content:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:8px; margin-top:4px;">
+                        <div style="display:flex; justify-content:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:8px; margin-top:6px;">
                             <button class="mb-wager-delete-btn" style="position:static;" onclick="deleteWagerFromModal('${w.id}')">🗑 Delete Track</button>
                         </div>
                     </div>
