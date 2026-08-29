@@ -128,12 +128,15 @@
                     }
                 ];
 
-                // Filter out any fake/seed wagers
-                wagers = wagers.filter(w => !String(w.id).startsWith('wager-seed-') && !String(w.id).startsWith('demo_'));
+                const validTicketIds = realUserTickets.map(t => t.id);
+                const validTicketNums = realUserTickets.map(t => t.ticketNumber);
+
+                // Keep ONLY valid real user tickets!
+                wagers = wagers.filter(w => validTicketIds.includes(w.id) || validTicketNums.includes(String(w.ticketNumber)));
 
                 realUserTickets.forEach(rt => {
-                    if (!wagers.some(w => w.id === rt.id || w.ticketNumber === rt.ticketNumber)) {
-                        wagers.unshift(rt);
+                    if (!wagers.some(w => w.id === rt.id || String(w.ticketNumber) === rt.ticketNumber)) {
+                        wagers.push(rt);
                     }
                 });
 

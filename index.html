@@ -5510,8 +5510,10 @@
                 try { parsed = JSON.parse(saved); } catch(e) { parsed = []; }
             }
             
-            // Clean out any fake seed or old demo wagers
-            parsed = parsed.filter(w => !String(w.id).startsWith('wager-seed-') && !String(w.id).startsWith('demo_'));
+            // Clean out any fake seed or old demo/mock wagers
+            const validIds = ['ticket-991363123', 'ticket-991340733', 'ticket-991291159', 'ticket-991291089'];
+            const validNums = ['991363123', '991340733', '991291159', '991291089'];
+            parsed = parsed.filter(w => validIds.includes(w.id) || validNums.includes(String(w.ticketNumber)));
 
             defaultWagers.forEach(dw => {
                 if (!parsed.some(w => w.id === dw.id || w.ticketNumber === dw.ticketNumber)) {
