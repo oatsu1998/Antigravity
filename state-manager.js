@@ -53,7 +53,7 @@
                         toWin: 100.00,
                         placedOdds: '-120',
                         currentOdds: '-120',
-                        status: 'PENDING',
+                        status: 'WON',
                         acceptedDate: '8/29/26',
                         timestamp: '2026-08-29T00:00:00.000Z',
                         description: 'VIKINGS at BRONCOS - Total - UNDER 40.5',
@@ -75,7 +75,7 @@
                         toWin: 22.73,
                         placedOdds: '-110',
                         currentOdds: '-110',
-                        status: 'PENDING',
+                        status: 'LOST',
                         acceptedDate: '8/28/26',
                         timestamp: '2026-08-28T21:00:00.000Z',
                         description: 'Football - NFL - Minnesota Vikings vs Denver Broncos - Teaser | 127 Minnesota Vikings +9½ -117 for GAME',
@@ -97,7 +97,7 @@
                         toWin: 63.50,
                         placedOdds: '+254',
                         currentOdds: '+254',
-                        status: 'PENDING',
+                        status: 'LOST',
                         acceptedDate: '8/28/26',
                         timestamp: '2026-08-28T21:00:00.000Z',
                         description: 'Football - NFL - Minnesota Vikings vs Denver Broncos - Parlay | 127 Minnesota Vikings +3½ -117 for GAME',
@@ -105,14 +105,7 @@
                     }
                 ];
 
-                const validIds = vikingsWagers.map(t => t.id);
-                wagers = wagers.filter(w => validIds.includes(w.id));
-
-                vikingsWagers.forEach(vw => {
-                    if (!wagers.some(w => w.id === vw.id)) {
-                        wagers.push(vw);
-                    }
-                });
+                wagers = vikingsWagers;
 
                 wagers = wagers.map(w => ({
                     ...w,
