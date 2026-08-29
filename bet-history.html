@@ -348,6 +348,46 @@
             margin-bottom: 12px;
             opacity: 0.5;
         }
+
+        /* INDIVIDUAL WAGER CARDS GRID & TEAM LOGOS */
+        .wager-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .history-wager-card {
+            background: var(--surface);
+            border: 1px solid var(--border2);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            transition: all 0.2s ease;
+        }
+
+        .history-wager-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .team-logo-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        .team-logo-badge:hover {
+            transform: scale(1.1);
+        }
+
+        .view-btn.active {
+            background: var(--surface2) !important;
+            color: var(--accent) !important;
+        }
     </style>
 </head>
 
@@ -408,7 +448,7 @@
             </div>
         </div>
 
-        <!-- FILTER & SEARCH BAR -->
+        <!-- FILTER & VIEW TOGGLE BAR -->
         <div class="filter-bar">
             <div class="filter-tabs">
                 <button class="filter-tab-btn active" onclick="setFilter('ALL')">ALL</button>
@@ -416,14 +456,23 @@
                 <button class="filter-tab-btn" onclick="setFilter('LOST')">LOST</button>
                 <button class="filter-tab-btn" onclick="setFilter('PENDING')">PENDING</button>
             </div>
-            <div class="search-box">
-                <span style="color: var(--muted);">🔍</span>
-                <input type="text" id="search-input" placeholder="Search event, selection, or book..." oninput="renderTable()">
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <div class="view-toggle-wrap" style="display:flex; background:rgba(0,0,0,0.4); border:1px solid var(--border); border-radius:6px; padding:2px;">
+                    <button class="view-btn active" id="view-cards-btn" onclick="switchViewMode('CARDS')" style="background:var(--surface2); color:var(--accent); border:none; padding:5px 12px; border-radius:4px; font-family:var(--font-mono); font-size:10px; font-weight:700; cursor:pointer;">🎴 CARDS & GRAPHS</button>
+                    <button class="view-btn" id="view-table-btn" onclick="switchViewMode('TABLE')" style="background:transparent; color:var(--muted); border:none; padding:5px 12px; border-radius:4px; font-family:var(--font-mono); font-size:10px; font-weight:700; cursor:pointer;">📊 TABLE VIEW</button>
+                </div>
+                <div class="search-box">
+                    <span style="color: var(--muted);">🔍</span>
+                    <input type="text" id="search-input" placeholder="Search event, selection, or book..." oninput="renderTable()">
+                </div>
             </div>
         </div>
 
-        <!-- BET HISTORY TABLE -->
-        <div class="table-card">
+        <!-- INDIVIDUAL WAGER CARDS GRID (DEFAULT) -->
+        <div id="history-cards-container" class="wager-cards-grid"></div>
+
+        <!-- BET HISTORY TABLE (OPTIONAL TABLE VIEW) -->
+        <div class="table-card" id="history-table-card" style="display:none; margin-top:20px;">
             <table class="history-table">
                 <thead>
                     <tr>
@@ -449,7 +498,9 @@
     <script>
         let allWagers = [];
         let activeFilter = 'ALL';
+        let activeViewMode = 'CARDS';
         let chartInstance = null;
+        let cardChartInstances = {};
 
         function loadWagers() {
             if (window.DestinyState) {
@@ -462,7 +513,6 @@
                 }
             }
 
-            // Default seed demo bets if completely empty
             if (!allWagers || allWagers.length === 0) {
                 seedSampleData(false);
                 return;
@@ -492,12 +542,119 @@
             renderTable();
         }
 
+        function switchViewMode(mode) {
+            activeViewMode = mode;
+            const cardsContainer = document.getElementById('history-cards-container');
+            const tableCard = document.getElementById('history-table-card');
+            const btnCards = document.getElementById('view-cards-btn');
+            const btnTable = document.getElementById('view-table-btn');
+
+            if (mode === 'CARDS') {
+                cardsContainer.style.display = 'grid';
+                tableCard.style.display = 'none';
+                btnCards.classList.add('active');
+                btnTable.classList.remove('active');
+                btnCards.style.background = 'var(--surface2)';
+                btnCards.style.color = 'var(--accent)';
+                btnTable.style.background = 'transparent';
+                btnTable.style.color = 'var(--muted)';
+            } else {
+                cardsContainer.style.display = 'none';
+                tableCard.style.display = 'block';
+                btnTable.classList.add('active');
+                btnCards.classList.remove('active');
+                btnTable.style.background = 'var(--surface2)';
+                btnTable.style.color = 'var(--accent)';
+                btnCards.style.background = 'transparent';
+                btnCards.style.color = 'var(--muted)';
+            }
+            renderTable();
+        }
+
+        function getTeamLogoBadge(teamKey) {
+            const key = (teamKey || '').toUpperCase().trim();
+            if (key.includes('MIN') || key.includes('VIKINGS')) {
+                return `
+                    <div class="team-logo-badge" title="Minnesota Vikings">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#4F2683" stroke="#FFC62F" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="13" fill="#FFC62F" text-anchor="middle">MIN</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('DEN') || key.includes('BRONCOS')) {
+                return `
+                    <div class="team-logo-badge" title="Denver Broncos">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#002244" stroke="#FB4F14" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="13" fill="#FB4F14" text-anchor="middle">DEN</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('PHI') || key.includes('EAGLES')) {
+                return `
+                    <div class="team-logo-badge" title="Philadelphia Eagles">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#004C54" stroke="#A5ACAF" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="13" fill="#A5ACAF" text-anchor="middle">PHI</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('KC') || key.includes('CHIEFS')) {
+                return `
+                    <div class="team-logo-badge" title="Kansas City Chiefs">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#E31837" stroke="#FFB81C" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="13" fill="#FFB81C" text-anchor="middle">KC</text>
+                        </svg>
+                    </div>
+                `;
+            }
+
+            const tag = key.substring(0, 3) || 'BET';
+            return `
+                <div class="team-logo-badge" title="${key}">
+                    <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="16" cy="16" r="15" fill="#181c22" stroke="#06b6d4" stroke-width="2"/>
+                        <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="12" fill="#06b6d4" text-anchor="middle">${tag}</text>
+                    </svg>
+                </div>
+            `;
+        }
+
+        function getTeamLogosForEvent(eventStr, matchupStr) {
+            const raw = ((eventStr || '') + ' ' + (matchupStr || '')).toUpperCase();
+            let awayTag = 'MIN';
+            let homeTag = 'DEN';
+
+            if (raw.includes('AT')) {
+                const parts = raw.split('AT');
+                awayTag = parts[0].trim();
+                homeTag = parts[1].trim();
+            } else if (raw.includes('@')) {
+                const parts = raw.split('@');
+                awayTag = parts[0].trim();
+                homeTag = parts[1].trim();
+            } else if (raw.includes('VS')) {
+                const parts = raw.split('VS');
+                awayTag = parts[0].trim();
+                homeTag = parts[1].trim();
+            }
+
+            return {
+                awayLogo: getTeamLogoBadge(awayTag),
+                homeLogo: getTeamLogoBadge(homeTag)
+            };
+        }
+
         function getWagerOddsAndToWin(w) {
             let odds = w.placedOdds || w.odds || w.currentOdds;
             let stake = parseFloat(w.stake !== undefined ? w.stake : (w.wager !== undefined ? w.wager : 0)) || 0;
             let toWin = parseFloat(w.toWin !== undefined ? w.toWin : 0);
 
-            // Calculate American odds from Risk (Stake) and To Win if odds are missing
             if ((!odds || odds === 'undefined' || odds === 'N/A') && stake > 0 && toWin > 0) {
                 if (toWin >= stake) {
                     const plus = Math.round((toWin / stake) * 100);
@@ -508,7 +665,6 @@
                 }
             }
 
-            // Calculate To Win from Stake and American odds if To Win is missing
             if ((!toWin || isNaN(toWin) || toWin === 0) && stake > 0 && odds) {
                 const numOdds = parseInt(String(odds).replace('+', ''), 10);
                 if (!isNaN(numOdds)) {
@@ -574,12 +730,10 @@
             const ctx = document.getElementById('profitChart').getContext('2d');
             if (chartInstance) chartInstance.destroy();
 
-            // Build cumulative data
             let cumulative = 0;
             const labels = ['Start'];
             const data = [0];
 
-            // Sort chronologically
             const sorted = [...allWagers].sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
 
             sorted.forEach((w, i) => {
@@ -629,8 +783,13 @@
         }
 
         function renderTable() {
+            const container = document.getElementById('history-cards-container');
             const tbody = document.getElementById('history-tbody');
             const search = document.getElementById('search-input').value.toLowerCase().trim();
+
+            // Destroy existing mini-charts
+            Object.values(cardChartInstances).forEach(chart => chart && chart.destroy());
+            cardChartInstances = {};
 
             let filtered = allWagers.filter(w => {
                 if (activeFilter !== 'ALL' && w.status !== activeFilter) return false;
@@ -642,59 +801,185 @@
             });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="10" class="empty-history">
-                            <div class="empty-icon">📜</div>
-                            <div>No settled wagers match the current filters.</div>
-                        </td>
-                    </tr>
-                `;
+                if (container) {
+                    container.innerHTML = `
+                        <div class="empty-history" style="grid-column: 1 / -1; text-align: center; padding: 40px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
+                            <div class="empty-icon" style="font-size: 32px; margin-bottom: 8px;">📜</div>
+                            <div style="color: var(--muted); font-size: 13px;">No settled wagers match the current filters.</div>
+                        </div>
+                    `;
+                }
+                if (tbody) tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:var(--muted);">No wagers found.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = filtered.map(w => {
-                const dateStr = w.timestamp ? new Date(w.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent';
-                const { odds, stake, toWin } = getWagerOddsAndToWin(w);
-                let payout = 0;
-                let profit = 0;
+            // Render Cards View with Logos and Individual Mini-Graphs
+            if (container) {
+                container.innerHTML = filtered.map(w => {
+                    const dateStr = w.timestamp ? new Date(w.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent';
+                    const { odds, stake, toWin } = getWagerOddsAndToWin(w);
+                    let payout = 0;
+                    let profit = 0;
 
-                if (w.status === 'WON') {
-                    payout = stake + toWin;
-                    profit = toWin;
-                } else if (w.status === 'LOST') {
-                    payout = 0;
-                    profit = -stake;
-                } else {
-                    payout = stake + toWin;
-                    profit = toWin;
-                }
+                    if (w.status === 'WON') {
+                        payout = stake + toWin;
+                        profit = toWin;
+                    } else if (w.status === 'LOST') {
+                        payout = 0;
+                        profit = -stake;
+                    } else {
+                        payout = stake + toWin;
+                        profit = toWin;
+                    }
 
-                const statusClass = w.status.toLowerCase();
-                const profitClass = profit > 0 ? 'win' : profit < 0 ? 'lost' : '';
+                    const statusClass = w.status.toLowerCase();
+                    const profitClass = profit > 0 ? 'win' : profit < 0 ? 'lost' : '';
+                    const teamLogos = getTeamLogosForEvent(w.event, w.matchup || w.selection);
 
-                return `
-                    <tr>
-                        <td style="color: var(--muted); font-size: 11px;">${dateStr}</td>
-                        <td>
-                            <div style="font-weight: bold; color: #fff;">${w.event || w.target}</div>
-                            <div style="font-size: 10px; color: var(--muted);">${w.matchup || w.selection || ''}</div>
-                        </td>
-                        <td>${w.type || 'Straight'}</td>
-                        <td style="color: var(--cyan);">${w.bookmaker || w.sportsbook || 'BetOnline'}</td>
-                        <td><span class="odds-pill">${odds}</span></td>
-                        <td style="font-weight: bold;">$${stake.toFixed(2)}</td>
-                        <td style="color: var(--muted);">$${payout.toFixed(2)}</td>
-                        <td style="font-weight: bold;" class="${profitClass}">
-                            ${profit > 0 ? '+' : ''}$${profit.toFixed(2)}
-                        </td>
-                        <td><span class="badge-status ${statusClass}">${w.status}</span></td>
-                        <td>
-                            <button class="btn-delete-row" onclick="deleteWager('${w.id}')" title="Delete Wager">✕</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+                    return `
+                        <div class="history-wager-card" id="card-${w.id}">
+                            <div class="wager-card-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    ${teamLogos.awayLogo}
+                                    <span style="font-size:12px; font-weight:800; color:#fff; text-transform:uppercase; letter-spacing:0.8px;">${w.event || w.target}</span>
+                                    ${teamLogos.homeLogo}
+                                </div>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span class="badge-status ${statusClass}">${w.status}</span>
+                                    <button class="btn-delete-row" onclick="deleteWager('${w.id}')" title="Delete Wager">✕</button>
+                                </div>
+                            </div>
+
+                            <div style="margin-top:4px;">
+                                <div style="font-size:10px; color:var(--muted); font-family:var(--font-mono);">${dateStr} · <span style="color:#06b6d4; font-weight:700;">${w.type || 'Straight'}</span></div>
+                                <div style="font-size:16px; font-weight:900; color:#f59e0b; font-family:var(--font-mono); margin-top:3px; letter-spacing:0.2px;">${w.selection || w.matchup || w.target}</div>
+                            </div>
+
+                            <div class="wager-card-metrics" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; background:rgba(0,0,0,0.3); padding:10px 12px; border-radius:8px; border:1px solid var(--border); margin-top:4px; font-size:11px;">
+                                <div>
+                                    <div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Bookmaker</div>
+                                    <div style="color:var(--cyan); font-weight:800; font-size:12px;">${w.bookmaker || w.sportsbook || 'BetOnline'}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Odds</div>
+                                    <div style="color:var(--accent); font-weight:800; font-size:12px;">${odds}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Stake</div>
+                                    <div style="color:#fff; font-weight:800; font-size:12px;">$${stake.toFixed(2)}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Net Profit</div>
+                                    <div style="font-weight:900; font-size:12px;" class="${profitClass}">
+                                        ${profit > 0 ? '+' : ''}$${profit.toFixed(2)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dedicated Mini Graph for this Wager -->
+                            <div style="margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                    <span style="font-size:9px; color:var(--muted); font-weight:700; letter-spacing:0.5px; text-transform:uppercase;">📈 WAGER ODDS & PROFIT TRAJECTORY</span>
+                                    <span style="font-size:10px; font-weight:800;" class="${profitClass}">${profit >= 0 ? '+' : ''}$${profit.toFixed(2)} (${w.status})</span>
+                                </div>
+                                <div style="height:100px; position:relative;">
+                                    <canvas id="chart-wager-${w.id}"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Render individual Chart.js graphs for every wager card
+                setTimeout(() => {
+                    filtered.forEach(w => {
+                        const canvas = document.getElementById(`chart-wager-${w.id}`);
+                        if (!canvas) return;
+                        const ctx = canvas.getContext('2d');
+
+                        const { odds, stake, toWin } = getWagerOddsAndToWin(w);
+                        let endVal = 0;
+                        let strokeColor = '#f59e0b';
+                        let fillColor = 'rgba(245, 158, 11, 0.15)';
+
+                        if (w.status === 'WON') {
+                            endVal = toWin > 0 ? toWin : ((stake * parseOddsToDec(odds)) - stake);
+                            strokeColor = '#10b981';
+                            fillColor = 'rgba(16, 185, 129, 0.15)';
+                        } else if (w.status === 'LOST') {
+                            endVal = -stake;
+                            strokeColor = '#ef4444';
+                            fillColor = 'rgba(239, 68, 68, 0.15)';
+                        } else {
+                            endVal = toWin;
+                        }
+
+                        const midVal = endVal * 0.4;
+                        const labels = ['Placed', 'In-Game', 'Settled'];
+                        const dataPoints = [0, midVal, endVal];
+
+                        cardChartInstances[w.id] = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Profit ($)',
+                                    data: dataPoints,
+                                    borderColor: strokeColor,
+                                    backgroundColor: fillColor,
+                                    borderWidth: 2,
+                                    tension: 0.35,
+                                    fill: true,
+                                    pointRadius: 3,
+                                    pointBackgroundColor: strokeColor
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { display: false }, tooltip: { enabled: true } },
+                                scales: {
+                                    x: { grid: { display: false }, ticks: { color: '#6b7280', font: { family: 'JetBrains Mono', size: 9 } } },
+                                    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b7280', font: { family: 'JetBrains Mono', size: 9 } } }
+                                }
+                            }
+                        });
+                    });
+                }, 50);
+            }
+
+            // Render Table View if visible
+            if (tbody) {
+                tbody.innerHTML = filtered.map(w => {
+                    const dateStr = w.timestamp ? new Date(w.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent';
+                    const { odds, stake, toWin } = getWagerOddsAndToWin(w);
+                    let payout = w.status === 'WON' ? (stake + toWin) : 0;
+                    let profit = w.status === 'WON' ? toWin : -stake;
+                    const profitClass = profit > 0 ? 'win' : profit < 0 ? 'lost' : '';
+
+                    return `
+                        <tr>
+                            <td style="color: var(--muted); font-size: 11px;">${dateStr}</td>
+                            <td>
+                                <div style="font-weight: bold; color: #fff;">${w.event || w.target}</div>
+                                <div style="font-size: 10px; color: var(--muted);">${w.matchup || w.selection || ''}</div>
+                            </td>
+                            <td>${w.type || 'Straight'}</td>
+                            <td style="color: var(--cyan);">${w.bookmaker || w.sportsbook || 'BetOnline'}</td>
+                            <td><span class="odds-pill">${odds}</span></td>
+                            <td style="font-weight: bold;">$${stake.toFixed(2)}</td>
+                            <td style="color: var(--muted);">$${payout.toFixed(2)}</td>
+                            <td style="font-weight: bold;" class="${profitClass}">
+                                ${profit > 0 ? '+' : ''}$${profit.toFixed(2)}
+                            </td>
+                            <td><span class="badge-status ${w.status.toLowerCase()}">${w.status}</span></td>
+                            <td>
+                                <button class="btn-delete-row" onclick="deleteWager('${w.id}')" title="Delete Wager">✕</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
         }
 
         function deleteWager(id) {
