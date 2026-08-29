@@ -5042,82 +5042,67 @@
         }
 
         function updateActiveBetsCountGlobal() {
-            const saved = localStorage.getItem('destiny_game_wagers');
             let wagers = [];
-            if (saved) {
-                try { wagers = JSON.parse(saved); } catch(e) { wagers = []; }
+            if (window.DestinyState) {
+                wagers = DestinyState.getWagers();
+            } else {
+                const saved = localStorage.getItem('destiny_game_wagers');
+                if (saved) {
+                    try { wagers = JSON.parse(saved); } catch(e) { wagers = []; }
+                }
             }
-            // Filter out Timberwolves wagers
-            wagers = wagers.filter(w => {
-                const target = w.target || '';
-                const matchup = w.matchup || '';
-                return !target.toLowerCase().includes('timberwolves') && 
-                       !matchup.toLowerCase().includes('minnesota') && 
-                       !matchup.toLowerCase().includes('timberwolves');
-            });
+            // Filter strictly PENDING active wagers
+            const pendingWagers = wagers.filter(w => w.status === 'PENDING');
             const activeCountEl = document.getElementById('bs-active-count');
-            if (activeCountEl) activeCountEl.innerText = wagers.length;
+            if (activeCountEl) activeCountEl.innerText = pendingWagers.length;
         }
 
         function renderActiveBetsInPanel() {
             const container = document.getElementById('bs-active-bets');
-            const saved = localStorage.getItem('destiny_game_wagers');
             let wagers = [];
-            if (saved) {
-                try { 
-                    wagers = JSON.parse(saved).map(normalizeWager); 
-                } catch(e) { 
-                    wagers = []; 
+            if (window.DestinyState) {
+                wagers = DestinyState.getWagers();
+            } else {
+                const saved = localStorage.getItem('destiny_game_wagers');
+                if (saved) {
+                    try { 
+                        wagers = JSON.parse(saved).map(normalizeWager); 
+                    } catch(e) { 
+                        wagers = []; 
+                    }
                 }
             }
 
-            // Filter out Timberwolves wagers
-            wagers = wagers.filter(w => {
-                const target = w.target || '';
-                const matchup = w.matchup || '';
-                return !target.toLowerCase().includes('timberwolves') && 
-                       !matchup.toLowerCase().includes('minnesota') && 
-                       !matchup.toLowerCase().includes('timberwolves');
-            });
+            // Filter strictly PENDING active wagers
+            const pendingWagers = wagers.filter(w => w.status === 'PENDING');
 
             const activeCountEl = document.getElementById('bs-active-count');
-            if (activeCountEl) activeCountEl.innerText = wagers.length;
+            if (activeCountEl) activeCountEl.innerText = pendingWagers.length;
 
-            if (wagers.length === 0) {
-                container.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding-top:20px;">You have no active wagers.</div>';
+            if (pendingWagers.length === 0) {
+                container.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding-top:20px;">You have no active pending wagers.</div>';
                 return;
             }
 
-            container.innerHTML = wagers.map(w => {
-                const isProp = w.type === 'PROP';
-                const cleanTarget = w.target;
-                const isPending = w.status === 'PENDING';
-                
+            container.innerHTML = pendingWagers.map(w => {
+                const teamLogos = getTeamLogosForEvent(w.event || w.target, w.matchup || w.selection);
                 return `
-                    <div class="bs-active-wager-card">
-                        <div class="bs-active-wager-header">
-                            <span class="bs-active-wager-title" style="word-break: break-word; max-width: 75%;">${cleanTarget}</span>
-                            <span class="badge ${w.status.toLowerCase()}" style="font-size:8px; padding:2px 6px;">${w.status}</span>
+                    <div class="bs-active-wager-card" style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px; font-family:var(--font-mono); margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:8px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                ${teamLogos.awayLogo}
+                                <span style="font-size:11px; font-weight:800; color:#fff; text-transform:uppercase; letter-spacing:0.5px;">${w.event || w.target}</span>
+                                ${teamLogos.homeLogo}
+                            </div>
+                            <span class="badge pending" style="font-size:9px; padding:2px 6px; background:rgba(234, 179, 8, 0.15); color:#eab308; border:1px solid rgba(234, 179, 8, 0.3); border-radius:4px; font-weight:800;">PENDING</span>
                         </div>
-                        <div class="bs-active-wager-matchup">${w.matchup}</div>
-                        <div class="bs-active-wager-row">
-                            <span style="color:var(--muted)">Bookmaker:</span>
-                            <span style="color:#fff; font-weight:600; text-transform:uppercase;">${w.sportsbook}</span>
+                        <div style="font-size:14px; font-weight:900; color:#f59e0b; margin-bottom:6px; letter-spacing:0.2px;">${w.selection || w.target}</div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:11px; color:var(--muted); background:rgba(0,0,0,0.3); padding:8px 10px; border-radius:6px; border:1px solid var(--border);">
+                            <div>Bookmaker: <span style="color:var(--cyan); font-weight:700;">${w.sportsbook || w.bookmaker || 'BetOnline'}</span></div>
+                            <div>Odds: <span style="color:var(--accent); font-weight:700;">${w.placedOdds || w.odds || '-110'}</span></div>
+                            <div>Stake: <span style="color:#fff; font-weight:700;">$${parseFloat(w.stake || w.wager || 0).toFixed(2)}</span></div>
+                            <div>To Win: <span style="color:var(--win); font-weight:700;">$${parseFloat(w.toWin || 0).toFixed(2)}</span></div>
                         </div>
-                        <div class="bs-active-wager-row">
-                            <span style="color:var(--muted)">Placed Odds:</span>
-                            <span style="color:var(--accent2); font-weight:600;">${w.placedOdds}</span>
-                        </div>
-                        <div class="bs-active-wager-row">
-                            <span style="color:var(--muted)">Stake / Payout:</span>
-                            <span style="color:#fff; font-weight:600;">$${w.stake.toFixed(2)} → $${(w.stake * americanToDecimal(w.placedOdds)).toFixed(2)}</span>
-                        </div>
-                        ${isPending ? `
-                        <div class="bs-active-wager-row" style="margin-top: 8px; border-top:1px dashed var(--border2); padding-top:6px;">
-                            <span style="color:var(--muted)">Live Odds:</span>
-                            <span style="color:#fff; font-weight:bold;">${w.currentOdds}</span>
-                        </div>
-                        ` : ''}
                     </div>
                 `;
             }).join('');
@@ -5171,10 +5156,9 @@
             document.getElementById('bet-slip-panel').classList.toggle('open');
         }
 
-        function addToBetSlip(team, type, odds) {
+        function addToBetSlip(team, type, odds, matchupStr) {
             if (odds === '-' || odds === undefined || odds === '' || odds.includes('—')) return;
             
-            // Clean up team name
             let displayTeam = (team || '').trim();
             if (displayTeam.includes('<')) {
                 const tempDiv = document.createElement('div');
@@ -5200,17 +5184,23 @@
                 }
             }
             
-            let cleanedPrice = parseInt(price.replace(/[^0-9-]/g, ''));
-            if (isNaN(cleanedPrice)) {
-                cleanedPrice = -110;
-            }
+            let cleanedPrice = price.startsWith('+') || price.startsWith('-') ? price : (parseFloat(price) > 0 ? '+' + price : price);
+            if (!cleanedPrice || cleanedPrice === 'NaN') cleanedPrice = '-110';
             
             let displayType = type;
             if (line) {
                 displayType = `${type} (${line})`;
             }
             
-            betSlip.push({ id: Date.now(), team: displayTeam, type: displayType, odds: cleanedPrice, wager: 0 });
+            betSlip.push({ 
+                id: Date.now() + Math.floor(Math.random() * 1000), 
+                team: displayTeam,
+                matchup: matchupStr || displayTeam, 
+                type: displayType, 
+                odds: cleanedPrice, 
+                wager: 0,
+                toWin: 0 
+            });
             renderBetSlip();
             document.getElementById('bet-slip-panel').classList.add('open');
         }
@@ -5220,14 +5210,50 @@
             renderBetSlip();
         }
 
-        function updateWager(id, amount) {
+        function calculateToWin(stake, oddsStr) {
+            if (!stake || stake <= 0) return 0;
+            const us = parseInt(String(oddsStr).replace('+', ''), 10);
+            if (isNaN(us)) return stake * 0.909;
+            if (us > 0) return stake * (us / 100);
+            return stake * (100 / Math.abs(us));
+        }
+
+        function calculateStakeFromToWin(toWin, oddsStr) {
+            if (!toWin || toWin <= 0) return 0;
+            const us = parseInt(String(oddsStr).replace('+', ''), 10);
+            if (isNaN(us)) return toWin / 0.909;
+            if (us > 0) return toWin / (us / 100);
+            return toWin / (100 / Math.abs(us));
+        }
+
+        function updateWagerFromAmount(id, amount) {
             const bet = betSlip.find(b => b.id === id);
             if (bet) {
                 bet.wager = parseFloat(amount) || 0;
-                const payout = calculatePayout(bet.wager, bet.odds);
+                bet.toWin = calculateToWin(bet.wager, bet.odds);
+                const toWinInput = document.getElementById(`towin-input-${id}`);
+                if (toWinInput && document.activeElement !== toWinInput) {
+                    toWinInput.value = bet.toWin > 0 ? bet.toWin.toFixed(2) : '';
+                }
                 const payoutEl = document.getElementById(`payout-${id}`);
                 if (payoutEl) {
-                    payoutEl.innerText = payout.toFixed(2);
+                    payoutEl.innerText = (bet.wager + bet.toWin).toFixed(2);
+                }
+            }
+        }
+
+        function updateWagerFromToWin(id, toWinAmount) {
+            const bet = betSlip.find(b => b.id === id);
+            if (bet) {
+                bet.toWin = parseFloat(toWinAmount) || 0;
+                bet.wager = calculateStakeFromToWin(bet.toWin, bet.odds);
+                const wagerInput = document.getElementById(`wager-input-${id}`);
+                if (wagerInput && document.activeElement !== wagerInput) {
+                    wagerInput.value = bet.wager > 0 ? bet.wager.toFixed(2) : '';
+                }
+                const payoutEl = document.getElementById(`payout-${id}`);
+                if (payoutEl) {
+                    payoutEl.innerText = (bet.wager + bet.toWin).toFixed(2);
                 }
             }
         }
@@ -5238,14 +5264,8 @@
             const otherWagers = betSlip.filter(b => b.id !== id).reduce((sum, b) => sum + (parseFloat(b.wager) || 0), 0);
             const availBankroll = Math.max(0, bankroll - otherWagers);
             bet.wager = availBankroll > 0 ? availBankroll : (bankroll > 0 ? bankroll : 1000.00);
+            bet.toWin = calculateToWin(bet.wager, bet.odds);
             renderBetSlip();
-        }
-
-        function calculatePayout(wager, odds) {
-            if (!wager) return 0;
-            if (odds > 0) return wager + (wager * (odds / 100));
-            if (odds < 0) return wager + (wager * (100 / Math.abs(odds)));
-            return wager;
         }
 
         function renderBetSlip() {
@@ -5255,27 +5275,52 @@
             if (slipCountEl) slipCountEl.innerText = betSlip.length;
 
             if (betSlip.length === 0) {
-                container.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center;">Your bet slip is empty.</div>';
+                container.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:20px 0;">Your bet slip is empty.</div>';
                 return;
             }
 
-            container.innerHTML = betSlip.map(bet => `
-                <div class="bs-item">
-                    <div class="bs-item-head">
-                        <span class="bs-item-team">${bet.team}</span>
-                        <button class="bs-remove" onclick="removeFromBetSlip(${bet.id})">×</button>
-                    </div>
-                    <div class="bs-item-type">${bet.type} <span style="float:right" class="bs-item-odds">${bet.odds > 0 ? '+' : ''}${bet.odds}</span></div>
-                    <div class="bs-wager-row" style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
-                        <div style="display:flex; align-items:center; gap:4px; flex:1;">
-                            <span style="font-size:12px;color:var(--muted)">Wager: $</span>
-                            <input type="number" id="wager-input-${bet.id}" class="bs-wager-input" placeholder="0.00" value="${bet.wager || ''}" onchange="updateWager(${bet.id}, this.value)" onkeyup="updateWager(${bet.id}, this.value)" style="flex:1; min-width:0;">
+            container.innerHTML = betSlip.map(bet => {
+                const teamLogos = getTeamLogosForEvent(bet.matchup || bet.team, bet.team);
+                return `
+                <div class="bs-item" style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:12px; font-family:var(--font-mono); box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+                    <div class="bs-item-head" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:8px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            ${teamLogos.awayLogo}
+                            <span style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">${bet.matchup || bet.team}</span>
+                            ${teamLogos.homeLogo}
                         </div>
-                        <button class="bs-max-btn" onclick="setMaxWager(${bet.id})" title="Set wager to maximum available bankroll">MAX</button>
+                        <button class="bs-remove" onclick="removeFromBetSlip(${bet.id})" style="background:transparent; border:none; color:var(--muted); font-size:18px; cursor:pointer;" title="Remove Leg">×</button>
                     </div>
-                    <div class="bs-to-win">To Win: $<span id="payout-${bet.id}">${(calculatePayout(bet.wager || 0, bet.odds) - (bet.wager || 0)).toFixed(2)}</span></div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span style="font-size:15px; font-weight:900; color:#f59e0b; letter-spacing:0.2px;">${bet.team}</span>
+                        <span class="odds-pill" style="background:var(--surface2); border:1px solid var(--border); color:var(--accent); font-weight:800; padding:2px 8px; border-radius:4px; font-size:12px;">${bet.odds}</span>
+                    </div>
+
+                    <div style="font-size:10px; color:var(--cyan); font-weight:700; margin-bottom:10px;">${bet.type} · <span style="color:#fff;">BetOnline</span></div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; background:rgba(0,0,0,0.35); padding:10px; border-radius:8px; border:1px solid var(--border);">
+                        <div>
+                            <label style="font-size:9px; color:var(--muted); text-transform:uppercase; display:block; margin-bottom:4px; font-weight:700;">Wager Risk ($)</label>
+                            <div style="display:flex; align-items:center; gap:4px;">
+                                <input type="number" id="wager-input-${bet.id}" class="bs-wager-input" placeholder="0.00" value="${bet.wager > 0 ? bet.wager.toFixed(2) : ''}" oninput="updateWagerFromAmount(${bet.id}, this.value)" style="width:100%; background:var(--bg); border:1px solid var(--border); color:#fff; padding:6px; border-radius:4px; font-weight:800; font-family:var(--font-mono); font-size:12px;">
+                                <button class="bs-max-btn" onclick="setMaxWager(${bet.id})" style="background:rgba(6, 182, 212, 0.2); border:1px solid var(--cyan); color:var(--cyan); padding:5px 6px; border-radius:4px; font-size:9px; font-weight:900; cursor:pointer;" title="Fill Max Bankroll">MAX</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="font-size:9px; color:var(--muted); text-transform:uppercase; display:block; margin-bottom:4px; font-weight:700;">To Win ($)</label>
+                            <input type="number" id="towin-input-${bet.id}" class="bs-wager-input" placeholder="0.00" value="${bet.toWin > 0 ? bet.toWin.toFixed(2) : ''}" oninput="updateWagerFromToWin(${bet.id}, this.value)" style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--win); padding:6px; border-radius:4px; font-weight:800; font-family:var(--font-mono); font-size:12px;">
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:11px; color:var(--muted);">
+                        <span>Total Payout:</span>
+                        <span style="color:#fff; font-weight:800; font-size:12px;">$<span id="payout-${bet.id}">${((bet.wager || 0) + (bet.toWin || 0)).toFixed(2)}</span></span>
+                    </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function placeBets() {
