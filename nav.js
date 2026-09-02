@@ -245,6 +245,7 @@ function initGlobalNav() {
 
     // Determine current page for active state
     const currentPath = window.location.pathname;
+    const isResults = currentPath.toLowerCase().includes('results');
     const isLineTracker = currentPath.toLowerCase().includes('line-tracker');
     const isProps = currentPath.toLowerCase().includes('props');
     const isMyBets = currentPath.toLowerCase().includes('my-bets');
@@ -288,7 +289,8 @@ function initGlobalNav() {
 
             <!-- Center: Desktop Horizontal Links -->
             <div class="global-nav-links">
-                <a href="index.html" class="global-nav-link ${(!isLineTracker && !isProps && !isMyBets && !isHistory && !isBetSlip && !isBetHistory && !isKalshi && !isSandbox && !isPortfolio && !isLayout) ? 'active' : ''}">Home</a>
+                <a href="index.html" class="global-nav-link ${(!isResults && !isLineTracker && !isProps && !isMyBets && !isHistory && !isBetSlip && !isBetHistory && !isKalshi && !isSandbox && !isPortfolio && !isLayout) ? 'active' : ''}">Home</a>
+                <a href="results.html" class="global-nav-link ${isResults ? 'active' : ''}">Daily Results</a>
                 <a href="my-bets.html" class="global-nav-link ${isMyBets ? 'active' : ''}">Live Bets</a>
                 <a href="line-tracker.html" class="global-nav-link ${isLineTracker ? 'active' : ''}">Line Tracker</a>
                 <a href="props.html" class="global-nav-link ${isProps ? 'active' : ''}">Props</a>
@@ -327,6 +329,7 @@ function initGlobalNav() {
             <div id="universal-menu-dropdown" class="universal-menu-dropdown" onclick="event.stopPropagation()">
                 <div style="padding:6px 16px 8px; font-size:10px; color:#f59e0b; font-weight:800; border-bottom:1px solid rgba(255,255,255,0.08); letter-spacing:1px;">UNIVERSAL NAVIGATION</div>
                 <a href="index.html" class="universal-menu-item">🏠 Home</a>
+                <a href="results.html" class="universal-menu-item">🏆 Daily Results & Recaps</a>
                 <a href="my-bets.html" class="universal-menu-item">🎟️ Live Bets Tracking</a>
                 <a href="line-tracker.html" class="universal-menu-item">📈 Line Tracker</a>
                 <a href="props.html" class="universal-menu-item">🎯 Player Props</a>
