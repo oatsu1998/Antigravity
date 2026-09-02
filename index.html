@@ -3041,27 +3041,27 @@
                 <!-- Batter vs Pitcher Header -->
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                     <!-- Batter -->
-                    <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
+                    <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0; overflow:hidden;">
                         <img src="${batImg}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid #06B6D4; background:#1A2430;" onerror="this.src='https://a.espncdn.com/i/headshots/placeholder.png'">
-                        <div style="display:flex; flex-direction:column; min-width:0;">
+                        <div style="display:flex; flex-direction:column; min-width:0; overflow:hidden;">
                             <span style="font-size:8px; color:#06B6D4; font-weight:700;">${batRole}</span>
-                            <span style="font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${batName}</span>
-                            ${batSummary ? `<span style="font-size:9px; color:var(--muted);">${batSummary}</span>` : ''}
+                            <span style="font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:110px;">${batName}</span>
+                            ${batSummary ? `<span style="font-size:9px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${batSummary}</span>` : ''}
                         </div>
                     </div>
 
                     <!-- Inning & Count Status -->
-                    <div style="text-align:center; padding:0 8px; flex-shrink:0; min-width:90px;">
+                    <div style="text-align:center; padding:0 6px; flex-shrink:0; min-width:85px;">
                         <div style="font-size:11px; font-weight:800; color:#FFFFFF; white-space:nowrap;">${statusLabel}</div>
                         <div style="font-size:10px; color:#06B6D4; font-weight:700; margin-top:2px; white-space:nowrap;">${balls}-${strikes} · ${outs} ${outs === 1 ? 'Out' : 'Outs'}</div>
                     </div>
 
                     <!-- Pitcher -->
-                    <div style="display:flex; align-items:center; gap:8px; flex:1; justify-content:flex-end; text-align:right; min-width:0;">
-                        <div style="display:flex; flex-direction:column; align-items:flex-end; min-width:0;">
+                    <div style="display:flex; align-items:center; gap:8px; flex:1; justify-content:flex-end; text-align:right; min-width:0; overflow:hidden;">
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; min-width:0; overflow:hidden;">
                             <span style="font-size:8px; color:var(--muted); font-weight:700;">PITCHING</span>
-                            <span style="font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${pitName}</span>
-                            ${pitSummary ? `<span style="font-size:9px; color:var(--muted);">${pitSummary}</span>` : ''}
+                            <span style="font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:110px;">${pitName}</span>
+                            ${pitSummary ? `<span style="font-size:9px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${pitSummary}</span>` : ''}
                         </div>
                         <img src="${pitImg}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.2); background:#1A2430;" onerror="this.src='https://a.espncdn.com/i/headshots/placeholder.png'">
                     </div>
@@ -4083,18 +4083,6 @@
 
         window.setTickerFilter = function(filterId) {
             currentTickerFilter = filterId;
-            const labels = {
-                top: 'Top Events',
-                live: 'LIVE',
-                nfl: 'NFL',
-                mlb: 'MLB',
-                nba: 'NBA',
-                nhl: 'NHL',
-                ncaaf: 'NCAAF'
-            };
-            const labelEl = document.getElementById('espn-filter-label');
-            if (labelEl) labelEl.innerText = labels[filterId] || 'LIVE';
-
             document.querySelectorAll('.espn-dropdown-item').forEach(item => {
                 item.classList.remove('active');
             });
@@ -4106,12 +4094,6 @@
             if (dd) dd.classList.remove('open');
 
             renderEspnTicker();
-
-            if (filterId === 'live' || filterId === 'top') {
-                switchTab('live');
-            } else if (LEAGUES.some(l => l.id === filterId)) {
-                switchTab(filterId);
-            }
         };
 
         document.addEventListener('click', () => {
@@ -4186,23 +4168,47 @@
                 }
             });
 
-            // Update live games counter badge on filter button
-            const liveEventsCount = allEvents.filter(i => gameStatus(i.event).isLive).length;
+            // Update top scrolling scoreboard selector button label & badge
+            const labelEl = document.getElementById('espn-filter-label');
             const counterBadge = document.getElementById('espn-live-counter');
-            if (counterBadge) counterBadge.innerText = liveEventsCount;
+            const liveEventsCount = allEvents.filter(i => gameStatus(i.event, i.lg.id).isLive).length;
+
+            if (currentTickerFilter === 'live') {
+                if (labelEl) labelEl.innerText = 'LIVE';
+                if (counterBadge) {
+                    counterBadge.innerText = liveEventsCount;
+                    counterBadge.style.display = 'inline-block';
+                }
+            } else if (currentTickerFilter === 'top') {
+                if (labelEl) labelEl.innerText = 'Top Events';
+                if (counterBadge) {
+                    counterBadge.innerText = allEvents.length;
+                    counterBadge.style.display = 'inline-block';
+                }
+            } else {
+                const lgUpper = currentTickerFilter.toUpperCase();
+                if (labelEl) labelEl.innerText = lgUpper;
+                const lgEvents = allEvents.filter(i => i.lg.id.toLowerCase() === currentTickerFilter);
+                if (counterBadge) {
+                    counterBadge.innerText = lgEvents.length;
+                    counterBadge.style.display = 'inline-block';
+                }
+            }
 
             if (allEvents.length === 0) {
                 scrollContainer.innerHTML = '<div style="padding: 0 20px; font-family: var(--font-mono); font-size: 11px; color: var(--muted);">Loading live ticker scores...</div>';
                 return;
             }
 
-            // Filter logic
+            // Filter logic for top scrolling scoreboard
             let filtered = [];
             if (currentTickerFilter === 'top') {
                 filtered = allEvents;
             } else if (currentTickerFilter === 'live') {
-                filtered = allEvents.filter(i => gameStatus(i.event).isLive);
+                filtered = allEvents.filter(i => gameStatus(i.event, i.lg.id).isLive);
+                if (filtered.length === 0) filtered = allEvents;
             } else {
+                // Show ALL today's complete games for the selected sport (e.g. MLB: 15 games)
                 filtered = allEvents.filter(i => i.lg.id.toLowerCase() === currentTickerFilter);
             }
 
@@ -4211,9 +4217,9 @@
                 return;
             }
 
-            // Sort: Live games first, then by date
+            // Sort: Live games first, then by date/status
             filtered.sort((a, b) => {
-                const sa = gameStatus(a.event), sb = gameStatus(b.event);
+                const sa = gameStatus(a.event, a.lg.id), sb = gameStatus(b.event, b.lg.id);
                 if (sa.isLive !== sb.isLive) return sa.isLive ? -1 : 1;
                 return new Date(a.event.date || 0) - new Date(b.event.date || 0);
             });
