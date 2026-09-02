@@ -4098,12 +4098,20 @@
             document.querySelectorAll('.espn-dropdown-item').forEach(item => {
                 item.classList.remove('active');
             });
-            event?.currentTarget?.classList?.add('active');
+            if (window.event?.currentTarget) {
+                window.event.currentTarget.classList.add('active');
+            }
 
             const dd = document.getElementById('espn-events-dropdown');
             if (dd) dd.classList.remove('open');
 
             renderEspnTicker();
+
+            if (filterId === 'live' || filterId === 'top') {
+                switchTab('live');
+            } else if (LEAGUES.some(l => l.id === filterId)) {
+                switchTab(filterId);
+            }
         };
 
         document.addEventListener('click', () => {
@@ -4655,10 +4663,21 @@
 
         function switchTab(id) {
             activeTab = id;
+            if (id === 'live' || id === 'live-wagers' || id === 'destiny') {
+                currentTickerFilter = 'live';
+            } else if (LEAGUES.some(l => l.id === id)) {
+                currentTickerFilter = id;
+            }
+
+            const labels = { top: 'Top Events', live: 'LIVE', nfl: 'NFL', mlb: 'MLB', nba: 'NBA', nhl: 'NHL', ncaaf: 'NCAAF' };
+            const labelEl = document.getElementById('espn-filter-label');
+            if (labelEl) labelEl.innerText = labels[currentTickerFilter] || 'LIVE';
+
             buildTabs();
             document.querySelectorAll('.league-panel').forEach(p => p.classList.remove('active'));
             const panel = document.getElementById('panel-' + id);
             if (panel) panel.classList.add('active');
+            renderEspnTicker();
         }
 
         async function pollLeague(lg, manual = false) {
