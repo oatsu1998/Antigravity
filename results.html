@@ -1280,13 +1280,21 @@
                 const spPush = game.spread?.away?.push || game.spread?.home?.push;
 
                 // Total Outcomes
-                const totOverHit = game.total?.over?.hit;
-                const totUnderHit = game.total?.under?.hit;
-                const totPush = game.total?.over?.push || game.total?.under?.push;
+                const ouLine = parseFloat(game.total?.line || 0);
+                const totalScore = awayScore + homeScore;
+                const totOverHit = ouLine > 0 ? totalScore > ouLine : game.total?.over?.hit;
+                const totUnderHit = ouLine > 0 ? totalScore < ouLine : game.total?.under?.hit;
+                const totPush = ouLine > 0 ? totalScore === ouLine : (game.total?.over?.push || game.total?.under?.push);
 
                 // Team Totals Outcomes
-                const ttAwayHit = game.team_totals?.away?.hit || 'under';
-                const ttHomeHit = game.team_totals?.home?.hit || 'under';
+                const awayTtLine = parseFloat(game.team_totals?.away?.line || 0);
+                const homeTtLine = parseFloat(game.team_totals?.home?.line || 0);
+
+                const awayTtOverHit = awayTtLine > 0 ? awayScore > awayTtLine : (game.team_totals?.away?.hit === 'over');
+                const awayTtPush = awayTtLine > 0 ? awayScore === awayTtLine : (game.team_totals?.away?.hit === 'push');
+
+                const homeTtUnderHit = homeTtLine > 0 ? homeScore < homeTtLine : (game.team_totals?.home?.hit === 'under');
+                const homeTtPush = homeTtLine > 0 ? homeScore === homeTtLine : (game.team_totals?.home?.hit === 'push');
 
                 return `
                     <div class="game-card">
@@ -1347,7 +1355,7 @@
                                         <!-- OVER TOTAL -->
                                         <td class="market-cell text-center">
                                             <div class="market-cell-content">
-                                                <span class="line-val">O ${game.total?.line || ''}</span>
+                                                <span class="line-val">O ${ouLine || ''}</span>
                                                 <span class="odds-val">(${game.total?.over?.close_odds || '-110'})</span>
                                                 ${totPush ? `<span class="outcome-pill push">PUSH</span>` :
                                                   totOverHit ? `<span class="outcome-pill win">OVER HIT</span>` :
@@ -1357,11 +1365,11 @@
                                         <!-- AWAY TEAM TOTAL -->
                                         <td class="market-cell text-center">
                                             <div class="market-cell-content">
-                                                <span class="line-val">O ${game.team_totals?.away?.line || ''}</span>
+                                                <span class="line-val">O ${awayTtLine || ''}</span>
                                                 <span class="odds-val">(${awayScore} pts)</span>
-                                                ${ttAwayHit === 'over' ? `<span class="outcome-pill win">OVER HIT</span>` :
-                                                  ttAwayHit === 'under' ? `<span class="outcome-pill under">UNDER HIT</span>` :
-                                                  `<span class="outcome-pill push">PUSH</span>`}
+                                                ${awayTtPush ? `<span class="outcome-pill push">PUSH</span>` :
+                                                  awayTtOverHit ? `<span class="outcome-pill win">OVER HIT</span>` :
+                                                  `<span class="outcome-pill loss">LOSS</span>`}
                                             </div>
                                         </td>
                                     </tr>
@@ -1400,7 +1408,7 @@
                                         <!-- UNDER TOTAL -->
                                         <td class="market-cell text-center">
                                             <div class="market-cell-content">
-                                                <span class="line-val">U ${game.total?.line || ''}</span>
+                                                <span class="line-val">U ${ouLine || ''}</span>
                                                 <span class="odds-val">(${game.total?.under?.close_odds || '-110'})</span>
                                                 ${totPush ? `<span class="outcome-pill push">PUSH</span>` :
                                                   totUnderHit ? `<span class="outcome-pill under">UNDER HIT</span>` :
@@ -1410,11 +1418,11 @@
                                         <!-- HOME TEAM TOTAL -->
                                         <td class="market-cell text-center">
                                             <div class="market-cell-content">
-                                                <span class="line-val">U ${game.team_totals?.home?.line || ''}</span>
+                                                <span class="line-val">U ${homeTtLine || ''}</span>
                                                 <span class="odds-val">(${homeScore} pts)</span>
-                                                ${ttHomeHit === 'over' ? `<span class="outcome-pill win">OVER HIT</span>` :
-                                                  ttHomeHit === 'under' ? `<span class="outcome-pill under">UNDER HIT</span>` :
-                                                  `<span class="outcome-pill push">PUSH</span>`}
+                                                ${homeTtPush ? `<span class="outcome-pill push">PUSH</span>` :
+                                                  homeTtUnderHit ? `<span class="outcome-pill under">UNDER HIT</span>` :
+                                                  `<span class="outcome-pill loss">LOSS</span>`}
                                             </div>
                                         </td>
                                     </tr>

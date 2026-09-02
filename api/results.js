@@ -170,7 +170,7 @@ export default async function handler(req, res) {
             },
             team_totals: {
               away: { line: awayTtLine, open_odds: "-110", close_odds: "-110", actual: awayScore, hit: awayScore > awayTtLine ? "over" : awayScore < awayTtLine ? "under" : "push" },
-              home: { line: homeTtLine, open_odds: "-110", close_odds: "-110", actual: homeScore, hit: homeScore > homeTtLine ? "over" : homeScore < homeTtLine ? "under" : "push" }
+              home: { line: homeTtLine, open_odds: "-110", close_odds: "-110", actual: homeScore, hit: homeScore < homeTtLine ? "under" : homeScore > homeTtLine ? "over" : "push" }
             }
           });
         }
