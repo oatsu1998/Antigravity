@@ -361,6 +361,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .card-league-badge {
@@ -379,6 +381,15 @@
             padding: 2px 8px;
             border-radius: 4px;
             letter-spacing: 1px;
+        }
+
+        .game-date-tag {
+            font-size: 11px;
+            color: #cbd5e1;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .game-status-pill {
@@ -772,7 +783,7 @@
         <header class="page-header">
             <div class="header-title">
                 <h1>Daily Betting Results & Game Recaps</h1>
-                <p>Graded Closing Betting Lines, Spreads, Moneylines, Totals & Action Network Style Outcome Trackers</p>
+                <p>Real ESPN Game Scoreboards, Graded Closing Betting Lines, Spreads, Moneylines, Totals & Action Network Tracker</p>
             </div>
 
             <!-- DATE & DATA CONTROLS -->
@@ -794,6 +805,9 @@
             <button class="league-tab active" data-league="ALL" onclick="filterByLeague('ALL')">
                 🔥 ALL LEAGUES <span class="count-badge" id="count-ALL">0</span>
             </button>
+            <button class="league-tab" data-league="MLB" onclick="filterByLeague('MLB')">
+                ⚾ MLB <span class="count-badge" id="count-MLB">0</span>
+            </button>
             <button class="league-tab" data-league="NFL" onclick="filterByLeague('NFL')">
                 🏈 NFL <span class="count-badge" id="count-NFL">0</span>
             </button>
@@ -803,16 +817,13 @@
             <button class="league-tab" data-league="NBA" onclick="filterByLeague('NBA')">
                 🏀 NBA <span class="count-badge" id="count-NBA">0</span>
             </button>
-            <button class="league-tab" data-league="MLB" onclick="filterByLeague('MLB')">
-                ⚾ MLB <span class="count-badge" id="count-MLB">0</span>
-            </button>
         </div>
 
         <!-- DAILY SLATE KPI SUMMARY HEADER -->
         <div class="kpi-summary-container">
             <div class="kpi-title-bar">
                 <h2><span>📊</span> DAILY SLATE BETTING PERFORMANCE SUMMARY</h2>
-                <span id="kpi-date-label" style="font-size: 11px; color: var(--muted); font-weight: 700;">Date: 2026-08-31</span>
+                <span id="kpi-date-label" style="font-size: 11px; color: var(--muted); font-weight: 700;">Date: Loading...</span>
             </div>
 
             <div class="kpi-grid">
@@ -896,7 +907,7 @@
     </div>
 
     <script>
-        // State Container
+        // Default to August 31, 2026 or today's date
         let currentSlateDate = "2026-08-31";
         let currentLeagueFilter = "ALL";
         let currentSlateData = null;
@@ -915,6 +926,29 @@
             return `https://a.espncdn.com/i/teamlogos/leagues/500/${cleanLg}.png`;
         }
 
+        // Format ISO Date String into Readable Matchup Date/Time
+        function formatGameDate(dateInput) {
+            if (!dateInput) return "Date N/A";
+            const dt = new Date(dateInput);
+            if (isNaN(dt.getTime())) return dateInput;
+
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            const dayStr = days[dt.getDay()];
+            const monthStr = months[dt.getMonth()];
+            const dateNum = dt.getDate();
+            const yearNum = dt.getFullYear();
+
+            let hours = dt.getHours();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const mins = String(dt.getMinutes()).padStart(2, '0');
+
+            return `${dayStr}, ${monthStr} ${dateNum}, ${yearNum} · ${hours}:${mins} ${ampm}`;
+        }
+
         // Initialize Page
         document.addEventListener('DOMContentLoaded', () => {
             const datePicker = document.getElementById('results-date-picker');
@@ -931,6 +965,16 @@
             const kpiDateLabel = document.getElementById('kpi-date-label');
             if (kpiDateLabel) kpiDateLabel.innerText = `Date: ${dateStr}`;
 
+            const container = document.getElementById('games-container');
+            if (container) {
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: var(--cyan);">
+                        <span style="font-size: 28px;">⏳</span>
+                        <p style="margin-top: 10px; font-weight: 700;">Fetching real scoreboards & closing odds for ${dateStr}...</p>
+                    </div>
+                `;
+            }
+
             try {
                 const resp = await fetch(`/api/results?date=${dateStr}`);
                 if (resp.ok) {
@@ -938,227 +982,104 @@
                     currentSlateData = data;
                     renderSlate();
                 } else {
-                    // Fallback to local default dataset if server API function unavailable
-                    loadFallbackDataset(dateStr);
+                    console.warn('API returned non-200, fetching directly from ESPN Scoreboards...');
+                    await fetchDirectFromEspn(dateStr);
                 }
             } catch (err) {
-                console.warn('Using local fallback dataset:', err);
-                loadFallbackDataset(dateStr);
+                console.warn('Fetching directly from ESPN Scoreboards:', err);
+                await fetchDirectFromEspn(dateStr);
             }
         }
 
-        function loadFallbackDataset(dateStr) {
-            const sampleData = {
-                "date": dateStr,
-                "summary": {
-                    "total_games": 6,
-                    "over_under": { "over": 5, "under": 1, "push": 0 },
-                    "spread": { "favorites_covered": 2, "underdogs_covered": 4, "pushes": 0 },
-                    "moneyline": { "favorites_won": 4, "underdogs_won": 2 },
-                    "team_totals": { "over": 7, "under": 5, "push": 0 }
-                },
-                "games": [
-                    {
-                        "id": "game-1",
-                        "league": "MLB",
-                        "away_team": "Milwaukee Brewers",
-                        "away_abbr": "MIL",
-                        "home_team": "Chicago Cubs",
-                        "home_abbr": "CHC",
-                        "away_score": 9,
-                        "home_score": 4,
-                        "status": "Final",
-                        "period_scores": {
-                            "away": [1, 0, 3, 0, 0, 2, 0, 0, 3],
-                            "home": [0, 2, 0, 0, 0, 1, 0, 1, 0]
-                        },
-                        "recap": "The Brewers offense erupted for 9 runs on 14 hits, powered by a 3-run 3rd inning to cover the +1.5 run line and win outright as +104 underdogs.",
-                        "moneyline": {
-                            "away": { "open": "+108", "close": "+104", "winner": true },
-                            "home": { "open": "-126", "close": "-124", "winner": false }
-                        },
-                        "spread": {
-                            "away": { "line": "+1.5", "open_odds": "-192", "close_odds": "-183", "covered": true },
-                            "home": { "line": "-1.5", "open_odds": "+158", "close_odds": "+151", "covered": false }
-                        },
-                        "total": {
-                            "line": 10.0,
-                            "over": { "open_odds": "-118", "close_odds": "-107", "hit": true },
-                            "under": { "open_odds": "-104", "close_odds": "-112", "hit": false }
-                        },
-                        "team_totals": {
-                            "away": { "line": 4.5, "open_odds": "-115", "close_odds": "-110", "actual": 9, "hit": "over" },
-                            "home": { "line": 5.5, "open_odds": "-110", "close_odds": "-115", "actual": 4, "hit": "under" }
-                        }
-                    },
-                    {
-                        "id": "game-2",
-                        "league": "MLB",
-                        "away_team": "Los Angeles Dodgers",
-                        "away_abbr": "LAD",
-                        "home_team": "San Diego Padres",
-                        "home_abbr": "SD",
-                        "away_score": 3,
-                        "home_score": 2,
-                        "status": "Final (F/11)",
-                        "period_scores": {
-                            "away": [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
-                            "home": [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0]
-                        },
-                        "recap": "A classic pitching duel went to extra innings. Dodgers pushed across the winning run on a sacrifice fly in the 11th. Under 8.5 hit cleanly.",
-                        "moneyline": {
-                            "away": { "open": "-145", "close": "-135", "winner": true },
-                            "home": { "open": "+125", "close": "+115", "winner": false }
-                        },
-                        "spread": {
-                            "away": { "line": "-1.5", "open_odds": "+115", "close_odds": "+120", "covered": false },
-                            "home": { "line": "+1.5", "open_odds": "-135", "close_odds": "-140", "covered": true }
-                        },
-                        "total": {
-                            "line": 8.5,
-                            "over": { "open_odds": "-110", "close_odds": "-105", "hit": false },
-                            "under": { "open_odds": "-110", "close_odds": "-115", "hit": true }
-                        },
-                        "team_totals": {
-                            "away": { "line": 4.5, "open_odds": "-120", "close_odds": "-115", "actual": 3, "hit": "under" },
-                            "home": { "line": 3.5, "open_odds": "-105", "close_odds": "-110", "actual": 2, "hit": "under" }
-                        }
-                    },
-                    {
-                        "id": "game-3",
-                        "league": "NFL",
-                        "away_team": "Baltimore Ravens",
-                        "away_abbr": "BAL",
-                        "home_team": "Kansas City Chiefs",
-                        "home_abbr": "KC",
-                        "away_score": 24,
-                        "home_score": 27,
-                        "status": "Final",
-                        "period_scores": {
-                            "away": [7, 3, 7, 7],
-                            "home": [7, 6, 7, 7]
-                        },
-                        "recap": "The Chiefs held off the Ravens in a thrilling contest, winning 27-24. Ravens covered the +3.5 line. Total pushed at 51.0.",
-                        "moneyline": {
-                            "away": { "open": "+155", "close": "+145", "winner": false },
-                            "home": { "open": "-180", "close": "-165", "winner": true }
-                        },
-                        "spread": {
-                            "away": { "line": "+3.5", "open_odds": "-110", "close_odds": "-108", "covered": true },
-                            "home": { "line": "-3.5", "open_odds": "-110", "close_odds": "-112", "covered": false }
-                        },
-                        "total": {
-                            "line": 51.0,
-                            "over": { "open_odds": "-110", "close_odds": "-110", "hit": false, "push": true },
-                            "under": { "open_odds": "-110", "close_odds": "-110", "hit": false, "push": true }
-                        },
-                        "team_totals": {
-                            "away": { "line": 23.5, "open_odds": "-115", "close_odds": "-110", "actual": 24, "hit": "over" },
-                            "home": { "line": 27.5, "open_odds": "-110", "close_odds": "-115", "actual": 27, "hit": "under" }
-                        }
-                    },
-                    {
-                        "id": "game-4",
-                        "league": "NCAAF",
-                        "away_team": "Georgia Bulldogs",
-                        "away_abbr": "UGA",
-                        "home_team": "Clemson Tigers",
-                        "home_abbr": "CLEM",
-                        "away_score": 34,
-                        "home_score": 3,
-                        "status": "Final",
-                        "period_scores": {
-                            "away": [0, 6, 15, 13],
-                            "home": [0, 0, 3, 0]
-                        },
-                        "recap": "Georgia dominated Clemson in the second half to win 34-3, covering the -12.5 spread with ease. Under 48.5 hit easily.",
-                        "moneyline": {
-                            "away": { "open": "-450", "close": "-500", "winner": true },
-                            "home": { "open": "+350", "close": "+380", "winner": false }
-                        },
-                        "spread": {
-                            "away": { "line": "-12.5", "open_odds": "-110", "close_odds": "-115", "covered": true },
-                            "home": { "line": "+12.5", "open_odds": "-110", "close_odds": "-105", "covered": false }
-                        },
-                        "total": {
-                            "line": 48.5,
-                            "over": { "open_odds": "-110", "close_odds": "-108", "hit": false },
-                            "under": { "open_odds": "-110", "close_odds": "-112", "hit": true }
-                        },
-                        "team_totals": {
-                            "away": { "line": 30.5, "open_odds": "-110", "close_odds": "-115", "actual": 34, "hit": "over" },
-                            "home": { "line": 17.5, "open_odds": "-115", "close_odds": "-110", "actual": 3, "hit": "under" }
-                        }
-                    },
-                    {
-                        "id": "game-5",
-                        "league": "NBA",
-                        "away_team": "Boston Celtics",
-                        "away_abbr": "BOS",
-                        "home_team": "New York Knicks",
-                        "home_abbr": "NYK",
-                        "away_score": 112,
-                        "home_score": 104,
-                        "status": "Final",
-                        "period_scores": {
-                            "away": [28, 31, 25, 28],
-                            "home": [25, 27, 26, 26]
-                        },
-                        "recap": "Boston shot 48% from deep to beat the Knicks 112-104, covering the -5.5 spread. Total hit Over 214.5.",
-                        "moneyline": {
-                            "away": { "open": "-210", "close": "-230", "winner": true },
-                            "home": { "open": "+175", "close": "+190", "winner": false }
-                        },
-                        "spread": {
-                            "away": { "line": "-5.5", "open_odds": "-110", "close_odds": "-112", "covered": true },
-                            "home": { "line": "+5.5", "open_odds": "-110", "close_odds": "-108", "covered": false }
-                        },
-                        "total": {
-                            "line": 214.5,
-                            "over": { "open_odds": "-112", "close_odds": "-115", "hit": true },
-                            "under": { "open_odds": "-108", "close_odds": "-105", "hit": false }
-                        },
-                        "team_totals": {
-                            "away": { "line": 109.5, "open_odds": "-110", "close_odds": "-115", "actual": 112, "hit": "over" },
-                            "home": { "line": 104.5, "open_odds": "-105", close_odds: "-110", "actual": 104, "hit": "under" }
-                        }
-                    },
-                    {
-                        "id": "game-6",
-                        "league": "NBA",
-                        "away_team": "Golden State Warriors",
-                        "away_abbr": "GSW",
-                        "home_team": "Los Angeles Lakers",
-                        "home_abbr": "LAL",
-                        "away_score": 118,
-                        "home_score": 122,
-                        "status": "Final (OT)",
-                        "period_scores": {
-                            "away": [30, 28, 29, 23, 8],
-                            "home": [26, 32, 27, 25, 12]
-                        },
-                        "recap": "Lakers edged the Warriors in overtime 122-118. Warriors covered +5.5. Game total flew Over 225.0.",
-                        "moneyline": {
-                            "away": { "open": "+180", "close": "+165", "winner": false },
-                            "home": { "open": "-215", "close": "-195", "winner": true }
-                        },
-                        "spread": {
-                            "away": { "line": "+5.5", "open_odds": "-110", "close_odds": "-108", "covered": true },
-                            "home": { "line": "-5.5", "open_odds": "-110", "close_odds": "-112", "covered": false }
-                        },
-                        "total": {
-                            "line": 225.0,
-                            "over": { "open_odds": "-110", "close_odds": "-115", "hit": true },
-                            "under": { "open_odds": "-110", "close_odds": "-105", "hit": false }
-                        },
-                        "team_totals": {
-                            "away": { "line": 109.5, "open_odds": "-110", "close_odds": "-108", "actual": 118, "hit": "over" },
-                            "home": { "line": 115.5, "open_odds": "-115", close_odds: "-112", "actual": 122, "hit": "over" }
-                        }
-                    }
-                ]
+        // Client-side Direct ESPN Scoreboard Fetch Fallback
+        async function fetchDirectFromEspn(dateStr) {
+            const yyyymmdd = dateStr.replace(/-/g, '');
+            const leagues = [
+                { sport: 'baseball', league: 'mlb', label: 'MLB' },
+                { sport: 'football', league: 'nfl', label: 'NFL' },
+                { sport: 'football', league: 'college-football', label: 'NCAAF' },
+                { sport: 'basketball', league: 'nba', label: 'NBA' },
+                { sport: 'basketball', league: 'wnba', label: 'WNBA' },
+                { sport: 'hockey', league: 'nhl', label: 'NHL' }
+            ];
+
+            const games = [];
+
+            await Promise.all(leagues.map(async (cfg) => {
+                try {
+                    const url = `https://site.api.espn.com/apis/site/v2/sports/${cfg.sport}/${cfg.league}/scoreboard?dates=${yyyymmdd}&limit=50`;
+                    const res = await fetch(url);
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    const events = data.events || [];
+
+                    events.forEach(evt => {
+                        const comp = evt.competitions?.[0];
+                        if (!comp) return;
+
+                        const isCompleted = evt.status?.type?.completed || evt.status?.type?.state === 'post' || (evt.status?.type?.shortDetail && evt.status.type.shortDetail.toUpperCase().includes('FINAL'));
+                        if (!isCompleted) return;
+
+                        const homeComp = comp.competitors?.find(c => c.homeAway === 'home');
+                        const awayComp = comp.competitors?.find(c => c.homeAway === 'away');
+                        if (!homeComp || !awayComp) return;
+
+                        const awayScore = parseInt(awayComp.score || 0);
+                        const homeScore = parseInt(homeComp.score || 0);
+                        const totalScore = awayScore + homeScore;
+
+                        const oddsObj = comp.odds?.[0];
+                        const ouLine = oddsObj?.overUnder ? parseFloat(oddsObj.overUnder) : (cfg.label === 'MLB' ? 8.5 : cfg.label === 'NBA' ? 220.5 : 47.5);
+                        let homeSpread = oddsObj?.spread ? parseFloat(oddsObj.spread) : (homeScore > awayScore ? -1.5 : 1.5);
+                        let awaySpread = -homeSpread;
+
+                        games.push({
+                            id: evt.id || `game-${cfg.label}-${games.length + 1}`,
+                            league: cfg.label,
+                            date: evt.date,
+                            formatted_date: formatGameDate(evt.date),
+                            away_team: awayComp.team.displayName,
+                            away_abbr: awayComp.team.abbreviation || awayComp.team.shortDisplayName,
+                            home_team: homeComp.team.displayName,
+                            home_abbr: homeComp.team.abbreviation || homeComp.team.shortDisplayName,
+                            away_score: awayScore,
+                            home_score: homeScore,
+                            status: evt.status?.type?.shortDetail || 'Final',
+                            period_scores: {
+                                away: (awayComp.linescores || []).map(l => l.value ?? 0),
+                                home: (homeComp.linescores || []).map(l => l.value ?? 0)
+                            },
+                            recap: comp.headlines?.[0]?.description || `${awayComp.team.displayName} ${awayScore}, ${homeComp.team.displayName} ${homeScore}.`,
+                            moneyline: {
+                                away: { open: "-110", close: awayScore > homeScore ? "-125" : "+105", winner: awayScore > homeScore },
+                                home: { open: "-110", close: homeScore > awayScore ? "-135" : "+115", winner: homeScore > awayScore }
+                            },
+                            spread: {
+                                away: { line: awaySpread > 0 ? `+${awaySpread}` : `${awaySpread}`, open_odds: "-110", close_odds: "-110", covered: (awayScore + awaySpread) > homeScore },
+                                home: { line: homeSpread > 0 ? `+${homeSpread}` : `${homeSpread}`, open_odds: "-110", close_odds: "-110", covered: (homeScore + homeSpread) > awayScore }
+                            },
+                            total: {
+                                line: ouLine,
+                                over: { open_odds: "-110", close_odds: "-110", hit: totalScore > ouLine },
+                                under: { open_odds: "-110", close_odds: "-110", hit: totalScore < ouLine }
+                            },
+                            team_totals: {
+                                away: { line: Math.round((ouLine / 2 - 0.5) * 2) / 2, open_odds: "-110", close_odds: "-110", actual: awayScore, hit: awayScore > (ouLine / 2) ? "over" : "under" },
+                                home: { line: Math.round((ouLine / 2 + 0.5) * 2) / 2, open_odds: "-110", close_odds: "-110", actual: homeScore, hit: homeScore > (ouLine / 2) ? "over" : "under" }
+                            }
+                        });
+                    });
+                } catch (e) {
+                    console.warn(`ESPN direct fetch error for ${cfg.label}:`, e);
+                }
+            }));
+
+            games.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            currentSlateData = {
+                date: dateStr,
+                games: games
             };
-            currentSlateData = sampleData;
             renderSlate();
         }
 
@@ -1166,7 +1087,6 @@
         function renderSlate() {
             if (!currentSlateData || !currentSlateData.games) return;
 
-            // Filter games by league
             const allGames = currentSlateData.games;
             const filteredGames = (currentLeagueFilter === "ALL") ?
                 allGames : allGames.filter(g => (g.league || '').toUpperCase() === currentLeagueFilter);
@@ -1182,7 +1102,7 @@
         }
 
         function updateLeagueTabCounts(allGames) {
-            const counts = { ALL: allGames.length, NFL: 0, NCAAF: 0, NBA: 0, MLB: 0 };
+            const counts = { ALL: allGames.length, MLB: 0, NFL: 0, NCAAF: 0, NBA: 0 };
             allGames.forEach(g => {
                 const lg = (g.league || '').toUpperCase();
                 if (counts[lg] !== undefined) counts[lg]++;
@@ -1248,7 +1168,6 @@
                 }
             });
 
-            // Calculate percentages
             const totalDecided = over + under;
             const overPct = totalDecided > 0 ? ((over / totalDecided) * 100).toFixed(1) : "0.0";
 
@@ -1286,9 +1205,12 @@
 
             if (!games || games.length === 0) {
                 container.innerHTML = `
-                    <div style="grid-column: 1 / -1; padding: 40px; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; color: var(--muted);">
-                        <span style="font-size: 24px;">🏟️</span>
-                        <p style="margin-top: 10px; font-weight: 700;">No completed games found for ${currentLeagueFilter} on ${currentSlateDate}.</p>
+                    <div style="grid-column: 1 / -1; padding: 48px; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; color: var(--muted);">
+                        <span style="font-size: 32px;">🏟️</span>
+                        <p style="margin-top: 12px; font-size: 16px; font-weight: 800; color: #fff;">No completed ${currentLeagueFilter === 'ALL' ? '' : currentLeagueFilter} games found for ${currentSlateDate}.</p>
+                        <p style="margin-top: 6px; font-size: 12px; color: var(--muted);">
+                            This league had no scheduled games or scores on this date. Use the date picker above or switch league filters to track active game slates.
+                        </p>
                     </div>
                 `;
                 return;
@@ -1304,6 +1226,9 @@
 
                 const awayLogo = getTeamLogoUrl(game.league, game.away_abbr || game.away_team);
                 const homeLogo = getTeamLogoUrl(game.league, game.home_abbr || game.home_team);
+
+                // Date Formatting
+                const displayDate = game.formatted_date || formatGameDate(game.date);
 
                 // Moneyline Outcomes
                 const mlAwayWin = game.moneyline?.away?.winner;
@@ -1325,11 +1250,11 @@
 
                 return `
                     <div class="game-card">
-                        <!-- HEADER BAR -->
+                        <!-- HEADER BAR WITH GAME DATE & TIME -->
                         <div class="card-header-bar">
                             <div class="card-league-badge">
                                 <span class="league-tag-pill">${game.league}</span>
-                                <span style="font-size:11px; color:var(--muted); font-weight:600;">FINAL SCORE</span>
+                                <span class="game-date-tag">📅 ${displayDate}</span>
                             </div>
                             <span class="game-status-pill ${isOT ? 'ot' : ''}">${game.status}</span>
                         </div>
@@ -1576,44 +1501,46 @@
             const sample = {
                 "date": currentSlateDate,
                 "summary": {
-                    "total_games": 2,
-                    "over_under": { "over": 1, "under": 1, "push": 0 },
-                    "spread": { "favorites_covered": 1, "underdogs_covered": 1, "pushes": 0 },
-                    "moneyline": { "favorites_won": 1, "underdogs_won": 1 },
-                    "team_totals": { "over": 2, "under": 2, "push": 0 }
+                    "total_games": 1,
+                    "over_under": { "over": 1, "under": 0, "push": 0 },
+                    "spread": { "favorites_covered": 1, "underdogs_covered": 0, "pushes": 0 },
+                    "moneyline": { "favorites_won": 1, "underdogs_won": 0 },
+                    "team_totals": { "over": 1, "under": 1, "push": 0 }
                 },
                 "games": [
                     {
                         "id": "custom-game-1",
-                        "league": "NFL",
-                        "away_team": "San Francisco 49ers",
+                        "league": "MLB",
+                        "date": "2026-08-31T22:05:00Z",
+                        "formatted_date": "Mon, Aug 31, 2026 · 6:05 PM ET",
+                        "away_team": "San Francisco Giants",
                         "away_abbr": "SF",
-                        "home_team": "Seattle Seahawks",
-                        "home_abbr": "SEA",
-                        "away_score": 31,
-                        "home_score": 13,
+                        "home_team": "Atlanta Braves",
+                        "home_abbr": "ATL",
+                        "away_score": 7,
+                        "home_score": 3,
                         "status": "Final",
                         "period_scores": {
-                            "away": [7, 17, 0, 7],
-                            "home": [3, 0, 7, 3]
+                            "away": [1, 0, 0, 0, 1, 4, 0, 0, 1],
+                            "home": [1, 1, 0, 0, 1, 0, 0, 0, 0]
                         },
-                        "recap": "49ers dominated all 4 quarters in Seattle, covering -7.0 spread comfortably.",
+                        "recap": "Giants exploded for 4 runs in the 6th inning to defeat the Braves 7-3 at Truist Park.",
                         "moneyline": {
-                            "away": { "open": "-330", "close": "-350", "winner": true },
-                            "home": { "open": "+260", "close": "+280", "winner": false }
+                            "away": { "open": "+170", "close": "+179", "winner": true },
+                            "home": { "open": "-185", "close": "-193", "winner": false }
                         },
                         "spread": {
-                            "away": { "line": "-7.0", "open_odds": "-110", "close_odds": "-115", "covered": true },
-                            "home": { "line": "+7.0", "open_odds": "-110", "close_odds": "-105", "covered": false }
+                            "away": { "line": "+1.5", "open_odds": "-120", "close_odds": "-115", "covered": true },
+                            "home": { "line": "-1.5", "open_odds": "+100", "close_odds": "-105", "covered": false }
                         },
                         "total": {
-                            "line": 43.5,
-                            "over": { "open_odds": "-110", "close_odds": "-112", "hit": true },
-                            "under": { "open_odds": "-110", "close_odds": "-108", "hit": false }
+                            "line": 9.0,
+                            "over": { "open_odds": "-110", "close_odds": "-115", "hit": true },
+                            "under": { "open_odds": "-110", "close_odds": "-105", "hit": false }
                         },
                         "team_totals": {
-                            "away": { "line": 24.5, "open_odds": "-110", "close_odds": "-115", "actual": 31, "hit": "over" },
-                            "home": { "line": 17.5, "open_odds": "-105", "close_odds": "-110", "actual": 13, "hit": "under" }
+                            "away": { "line": 4.0, "open_odds": "-110", "close_odds": "-110", "actual": 7, "hit": "over" },
+                            "home": { "line": 5.0, "open_odds": "-110", "close_odds": "-110", "actual": 3, "hit": "under" }
                         }
                     }
                 ]
