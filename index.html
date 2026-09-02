@@ -2686,24 +2686,75 @@
             }
         }
 
-        function gameStatus(event) {
+        function ordinalSuffix(i) {
+            const j = i % 10, k = i % 100;
+            if (j === 1 && k !== 11) return i + "st";
+            if (j === 2 && k !== 12) return i + "nd";
+            if (j === 3 && k !== 13) return i + "rd";
+            return i + "th";
+        }
+
+        function gameStatus(event, leagueHint) {
             const s = event.status?.type;
             if (!s) return { label: 'SCHEDULED', cls: 'status-sched', isLive: false, isFinal: false };
-            if (s.completed) {
-                const finalLabel = s.shortDetail && s.shortDetail.toUpperCase().includes('OT') ? s.shortDetail.toUpperCase() : 'FINAL';
+
+            const lg = (leagueHint || event.sport || '').toLowerCase();
+
+            // Final / Completed Games
+            if (s.completed || s.state === 'post') {
+                let finalLabel = 'FINAL';
+                if (s.shortDetail && (s.shortDetail.toUpperCase().includes('OT') || s.shortDetail.toUpperCase().includes('F/'))) {
+                    finalLabel = s.shortDetail.toUpperCase();
+                } else if (s.shortDetail && s.shortDetail.toUpperCase().includes('FINAL')) {
+                    finalLabel = s.shortDetail.toUpperCase();
+                }
                 return { label: finalLabel, cls: 'status-final', isLive: false, isFinal: true };
             }
+
+            // Live / In Progress Games
             if (s.state === 'in' || s.description === 'In Progress' || s.description === 'Halftime' || s.description === 'End of Period' || (s.shortDetail && s.shortDetail.toLowerCase().includes('half'))) {
-                let label = 'LIVE';
-                if (s.description === 'Halftime' || (s.shortDetail && s.shortDetail.toLowerCase().includes('half'))) {
-                    label = 'HALFTIME';
-                } else if (s.description === 'End of Period') {
-                    label = `END Q${event.status.period || ''}`;
-                } else if (event.status?.displayClock) {
-                    label = `${event.status.displayClock} — ${event.status.period ? 'Q' + event.status.period : ''}`;
+                let label = s.shortDetail || 'LIVE';
+
+                if (lg.includes('mlb') || lg.includes('baseball')) {
+                    // Baseball: Show Inning (e.g. "Top 8th", "Bot 8th", "Mid 8th", "End 8th")
+                    label = s.shortDetail || (event.status?.period ? `${ordinalSuffix(event.status.period)} Inning` : 'LIVE');
+                } else if (lg.includes('nhl') || lg.includes('hockey')) {
+                    // Hockey: Show Period (e.g. "14:22 - 2nd P", "1st P", "2nd P", "3rd P", "OT")
+                    if (s.description === 'End of Period') {
+                        label = `END ${event.status?.period ? ordinalSuffix(event.status.period) + ' P' : 'PERIOD'}`;
+                    } else if (event.status?.displayClock && event.status?.period) {
+                        label = `${event.status.displayClock} - ${ordinalSuffix(event.status.period)} P`;
+                    } else {
+                        label = s.shortDetail || 'LIVE';
+                    }
+                } else if (lg.includes('nfl') || lg.includes('ncaaf') || lg.includes('football')) {
+                    // Football: Show Quarter & Clock
+                    if (s.description === 'Halftime' || (s.shortDetail && s.shortDetail.toLowerCase().includes('half'))) {
+                        label = 'HALFTIME';
+                    } else if (s.description === 'End of Period') {
+                        label = `END Q${event.status?.period || ''}`;
+                    } else if (event.status?.displayClock && event.status?.period) {
+                        label = `${event.status.displayClock} - Q${event.status.period}`;
+                    } else {
+                        label = s.shortDetail || 'LIVE';
+                    }
+                } else if (lg.includes('nba') || lg.includes('wnba') || lg.includes('basketball')) {
+                    // Basketball: Show Quarter & Clock
+                    if (s.description === 'Halftime' || (s.shortDetail && s.shortDetail.toLowerCase().includes('half'))) {
+                        label = 'HALFTIME';
+                    } else if (s.description === 'End of Period') {
+                        label = `END Q${event.status?.period || ''}`;
+                    } else if (event.status?.displayClock && event.status?.period) {
+                        label = `${event.status.displayClock} - Q${event.status.period}`;
+                    } else {
+                        label = s.shortDetail || 'LIVE';
+                    }
                 }
+
                 return { label: label, cls: 'status-live', isLive: true, isFinal: false };
             }
+
+            // Scheduled Games
             const d = event.date ? new Date(event.date) : null;
             const timeStr = d ? d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : s.description;
             return { label: timeStr, cls: 'status-sched', isLive: false, isFinal: false };
@@ -4148,6 +4199,23 @@
                 return new Date(a.event.date || 0) - new Date(b.event.date || 0);
             });
 
+        function renderTickerBaseDiamond(sit) {
+            if (!sit) return '';
+            const on1 = !!(sit.onFirst || sit.firstBase);
+            const on2 = !!(sit.onSecond || sit.secondBase);
+            const on3 = !!(sit.onThird || sit.thirdBase);
+
+            return `
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display:inline-block; vertical-align:middle; flex-shrink:0;">
+                <!-- 2nd Base (Top) -->
+                <polygon points="10,2 14,6 10,10 6,6" fill="${on2 ? '#3b82f6' : '#334155'}" stroke="${on2 ? '#60a5fa' : 'rgba(255,255,255,0.2)'}" stroke-width="1"/>
+                <!-- 3rd Base (Left) -->
+                <polygon points="5,7 9,11 5,15 1,11" fill="${on3 ? '#3b82f6' : '#334155'}" stroke="${on3 ? '#60a5fa' : 'rgba(255,255,255,0.2)'}" stroke-width="1"/>
+                <!-- 1st Base (Right) -->
+                <polygon points="15,7 19,11 15,15 11,11" fill="${on1 ? '#3b82f6' : '#334155'}" stroke="${on1 ? '#60a5fa' : 'rgba(255,255,255,0.2)'}" stroke-width="1"/>
+            </svg>`;
+        }
+
             // Group by league for divider headers
             let currentLeague = '';
             let html = '';
@@ -4163,7 +4231,7 @@
                 const away = competitors.find(c => c.homeAway === 'away') || competitors[1];
                 if (!home || !away) return;
 
-                const status = gameStatus(event);
+                const status = gameStatus(event, lg.id || lg.league);
                 const homeScore = parseInt(home.score || 0);
                 const awayScore = parseInt(away.score || 0);
                 const homeWin = status.isFinal && homeScore > awayScore;
@@ -4180,6 +4248,9 @@
                 }
 
                 const sit = comp.situation;
+                const isMlb = leagueName.includes('MLB') || (lg.sport || '').toLowerCase().includes('baseball');
+                const baseDiamondSvg = (isMlb && status.isLive && sit) ? renderTickerBaseDiamond(sit) : '';
+
                 const possessionId = String(sit?.possession || sit?.possessionText || sit?.lastPlay?.team?.id || '');
                 const isAwayPoss = status.isLive && (possessionId === String(away.team?.id || away.id || '') || (awayAbbr && possessionId.toUpperCase().includes(awayAbbr)));
                 const isHomePoss = status.isLive && (possessionId === String(home.team?.id || home.id || '') || (homeAbbr && possessionId.toUpperCase().includes(homeAbbr)));
@@ -4204,21 +4275,26 @@
                             <span class="${status.isLive ? 'status-live' : ''}">${status.label}</span>
                             <span style="color:#64748b; font-size:8px;">${broadcast ? '▶ ' + broadcast : ''}</span>
                         </div>
-                        <div class="espn-ticker-team" style="margin-bottom: 2px;">
-                            <div style="display:flex; align-items:center; gap:5px;">
-                                ${away.team?.logo ? `<img src="${away.team.logo}" style="width:12px; height:12px; object-fit:contain;">` : ''}
-                                <span class="${awayWin ? 'winner' : ''}">${awayAbbr}</span>
-                                ${isAwayPoss ? `<span class="possession-icon" title="${awayAbbr} Has Possession">${possIcon}</span>` : ''}
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <div style="flex:1; min-width:0;">
+                                <div class="espn-ticker-team" style="margin-bottom: 2px;">
+                                    <div style="display:flex; align-items:center; gap:5px;">
+                                        ${away.team?.logo ? `<img src="${away.team.logo}" style="width:12px; height:12px; object-fit:contain;">` : ''}
+                                        <span class="${awayWin ? 'winner' : ''}">${awayAbbr}</span>
+                                        ${isAwayPoss ? `<span class="possession-icon" title="${awayAbbr} Has Possession">${possIcon}</span>` : ''}
+                                    </div>
+                                    <span class="score ${awayWin ? 'winner' : ''}">${awayScore}</span>
+                                </div>
+                                <div class="espn-ticker-team">
+                                    <div style="display:flex; align-items:center; gap:5px;">
+                                        ${home.team?.logo ? `<img src="${home.team.logo}" style="width:12px; height:12px; object-fit:contain;">` : ''}
+                                        <span class="${homeWin ? 'winner' : ''}">${homeAbbr}</span>
+                                        ${isHomePoss ? `<span class="possession-icon" title="${homeAbbr} Has Possession">${possIcon}</span>` : ''}
+                                    </div>
+                                    <span class="score ${homeWin ? 'winner' : ''}">${homeScore}</span>
+                                </div>
                             </div>
-                            <span class="score ${awayWin ? 'winner' : ''}">${awayScore}</span>
-                        </div>
-                        <div class="espn-ticker-team">
-                            <div style="display:flex; align-items:center; gap:5px;">
-                                ${home.team?.logo ? `<img src="${home.team.logo}" style="width:12px; height:12px; object-fit:contain;">` : ''}
-                                <span class="${homeWin ? 'winner' : ''}">${homeAbbr}</span>
-                                ${isHomePoss ? `<span class="possession-icon" title="${homeAbbr} Has Possession">${possIcon}</span>` : ''}
-                            </div>
-                            <span class="score ${homeWin ? 'winner' : ''}">${homeScore}</span>
+                            ${baseDiamondSvg ? `<div style="margin-left:8px; display:flex; align-items:center; justify-content:center;">${baseDiamondSvg}</div>` : ''}
                         </div>
                         ${situationText ? `<div style="font-family:var(--font-mono); font-size:8px; color:#06b6d4; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${situationText}</div>` : ''}
                     </div>

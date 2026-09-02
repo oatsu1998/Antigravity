@@ -1079,7 +1079,7 @@
                             home_abbr: homeComp.team.abbreviation || homeComp.team.shortDisplayName,
                             away_score: awayScore,
                             home_score: homeScore,
-                            status: evt.status?.type?.shortDetail || 'Final',
+                            status: (evt.status?.type?.shortDetail && (evt.status.type.shortDetail.toUpperCase().includes('OT') || evt.status.type.shortDetail.toUpperCase().includes('F/'))) ? evt.status.type.shortDetail.toUpperCase() : 'FINAL',
                             period_scores: {
                                 away: (awayComp.linescores || []).map(l => l.value ?? 0),
                                 home: (homeComp.linescores || []).map(l => l.value ?? 0)
