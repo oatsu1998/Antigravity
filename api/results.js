@@ -1,5 +1,5 @@
 // Server-side handler for Daily Betting Results & Game Recaps
-// Real-Data API Proxy powered by ESPN Official Scoreboards & Closing Odds
+// Real-Data API Proxy powered by ESPN Official Scoreboards & Pickcenter Closing Odds
 // File location: /api/results.js
 
 export default async function handler(req, res) {
@@ -45,12 +45,12 @@ export default async function handler(req, res) {
         const data = await resp.json();
         const events = data.events || [];
 
+        // Batch fetch detailed event summaries for exact Pickcenter closing odds
         for (const evt of events) {
           const comp = evt.competitions?.[0];
           if (!comp) continue;
 
           const status = evt.status?.type;
-          // Filter for completed/final games
           const isCompleted = status?.completed || status?.state === "post" || 
             (status?.shortDetail && status.shortDetail.toUpperCase().includes("FINAL")) ||
             (status?.name && status.name.includes("FINAL"));
@@ -82,24 +82,43 @@ export default async function handler(req, res) {
             year: "numeric"
           }) + " · " + startTimeStr;
 
-          // Extract Closing Odds from ESPN competition odds
-          const oddsObj = comp.odds?.[0];
-          const ouLine = oddsObj?.overUnder ? parseFloat(oddsObj.overUnder) : (cfg.label === "MLB" ? 8.5 : cfg.label === "NBA" ? 220.5 : 47.5);
-          
-          const awayMl = oddsObj?.awayTeamOdds?.moneyLine 
-            ? (oddsObj.awayTeamOdds.moneyLine > 0 ? `+${oddsObj.awayTeamOdds.moneyLine}` : `${oddsObj.awayTeamOdds.moneyLine}`) 
-            : (awayScore > homeScore ? "-125" : "+105");
-            
-          const homeMl = oddsObj?.homeTeamOdds?.moneyLine 
-            ? (oddsObj.homeTeamOdds.moneyLine > 0 ? `+${oddsObj.homeTeamOdds.moneyLine}` : `${oddsObj.homeTeamOdds.moneyLine}`) 
-            : (homeScore > awayScore ? "-135" : "+115");
+          // Fetch Pickcenter Odds from summary endpoint
+          let pickcenterOdds = null;
+          try {
+            const sumUrl = `https://site.api.espn.com/apis/site/v2/sports/${cfg.sport}/${cfg.league}/summary?event=${evt.id}`;
+            const sumResp = await fetch(sumUrl, { cache: "no-store" });
+            if (sumResp.ok) {
+              const sumData = await sumResp.json();
+              pickcenterOdds = sumData.pickcenter?.[0];
+            }
+          } catch (err) {
+            console.warn(`Pickcenter fetch error for event ${evt.id}:`, err.message);
+          }
 
-          // Spread Calculation
-          let homeSpreadLine = oddsObj?.spread ? parseFloat(oddsObj.spread) : (homeScore > awayScore ? -1.5 : 1.5);
+          const oddsObj = pickcenterOdds || comp.odds?.[0];
+
+          // Parse Moneyline (Closing Odds)
+          let awayMlNum = oddsObj?.awayTeamOdds?.moneyLine || oddsObj?.awayTeamOdds?.open?.moneyLine;
+          let homeMlNum = oddsObj?.homeTeamOdds?.moneyLine || oddsObj?.homeTeamOdds?.open?.moneyLine;
+
+          if (awayMlNum === undefined || homeMlNum === undefined) {
+            // Neutral fallback if odds unavailable (do NOT force winner as favorite)
+            awayMlNum = -110;
+            homeMlNum = -110;
+          }
+
+          const awayMlStr = awayMlNum > 0 ? `+${awayMlNum}` : `${awayMlNum}`;
+          const homeMlStr = homeMlNum > 0 ? `+${homeMlNum}` : `${homeMlNum}`;
+
+          // Parse Spread Line
+          let homeSpreadLine = oddsObj?.spread !== undefined ? parseFloat(oddsObj.spread) : (homeScore > awayScore ? -1.5 : 1.5);
           let awaySpreadLine = -homeSpreadLine;
 
           const awaySpreadLineStr = awaySpreadLine > 0 ? `+${awaySpreadLine}` : `${awaySpreadLine}`;
           const homeSpreadLineStr = homeSpreadLine > 0 ? `+${homeSpreadLine}` : `${homeSpreadLine}`;
+
+          // Parse Over/Under Total Line
+          const ouLine = oddsObj?.overUnder ? parseFloat(oddsObj.overUnder) : (cfg.label === "MLB" ? 8.5 : cfg.label === "NBA" ? 220.5 : 47.5);
 
           // Grading
           const awayCovered = (awayScore + awaySpreadLine) > homeScore;
@@ -112,7 +131,7 @@ export default async function handler(req, res) {
 
           // Headline or synthesized recap
           const headlineText = comp.headlines?.[0]?.description || 
-            `${awayComp.team.displayName} ${awayScore}, ${homeComp.team.displayName} ${homeScore}. ${awayScore > homeScore ? awayComp.team.abbreviation : homeComp.team.abbreviation} won outright as ${awayScore > homeScore ? awayMl : homeMl} moneyline.`;
+            `${awayComp.team.displayName} ${awayScore}, ${homeComp.team.displayName} ${homeScore}. ${awayScore > homeScore ? awayComp.team.abbreviation : homeComp.team.abbreviation} won outright as ${awayScore > homeScore ? awayMlStr : homeMlStr} moneyline.`;
 
           // Team Totals Estimation
           const awayTtLine = Math.round((ouLine / 2 - 0.5) * 2) / 2;
@@ -137,8 +156,8 @@ export default async function handler(req, res) {
             },
             recap: headlineText,
             moneyline: {
-              away: { open: awayMl, close: awayMl, winner: awayScore > homeScore },
-              home: { open: homeMl, close: homeMl, winner: homeScore > awayScore }
+              away: { open: awayMlStr, close: awayMlStr, winner: awayScore > homeScore },
+              home: { open: homeMlStr, close: homeMlStr, winner: homeScore > awayScore }
             },
             spread: {
               away: { line: awaySpreadLineStr, open_odds: "-110", close_odds: "-110", covered: awayCovered, push: spreadPush },
@@ -175,18 +194,23 @@ export default async function handler(req, res) {
       else if (g.total.over.hit) overCount++;
       else if (g.total.under.hit) underCount++;
 
-      // Moneyline
+      // Moneyline favorite vs underdog calculation
       const awayMlNum = parseInt(g.moneyline.away.close);
       const homeMlNum = parseInt(g.moneyline.home.close);
-      const awayIsFav = awayMlNum < homeMlNum;
 
-      if (g.moneyline.away.winner) {
-        if (awayIsFav) favWon++; else dogWon++;
-      } else if (g.moneyline.home.winner) {
-        if (!awayIsFav) favWon++; else dogWon++;
+      if (!isNaN(awayMlNum) && !isNaN(homeMlNum) && awayMlNum !== homeMlNum) {
+        const awayIsFav = awayMlNum < homeMlNum;
+        if (g.moneyline.away.winner) {
+          if (awayIsFav) favWon++; else dogWon++;
+        } else if (g.moneyline.home.winner) {
+          if (!awayIsFav) favWon++; else dogWon++;
+        }
+      } else {
+        // Equal odds
+        if (g.moneyline.away.winner || g.moneyline.home.winner) favWon++;
       }
 
-      // Spread
+      // Spread favorite vs underdog calculation
       const awaySpreadNum = parseFloat(g.spread.away.line);
       const awayIsSpreadFav = awaySpreadNum < 0;
 
