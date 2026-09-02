@@ -3051,9 +3051,9 @@
                     </div>
 
                     <!-- Inning & Count Status -->
-                    <div style="text-align:center; padding:0 8px;">
-                        <div style="font-size:12px; font-weight:800; color:#FFFFFF;">${statusLabel}</div>
-                        <div style="font-size:11px; color:#06B6D4; font-weight:700; margin-top:2px;">${balls}-${strikes} · ${outs} ${outs === 1 ? 'Out' : 'Outs'}</div>
+                    <div style="text-align:center; padding:0 8px; flex-shrink:0; min-width:90px;">
+                        <div style="font-size:11px; font-weight:800; color:#FFFFFF; white-space:nowrap;">${statusLabel}</div>
+                        <div style="font-size:10px; color:#06B6D4; font-weight:700; margin-top:2px; white-space:nowrap;">${balls}-${strikes} · ${outs} ${outs === 1 ? 'Out' : 'Outs'}</div>
                     </div>
 
                     <!-- Pitcher -->
@@ -3368,6 +3368,7 @@
             const weatherObj = comp.weather;
             const weatherText = weatherObj?.displayValue || (weatherObj?.temperature ? `${weatherObj.temperature}°F` : '');
             const weatherBadge = weatherText ? `🌡️ ${weatherText}` : (venueIndoor ? '🏟️ Dome' : '');
+            const showScoreBlock = true;
 
             return `
     <div class="game-card ${status.isLive ? 'live' : ''} ${espnPinned.has(event.id) ? 'pinned' : ''}" id="card-${panelType}-${event.id}" data-eid="${event.id}"
