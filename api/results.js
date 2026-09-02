@@ -50,7 +50,7 @@ export default async function handler(req, res) {
           if (!comp) continue;
 
           const status = evt.status?.type;
-          // Filter for completed/final games or games with valid scoreboards
+          // Filter for completed/final games
           const isCompleted = status?.completed || status?.state === "post" || 
             (status?.shortDetail && status.shortDetail.toUpperCase().includes("FINAL")) ||
             (status?.name && status.name.includes("FINAL"));
@@ -68,17 +68,19 @@ export default async function handler(req, res) {
           const awayLines = (awayComp.linescores || []).map(l => l.value ?? 0);
           const homeLines = (homeComp.linescores || []).map(l => l.value ?? 0);
 
-          // Format ISO date and local readable time
+          // Extract game start time
           const evtDate = new Date(evt.date);
+          const startTimeStr = evtDate.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit"
+          });
+
           const formattedDate = evtDate.toLocaleDateString("en-US", {
             weekday: "short",
             month: "short",
             day: "numeric",
             year: "numeric"
-          }) + " · " + evtDate.toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit"
-          });
+          }) + " · " + startTimeStr;
 
           // Extract Closing Odds from ESPN competition odds
           const oddsObj = comp.odds?.[0];
@@ -120,6 +122,7 @@ export default async function handler(req, res) {
             id: evt.id || `game-${cfg.label}-${allGames.length + 1}`,
             league: cfg.label,
             date: evt.date,
+            start_time: startTimeStr,
             formatted_date: formattedDate,
             away_team: awayComp.team.displayName,
             away_abbr: awayComp.team.abbreviation || awayComp.team.shortDisplayName,
@@ -157,7 +160,7 @@ export default async function handler(req, res) {
       }
     }));
 
-    // Sort games chronologically by date
+    // Sort games chronologically by start time
     allGames.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     // Compute aggregate summary metrics dynamically

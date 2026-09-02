@@ -362,6 +362,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
         .league-tag-pill {
@@ -376,13 +377,27 @@
             letter-spacing: 1px;
         }
 
+        .game-start-time-pill {
+            background: rgba(6, 182, 212, 0.12);
+            border: 1px solid rgba(6, 182, 212, 0.35);
+            color: var(--cyan);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         .game-date-tag {
-            font-size: 12px;
+            font-size: 11px;
             color: #cbd5e1;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .game-status-pill {
@@ -756,7 +771,7 @@
         <header class="page-header">
             <div class="header-title">
                 <h1>Daily Betting Results & Game Recaps</h1>
-                <p>Real ESPN Game Scoreboards, Graded Closing Lines, Spreads, Moneylines, Totals & Sportsbook Outcome Trackers</p>
+                <p>Real ESPN Game Scoreboards, Graded Closing Lines, Spreads, Moneylines, Totals & Action Network Outcome Trackers</p>
             </div>
 
             <!-- DATE & DATA CONTROLS -->
@@ -907,19 +922,11 @@
             return `https://a.espncdn.com/i/teamlogos/leagues/500/${cleanLg}.png`;
         }
 
-        // Format ISO Date String into Readable Matchup Date/Time
-        function formatGameDate(dateInput) {
-            if (!dateInput) return "Date N/A";
+        // Format ISO Date String into Readable Start Time & Date
+        function formatGameTime(dateInput) {
+            if (!dateInput) return "7:00 PM";
             const dt = new Date(dateInput);
             if (isNaN(dt.getTime())) return dateInput;
-
-            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            
-            const dayStr = days[dt.getDay()];
-            const monthStr = months[dt.getMonth()];
-            const dateNum = dt.getDate();
-            const yearNum = dt.getFullYear();
 
             let hours = dt.getHours();
             const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -927,7 +934,18 @@
             hours = hours ? hours : 12;
             const mins = String(dt.getMinutes()).padStart(2, '0');
 
-            return `${dayStr}, ${monthStr} ${dateNum}, ${yearNum} · ${hours}:${mins} ${ampm}`;
+            return `${hours}:${mins} ${ampm}`;
+        }
+
+        function formatGameDateOnly(dateInput) {
+            if (!dateInput) return "Date N/A";
+            const dt = new Date(dateInput);
+            if (isNaN(dt.getTime())) return dateInput;
+
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            return `${days[dt.getDay()]}, ${months[dt.getMonth()]} ${dt.getDate()}`;
         }
 
         // Initialize Page
@@ -1014,11 +1032,14 @@
                         let homeSpread = oddsObj?.spread ? parseFloat(oddsObj.spread) : (homeScore > awayScore ? -1.5 : 1.5);
                         let awaySpread = -homeSpread;
 
+                        const startTimeStr = formatGameTime(evt.date);
+
                         games.push({
                             id: evt.id || `game-${cfg.label}-${games.length + 1}`,
                             league: cfg.label,
                             date: evt.date,
-                            formatted_date: formatGameDate(evt.date),
+                            start_time: startTimeStr,
+                            formatted_date: `${formatGameDateOnly(evt.date)} · ${startTimeStr}`,
                             away_team: awayComp.team.displayName,
                             away_abbr: awayComp.team.abbreviation || awayComp.team.shortDisplayName,
                             home_team: homeComp.team.displayName,
@@ -1212,8 +1233,9 @@
                 const awayLogo = getTeamLogoUrl(game.league, game.away_abbr || game.away_team);
                 const homeLogo = getTeamLogoUrl(game.league, game.home_abbr || game.home_team);
 
-                // Date Formatting
-                const displayDate = game.formatted_date || formatGameDate(game.date);
+                // Game Start Time & Date Formatting
+                const startTimeDisplay = game.start_time || formatGameTime(game.date);
+                const dateDisplay = formatGameDateOnly(game.date);
 
                 // Moneyline Outcomes
                 const mlAwayWin = game.moneyline?.away?.winner;
@@ -1235,11 +1257,12 @@
 
                 return `
                     <div class="game-card">
-                        <!-- HEADER BAR WITH GAME DATE & TIME -->
+                        <!-- HEADER BAR WITH LEAGUE, GAME START TIME, DATE & STATUS -->
                         <div class="card-header-bar">
                             <div class="card-league-badge">
                                 <span class="league-tag-pill">${game.league}</span>
-                                <span class="game-date-tag">📅 ${displayDate}</span>
+                                <span class="game-start-time-pill">⏰ Start: <strong>${startTimeDisplay}</strong></span>
+                                <span class="game-date-tag">📅 ${dateDisplay}</span>
                             </div>
                             <span class="game-status-pill ${isOT ? 'ot' : ''}">${game.status}</span>
                         </div>
@@ -1493,6 +1516,7 @@
                         "id": "custom-game-1",
                         "league": "MLB",
                         "date": "2026-09-01T22:05:00Z",
+                        "start_time": "6:05 PM ET",
                         "formatted_date": "Tue, Sep 1, 2026 · 6:05 PM ET",
                         "away_team": "San Francisco Giants",
                         "away_abbr": "SF",
