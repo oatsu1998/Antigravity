@@ -2675,7 +2675,7 @@
         }
 
         async function fetchLeague(lg) {
-            const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard?dates=${todayAndTomorrowStr()}&limit=50`;
+            const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard?limit=50`;
             try {
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
