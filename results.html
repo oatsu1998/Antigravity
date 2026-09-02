@@ -948,10 +948,43 @@
             return `${days[dt.getDay()]}, ${months[dt.getMonth()]} ${dt.getDate()}`;
         }
 
+        function applySavedLayout() {
+            const saved = localStorage.getItem('destiny_layout_results');
+            if (!saved) return;
+            try {
+                const config = JSON.parse(saved);
+                const container = document.getElementById('games-container');
+                if (container && config.cols) {
+                    if (config.cols === "1") container.style.gridTemplateColumns = "1fr";
+                    else if (config.cols === "2") container.style.gridTemplateColumns = "repeat(auto-fill, minmax(480px, 1fr))";
+                    else if (config.cols === "3") container.style.gridTemplateColumns = "repeat(auto-fill, minmax(360px, 1fr))";
+                    else if (config.cols === "4") container.style.gridTemplateColumns = "repeat(auto-fill, minmax(280px, 1fr))";
+                }
+
+                if (config.components) {
+                    const kpi = document.querySelector('.kpi-summary-container');
+                    if (kpi) kpi.style.display = config.components.kpi_summary === false ? 'none' : 'block';
+
+                    const filters = document.querySelector('.league-filter-bar');
+                    if (filters) filters.style.display = config.components.league_filters === false ? 'none' : 'flex';
+
+                    const recaps = document.querySelectorAll('.recap-drawer');
+                    recaps.forEach(r => r.style.display = config.components.game_recaps === false ? 'none' : 'block');
+                }
+            } catch (e) { }
+        }
+
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'DESTINY_LAYOUT_UPDATE') {
+                applySavedLayout();
+            }
+        });
+
         // Initialize Page
         document.addEventListener('DOMContentLoaded', () => {
             const datePicker = document.getElementById('results-date-picker');
             datePicker.value = currentSlateDate;
+            applySavedLayout();
             fetchSlateData(currentSlateDate);
         });
 

@@ -4,21 +4,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Destiny — Layout Builder</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
-        rel="stylesheet">
+    <title>Destiny — Universal Layout & Page Customizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="nav.js"></script>
+    <link rel="stylesheet" href="theme.css">
     <style>
         :root {
-            --bg: #0a0c0f;
-            --surface: #111418;
-            --surface2: #181c22;
-            --border: rgba(255, 255, 255, 0.07);
-            --border2: rgba(255, 255, 255, 0.13);
-            --text: #e8eaed;
-            --muted: #6b7280;
+            --bg: #0f172a;
+            --surface: #18181b;
+            --surface2: #1e293b;
+            --surface3: #27272a;
+            --border: #27272a;
+            --border2: rgba(255, 255, 255, 0.12);
+            --text: #f8fafc;
+            --muted: #94a3b8;
             --accent: #f59e0b;
-            --accent2: #3b82f6;
+            --cyan: #06b6d4;
+            --win: #4ade80;
             --font-head: 'Barlow Condensed', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
         }
@@ -34,414 +36,555 @@
             color: var(--text);
             font-family: var(--font-mono);
             min-height: 100vh;
+            padding-bottom: 80px;
         }
 
-        .nav-spacer {
-            height: 48px;
+        .layout-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px 28px;
         }
 
-        header {
-            padding: 18px 28px;
-            border-bottom: 1px solid var(--border2);
-            background: var(--surface);
+        /* HEADER */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .logo {
+        .header-title h1 {
             font-family: var(--font-head);
-            font-size: 28px;
+            font-size: 34px;
             font-weight: 900;
-            letter-spacing: 3px;
+            letter-spacing: 2.5px;
             color: var(--accent);
+            text-transform: uppercase;
+            line-height: 1.1;
+        }
+
+        .header-title p {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        /* PAGE SELECTOR TABS */
+        .page-selector-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .page-tab-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-family: var(--font-head);
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             text-transform: uppercase;
         }
 
-        .logo span {
-            color: var(--text);
-            opacity: 0.4;
-            font-weight: 400;
+        .page-tab-btn:hover {
+            background: var(--surface2);
+            color: #fff;
+            border-color: var(--border2);
         }
 
-        .main {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 24px 28px 60px;
+        .page-tab-btn.active {
+            background: var(--surface2);
+            color: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
         }
 
-        .desc {
-            font-size: 13px;
-            color: var(--muted);
-            margin-bottom: 20px;
-            line-height: 1.5;
+        /* LAYOUT EDITOR MAIN GRID */
+        .editor-workspace {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 24px;
         }
 
-        .reset-btn {
-            margin-top: 16px;
-            background: none;
-            border: 1px solid var(--border2);
-            color: var(--muted);
-            font-family: var(--font-mono);
+        @media (max-width: 980px) {
+            .editor-workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* LEFT PANEL: CONTROLS & WIDGET PALETTE */
+        .controls-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+        }
+
+        .panel-section-title {
+            font-family: var(--font-head);
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            color: var(--cyan);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-label {
             font-size: 11px;
-            padding: 8px 16px;
-            border-radius: 4px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .select-input, .btn-action {
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            outline: none;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .reset-btn:hover {
-            border-color: var(--accent);
-            color: var(--accent);
+        .select-input:focus, .select-input:hover {
+            border-color: var(--cyan);
         }
 
-        .clb-palette-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-family:var(--font-mono);}
-        .clb-palette{background:#111418;border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:12px;font-family:'JetBrains Mono',monospace;color:#e8eaed;user-select:none;display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:44px;}
-        .clb-grid{display:grid;grid-template-columns:repeat(6, 1fr);gap:6px;background:#111418;border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:12px;font-family:'JetBrains Mono',monospace;color:#e8eaed;user-select:none;}
-        .clb-grid .clb-cell{min-height:52px;min-width:0;}
-        .clb-teams-row{display:flex;justify-content:space-between;align-items:center;}
-        .clb-kalshi-box{background:rgba(15,23,34,0.75);border:1px solid rgba(6,182,212,0.3);border-radius:6px;padding:10px 12px;}
-        .clb-kalshi-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.06);}
-        .clb-kalshi-oddsrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-        .clb-bw-box{border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;}
-        .clb-bw-headerrow{display:flex;gap:6px;margin-bottom:8px;}
-        .clb-bw-datarow{display:flex;gap:6px;margin-bottom:6px;}
-        .clb-list{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:26px;touch-action:none;}
-        .clb-dz{border:1px dashed rgba(255,255,255,0.15);border-radius:6px;transition:border-color .15s,background .15s;min-width:32px;min-height:26px;}
-        .clb-dz.over{border-color:#3b82f6;background:rgba(59,130,246,0.08);}
-        .clb-trash{border:1px dashed rgba(239,68,68,0.4)!important;border-radius:6px;padding:6px;min-height:20px;}
-        .clb-row{position:relative;padding:5px 16px 5px 8px;border:1px dashed rgba(255,255,255,0.25);border-radius:6px;touch-action:none;background:#181c22;}
-        .clb-row.dragging{opacity:0.35;}
-        .clb-del{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:#ef4444;color:#fff;font-size:11px;line-height:16px;text-align:center;cursor:pointer;font-weight:700;}
-        .clb-ghost{position:fixed;pointer-events:none;z-index:9999;opacity:0.85;}
+        .btn-action {
+            background: var(--accent);
+            color: #000;
+            font-weight: 800;
+            border: none;
+            text-transform: uppercase;
+        }
+
+        .btn-action:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-reset {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #ef4444;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 800;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-reset:hover {
+            background: rgba(239, 68, 68, 0.25);
+            color: #fff;
+        }
+
+        /* TOGGLE SWITCH LIST */
+        .toggle-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toggle-item {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .toggle-item label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* RIGHT PANEL: LIVE PREVIEW & DRAG CANVAS */
+        .preview-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+        }
+
+        .preview-header-bar {
+            background: var(--surface2);
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .preview-title {
+            font-family: var(--font-head);
+            font-size: 16px;
+            font-weight: 900;
+            color: var(--win);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-iframe-container {
+            width: 100%;
+            height: 800px;
+            border: none;
+            background: var(--bg);
+        }
+
+        .preview-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
     </style>
 </head>
 
 <body>
-    <div class="nav-spacer"></div>
-
-    <header>
-        <div class="logo">DESTINY <span>// LAYOUT BUILDER</span></div>
-    </header>
-
-    <main class="main">
-        <p class="desc">
-            Pulled straight from the live Command Center — same CSS, same markup, a real game card.
-            Drag any piece onto an empty square to redesign the layout.
-            Tap the red &times; to remove a piece, or drag it into the trash strip. Your layout saves automatically.
-        </p>
-
-        <div id="clb-status" style="font-size:12px;color:var(--muted);margin-bottom:16px;">Loading a real game card from index.html&hellip;</div>
-
-        <div id="clb-content" style="display:none;">
-            <div class="clb-palette-label">Set aside (drag pieces here to park them)</div>
-            <div class="clb-palette clb-dz" data-zone="palette"></div>
-
-            <div class="clb-palette-label" style="margin-top:20px;">Grid &mdash; drop anywhere</div>
-            <div class="clb-grid" id="clb-grid"></div>
-
-            <div class="clb-list clb-dz clb-trash" data-zone="trash" style="margin-top:12px;">
-                <span style="font-size:9px;color:var(--muted);">drop here to remove</span>
+    <div class="layout-container">
+        <!-- TOP PAGE HEADER -->
+        <header class="page-header">
+            <div class="header-title">
+                <h1>Universal Layout & Page Customizer</h1>
+                <p>Customize Grid Layouts, Column Counts, Display Density & Component Visibility Across Every Page in Destiny Network</p>
             </div>
-            <button class="reset-btn" onclick="clbReset()">&#8635; Reset to current site layout</button>
+            <div class="controls-row">
+                <button class="btn-reset" onclick="resetCurrentPageLayout()">↻ RESET PAGE LAYOUT</button>
+                <button class="btn-action" onclick="saveCurrentPageLayout()">💾 SAVE & APPLY LAYOUT</button>
+            </div>
+        </header>
+
+        <!-- PAGE SELECTOR TABS -->
+        <div class="page-selector-bar" id="page-tabs-bar">
+            <!-- Rendered dynamically -->
         </div>
 
-        <iframe id="clb-source-frame" src="index.html" style="position:fixed;left:-9999px;top:0;width:500px;height:1500px;border:0;opacity:0;"></iframe>
-    </main>
+        <!-- MAIN WORKSPACE GRID -->
+        <div class="editor-workspace">
+            <!-- LEFT PANEL: PAGE CONFIGURATION CONTROLS -->
+            <div class="controls-panel">
+                <div class="panel-section-title">
+                    <span id="active-page-title">🏆 Daily Results Layout</span>
+                    <span style="font-size:10px; color:var(--muted);" id="active-page-file">results.html</span>
+                </div>
+
+                <!-- GRID COLUMNS SELECTOR -->
+                <div class="control-group">
+                    <span class="control-label">Grid Layout Columns</span>
+                    <select id="cfg-grid-cols" class="select-input" onchange="updateLiveLayoutPreview()">
+                        <option value="1">1 Column (Single Full Width Stack)</option>
+                        <option value="2" selected>2 Columns (Responsive Sportsbook Grid)</option>
+                        <option value="3">3 Columns (Compact Multi-Matchup Grid)</option>
+                        <option value="4">4 Columns (Dense Monitor Dashboard)</option>
+                    </select>
+                </div>
+
+                <!-- DISPLAY DENSITY SELECTOR -->
+                <div class="control-group">
+                    <span class="control-label">Display Density</span>
+                    <select id="cfg-density" class="select-input" onchange="updateLiveLayoutPreview()">
+                        <option value="comfortable">Comfortable (Standard Padding)</option>
+                        <option value="compact">Compact (High Information Density)</option>
+                        <option value="spacious">Spacious (Expanded View)</option>
+                    </select>
+                </div>
+
+                <!-- COMPONENT VISIBILITY TOGGLES -->
+                <div class="control-group">
+                    <span class="control-label">Component Visibility</span>
+                    <div class="toggle-list" id="toggle-components-list">
+                        <!-- Component Toggles Rendered dynamically -->
+                    </div>
+                </div>
+
+                <button class="btn-action" style="margin-top: 10px;" onclick="saveCurrentPageLayout()">
+                    <span>✨</span> APPLY LAYOUT TO LIVE PAGE
+                </button>
+            </div>
+
+            <!-- RIGHT PANEL: LIVE INTERACTIVE PREVIEW -->
+            <div class="preview-panel">
+                <div class="preview-header-bar">
+                    <div class="preview-title">
+                        <span>👁️</span> LIVE INTERACTIVE PAGE PREVIEW
+                    </div>
+                    <span id="preview-url-badge" style="font-size: 11px; color: var(--muted); font-weight: 700;">results.html</span>
+                </div>
+
+                <div class="preview-iframe-container">
+                    <iframe id="page-preview-iframe" class="preview-iframe" src="results.html"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // ── Game Card Layout Builder ──────────────────────────────────
-        // Real drag-and-drop editor for the Command Center's Kalshi tile
-        // + Spread/Moneyline/Total row, using the exact colors/fonts from
-        // index.html. Uses Pointer Events (not the old HTML5 drag API) so
-        // it works on touch too. Arrangement persists in localStorage.
-        const CLB_STORAGE_KEY = 'destiny_card_layout_v1';
-
-        // CLB_DEFAULT_ITEMS is populated at runtime by clbExtractRealCard()
-        // below, pulling actual DOM nodes out of a live game card in
-        // index.html (loaded in a hidden iframe) rather than a hand-typed
-        // approximation. Each entry: { zone, html } where html is the
-        // real node's outerHTML.
-        let CLB_DEFAULT_ITEMS = {};
-        let CLB_PIECE_ORDER = [];
-
-        // Cell positions mirroring the real card's visual layout, used
-        // once real pieces are extracted.
-        const CLB_ZONE_PLAN = [
-            'status', 'awaymybets',
-            'awayinfo', 'awayscore',
-            'homeinfo', 'homescore',
-            'sourcelabel', 'lblspread', 'lblml', 'lbltotal', 'lblwinprob',
-            'awaybwteam', 'awaybwspread', 'awaybwml', 'awaybwtotal', 'awaybwwinprob',
-            'homebwteam', 'homebwspread', 'homebwml', 'homebwtotal', 'homebwwinprob',
-            'probleft', 'probbar', 'probright'
+        // Configurable Pages Registry across the Destiny Suite
+        const DESTINY_PAGES = [
+            {
+                key: "results",
+                name: "🏆 Daily Results & Recaps",
+                file: "results.html",
+                components: [
+                    { id: "kpi_summary", label: "Daily Slate KPI Summary Header", default: true },
+                    { id: "league_filters", label: "League Filter Pills", default: true },
+                    { id: "date_controls", label: "Date Stepper & Picker Controls", default: true },
+                    { id: "game_recaps", label: "Expandable Game Recap Drawers", default: true },
+                    { id: "sportsbook_grid", label: "Action Network Sportsbook Table", default: true }
+                ]
+            },
+            {
+                key: "index",
+                name: "🏠 Home / Command Center",
+                file: "index.html",
+                components: [
+                    { id: "ticker", label: "Top Live ESPN Ticker Bar", default: true },
+                    { id: "sidebar", label: "Live Wagers Sidebar", default: true },
+                    { id: "scoreboards", label: "Live Game Scoreboards Grid", default: true },
+                    { id: "weather", label: "Live Open-Meteo Weather Chips", default: true },
+                    { id: "portfolio_engine", label: "7-Wager Portfolio Engine", default: true }
+                ]
+            },
+            {
+                key: "mybets",
+                name: "🎟️ Live Bets Tracking",
+                file: "my-bets.html",
+                components: [
+                    { id: "ticket_health", label: "Ticket Health Indicators (🔴🟡🟢)", default: true },
+                    { id: "cashout_control", label: "95% Cash-Out Action Engine", default: true },
+                    { id: "active_tickets", label: "Active Ticket Cards Grid", default: true }
+                ]
+            },
+            {
+                key: "linetracker",
+                name: "📈 Line Tracker",
+                file: "line-tracker.html",
+                components: [
+                    { id: "line_matrix", label: "Multi-Bookmaker Line Matrix", default: true },
+                    { id: "line_chart", label: "Historical Line Movement Graph", default: true }
+                ]
+            },
+            {
+                key: "props",
+                name: "🎯 Player Props",
+                file: "props.html",
+                components: [
+                    { id: "prop_filters", label: "NBA/NFL Prop Series Filter Tabs", default: true },
+                    { id: "prop_cards", label: "50/50 Prop Line Cards Grid", default: true }
+                ]
+            },
+            {
+                key: "history",
+                name: "📜 Line History & Logs",
+                file: "history.html",
+                components: [
+                    { id: "timeline_graph", label: "Chart.js Timeline Graph", default: true },
+                    { id: "history_table", label: "Historical Audit Log Table", default: true }
+                ]
+            },
+            {
+                key: "bethistory",
+                name: "📑 Bet History Ledger",
+                file: "bet-history.html",
+                components: [
+                    { id: "settled_ledger", label: "Settled Wagers Ledger Table", default: true },
+                    { id: "pnl_summary", label: "Cumulative Bankroll Summary", default: true }
+                ]
+            },
+            {
+                key: "betslip",
+                name: "🧾 Bet Slip Builder",
+                file: "bet-slip.html",
+                components: [
+                    { id: "slip_builder", label: "Multi-Leg Slip Builder Panel", default: true },
+                    { id: "parlay_teaser_calc", label: "Parlay & Teaser Odds Calculator", default: true }
+                ]
+            },
+            {
+                key: "kalshi",
+                name: "📊 Kalshi Prediction Terminal",
+                file: "kalshi.html",
+                components: [
+                    { id: "prediction_cards", label: "Prediction Markets Cards Grid", default: true },
+                    { id: "candlestick_chart", label: "Orderbook & Price Candlestick Chart", default: true }
+                ]
+            },
+            {
+                key: "sandbox",
+                name: "🧪 Strategy Sandbox",
+                file: "sandbox.html",
+                components: [
+                    { id: "backtesting_engine", label: "Backtesting Portfolio Engine", default: true },
+                    { id: "hedge_advisor", label: "AI Hedge Advisor Console", default: true }
+                ]
+            },
+            {
+                key: "portfolio",
+                name: "💼 Portfolio & Ledger",
+                file: "portfolio.html",
+                components: [
+                    { id: "bankroll_ledger", label: "Bankroll Ledger Ledger Engine", default: true },
+                    { id: "pnl_trajectory", label: "PnL Trajectory Graph", default: true }
+                ]
+            }
         ];
 
-        function clbCellForIndex(i) {
-            const row = Math.floor(i / 5);
-            const col = i % 5;
-            return 'cell-' + (row * CLB_GRID_COLS + col);
+        let activePageKey = "results";
+
+        // Initialize Page Selector Tabs
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPageTabs();
+            selectPage("results");
+        });
+
+        function renderPageTabs() {
+            const tabsBar = document.getElementById('page-tabs-bar');
+            if (!tabsBar) return;
+
+            tabsBar.innerHTML = DESTINY_PAGES.map(page => `
+                <button class="page-tab-btn ${page.key === activePageKey ? 'active' : ''}" 
+                        onclick="selectPage('${page.key}')">
+                    ${page.name}
+                </button>
+            `).join('');
         }
 
-        function clbExtractRealCard() {
-            const frame = document.getElementById('clb-source-frame');
-            let doc;
-            try { doc = frame.contentDocument; } catch (e) { doc = null; }
-            if (!doc) return false;
+        function selectPage(pageKey) {
+            activePageKey = pageKey;
+            renderPageTabs();
 
-            const cards = Array.from(doc.querySelectorAll('.game-card'));
-            const card = cards.find(c => c.querySelector('.teams'));
-            if (!card) return false;
+            const pageObj = DESTINY_PAGES.find(p => p.key === pageKey);
+            if (!pageObj) return;
 
-            const pick = (root, sel) => root ? root.querySelector(sel) : null;
-            const teamRows = card.querySelectorAll('.teams .team-row');
-            const bwRows = card.querySelectorAll('.betting-widget .bw-row');
-            const bwHeader = card.querySelector('.betting-widget .bw-header');
-            const bwHeaderSpans = bwHeader ? bwHeader.querySelectorAll('span') : [];
-            const awayCells = bwRows[0] ? bwRows[0].querySelectorAll('.bw-cell') : [];
-            const homeCells = bwRows[1] ? bwRows[1].querySelectorAll('.bw-cell') : [];
+            document.getElementById('active-page-title').innerText = pageObj.name;
+            document.getElementById('active-page-file').innerText = pageObj.file;
+            document.getElementById('preview-url-badge').innerText = pageObj.file;
 
-            const found = {
-                status: pick(card, '.card-top-bar .game-status'),
-                awaymybets: pick(card, '.card-my-bets-btn'),
-                awayinfo: teamRows[0] ? teamRows[0].querySelector('div') : null,
-                awayscore: teamRows[0] ? teamRows[0].querySelector('.team-score') : null,
-                homeinfo: teamRows[1] ? teamRows[1].querySelector('div') : null,
-                homescore: teamRows[1] ? teamRows[1].querySelector('.team-score') : null,
-                sourcelabel: bwHeaderSpans[0] || null,
-                lblspread: bwHeaderSpans[1] || null,
-                lblml: bwHeaderSpans[2] || null,
-                lbltotal: bwHeaderSpans[3] || null,
-                lblwinprob: bwHeaderSpans[4] || null,
-                awaybwteam: bwRows[0] ? bwRows[0].querySelector('.bw-team') : null,
-                awaybwspread: awayCells[0] || null,
-                awaybwml: awayCells[1] || null,
-                awaybwtotal: awayCells[2] || null,
-                awaybwwinprob: awayCells[3] || null,
-                homebwteam: bwRows[1] ? bwRows[1].querySelector('.bw-team') : null,
-                homebwspread: homeCells[0] || null,
-                homebwml: homeCells[1] || null,
-                homebwtotal: homeCells[2] || null,
-                homebwwinprob: homeCells[3] || null,
-                probleft: pick(card, '.bw-prob-val-left'),
-                probbar: pick(card, '.bw-prob-bar-wrap'),
-                probright: pick(card, '.bw-prob-val-right')
+            // Load stored layout for this page or defaults
+            const savedLayout = getPageLayoutConfig(pageKey, pageObj);
+
+            document.getElementById('cfg-grid-cols').value = savedLayout.cols || "2";
+            document.getElementById('cfg-density').value = savedLayout.density || "comfortable";
+
+            // Render Toggles
+            const toggleContainer = document.getElementById('toggle-components-list');
+            toggleContainer.innerHTML = pageObj.components.map(comp => {
+                const isChecked = savedLayout.components ? savedLayout.components[comp.id] !== false : comp.default;
+                return `
+                    <div class="toggle-item">
+                        <label for="toggle-${comp.id}">
+                            <input type="checkbox" id="toggle-${comp.id}" data-compid="${comp.id}" ${isChecked ? 'checked' : ''} onchange="updateLiveLayoutPreview()">
+                            ${comp.label}
+                        </label>
+                    </div>
+                `;
+            }).join('');
+
+            // Load iframe
+            const iframe = document.getElementById('page-preview-iframe');
+            if (iframe) iframe.src = pageObj.file;
+        }
+
+        function getPageLayoutConfig(pageKey, pageObj) {
+            const saved = localStorage.getItem(`destiny_layout_${pageKey}`);
+            if (saved) {
+                try { return JSON.parse(saved); } catch (e) { }
+            }
+            return { cols: "2", density: "comfortable", components: {} };
+        }
+
+        function updateLiveLayoutPreview() {
+            const pageObj = DESTINY_PAGES.find(p => p.key === activePageKey);
+            if (!pageObj) return;
+
+            const cols = document.getElementById('cfg-grid-cols').value;
+            const density = document.getElementById('cfg-density').value;
+
+            const componentStates = {};
+            pageObj.components.forEach(comp => {
+                const checkbox = document.getElementById(`toggle-${comp.id}`);
+                if (checkbox) componentStates[comp.id] = checkbox.checked;
+            });
+
+            const layoutConfig = {
+                cols: cols,
+                density: density,
+                components: componentStates
             };
 
-            const items = {};
-            const order = [];
-            CLB_ZONE_PLAN.forEach((id, i) => {
-                const node = found[id];
-                if (!node) return;
-                items[id] = { zone: clbCellForIndex(order.length), html: node.outerHTML };
-                order.push(id);
-            });
+            // Save layout setting to localStorage
+            localStorage.setItem(`destiny_layout_${activePageKey}`, JSON.stringify(layoutConfig));
 
-            CLB_DEFAULT_ITEMS = items;
-            CLB_PIECE_ORDER = order;
-            return true;
-        }
-
-
-        function clbMakeRow(id, html) {
-            const el = document.createElement('div');
-            el.dataset.id = id;
-            el.className = 'clb-row';
-            el.innerHTML = html;
-            const del = document.createElement('div');
-            del.className = 'clb-del';
-            del.textContent = '\u00d7';
-            del.addEventListener('pointerdown', (e) => e.stopPropagation());
-            del.addEventListener('click', (e) => {
-                e.stopPropagation();
-                el.remove();
-                clbSaveLayout();
-            });
-            el.appendChild(del);
-            el.addEventListener('pointerdown', clbOnPointerDown);
-            return el;
-        }
-
-        const CLB_GRID_COLS = 6;
-        const CLB_GRID_ROWS = 9;
-
-        function clbBuildGrid() {
-            const grid = document.getElementById('clb-grid');
-            grid.style.gridTemplateColumns = 'repeat(' + CLB_GRID_COLS + ', 1fr)';
-            for (let i = 0; i < CLB_GRID_COLS * CLB_GRID_ROWS; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'clb-cell clb-dz';
-                cell.dataset.zone = 'cell-' + i;
-                grid.appendChild(cell);
+            // Notify iframe to re-apply layout styles
+            const iframe = document.getElementById('page-preview-iframe');
+            if (iframe && iframe.contentWindow) {
+                try {
+                    iframe.contentWindow.postMessage({ type: 'DESTINY_LAYOUT_UPDATE', config: layoutConfig }, '*');
+                } catch (e) { }
             }
         }
 
-        function clbSaveLayout() {
-            const layout = {};
-            document.querySelectorAll('.clb-dz').forEach(zone => {
-                const ids = Array.from(zone.querySelectorAll('.clb-row')).map(r => r.dataset.id);
-                if (ids.length) layout[zone.dataset.zone] = ids;
-            });
-            localStorage.setItem(CLB_STORAGE_KEY, JSON.stringify(layout));
+        function saveCurrentPageLayout() {
+            updateLiveLayoutPreview();
+            alert(`Layout configuration for ${activePageKey.toUpperCase()} saved successfully! All page views will now apply this layout.`);
         }
 
-        function clbLoadLayout() {
-            const saved = localStorage.getItem(CLB_STORAGE_KEY);
-            let layout = null;
-            if (saved) {
-                try { layout = JSON.parse(saved); } catch (e) { layout = null; }
-            }
-
-            document.querySelectorAll('.clb-dz').forEach(z => { z.innerHTML = ''; });
-            const trashLabel = document.querySelector('[data-zone="trash"]');
-            if (trashLabel) trashLabel.innerHTML = '<span style="font-size:9px;color:var(--muted);">drop here to remove</span>';
-
-            if (layout) {
-                Object.entries(layout).forEach(([zoneName, ids]) => {
-                    const zoneEl = document.querySelector('[data-zone="' + zoneName + '"]');
-                    if (!zoneEl) return;
-                    ids.forEach(id => {
-                        const item = CLB_DEFAULT_ITEMS[id];
-                        if (item) zoneEl.appendChild(clbMakeRow(id, item.html));
-                    });
-                });
-            } else {
-                Object.entries(CLB_DEFAULT_ITEMS).forEach(([id, item]) => {
-                    const zoneEl = document.querySelector('[data-zone="' + item.zone + '"]');
-                    if (zoneEl) zoneEl.appendChild(clbMakeRow(id, item.html));
-                });
-            }
+        function resetCurrentPageLayout() {
+            localStorage.removeItem(`destiny_layout_${activePageKey}`);
+            selectPage(activePageKey);
         }
-
-        function clbReset() {
-            localStorage.removeItem(CLB_STORAGE_KEY);
-            clbLoadLayout();
-        }
-
-        let clbDragging = null;
-        let clbGhost = null;
-        let clbCurrentZone = null;
-        let clbActivePointerId = null;
-
-        function clbFindZoneAt(x, y) {
-            const zones = document.querySelectorAll('.clb-dz');
-            for (const zone of zones) {
-                const r = zone.getBoundingClientRect();
-                if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
-                    return zone;
-                }
-            }
-            return null;
-        }
-
-        // Listeners live on document (not on the dragged row, and no
-        // setPointerCapture) so this keeps working reliably across
-        // browsers — Safari in particular has had long-standing bugs
-        // with setPointerCapture during a live drag.
-        function clbOnPointerDown(e) {
-            if (e.target.classList.contains('clb-del')) return;
-            if (clbDragging) return;
-            const row = e.currentTarget;
-            e.preventDefault();
-            clbDragging = row;
-            clbActivePointerId = e.pointerId;
-            row.classList.add('dragging');
-
-            clbGhost = row.cloneNode(true);
-            clbGhost.classList.remove('dragging');
-            clbGhost.classList.add('clb-ghost');
-            const rect = row.getBoundingClientRect();
-            clbGhost.style.width = rect.width + 'px';
-            clbGhost.style.left = rect.left + 'px';
-            clbGhost.style.top = rect.top + 'px';
-            document.body.appendChild(clbGhost);
-
-            document.addEventListener('pointermove', clbOnPointerMove, { passive: false });
-            document.addEventListener('pointerup', clbOnPointerUp);
-            document.addEventListener('pointercancel', clbOnPointerUp);
-        }
-
-        function clbOnPointerMove(e) {
-            if (!clbGhost || e.pointerId !== clbActivePointerId) return;
-            e.preventDefault();
-            const rect = clbDragging.getBoundingClientRect();
-            clbGhost.style.left = (e.clientX - rect.width / 2) + 'px';
-            clbGhost.style.top = (e.clientY - rect.height / 2) + 'px';
-
-            const zone = clbFindZoneAt(e.clientX, e.clientY);
-            if (zone !== clbCurrentZone) {
-                if (clbCurrentZone) clbCurrentZone.classList.remove('over');
-                clbCurrentZone = zone;
-                if (clbCurrentZone) clbCurrentZone.classList.add('over');
-            }
-        }
-
-        function clbOnPointerUp(e) {
-            if (e.pointerId !== clbActivePointerId) return;
-            document.removeEventListener('pointermove', clbOnPointerMove);
-            document.removeEventListener('pointerup', clbOnPointerUp);
-            document.removeEventListener('pointercancel', clbOnPointerUp);
-            if (clbGhost) clbGhost.remove();
-            clbGhost = null;
-
-            if (clbCurrentZone && clbDragging) {
-                if (clbCurrentZone.dataset.zone === 'trash') {
-                    clbDragging.remove();
-                } else {
-                    clbCurrentZone.appendChild(clbDragging);
-                }
-                clbCurrentZone.classList.remove('over');
-                clbSaveLayout();
-            }
-            if (clbDragging) clbDragging.classList.remove('dragging');
-            clbDragging = null;
-            clbCurrentZone = null;
-            clbActivePointerId = null;
-        }
-
-        // ── Boot sequence ──────────────────────────────────────────────
-        // 1. Inject index.html's real <style> block so cloned pieces are
-        //    styled identically to the live site (auto-stays in sync if
-        //    the site's CSS changes later).
-        // 2. Wait for the hidden iframe to render a real game card with
-        //    live/final data (the score block only renders for those).
-        // 3. Extract real pieces from it, then build the grid.
-        async function clbInjectRealCSS() {
-            try {
-                const res = await fetch('index.html');
-                const text = await res.text();
-                const match = text.match(/<style>([\s\S]*?)<\/style>/);
-                if (match) {
-                    const styleEl = document.createElement('style');
-                    styleEl.textContent = match[1];
-                    document.head.appendChild(styleEl);
-                }
-            } catch (e) {
-                console.error('Could not load real CSS from index.html:', e);
-            }
-        }
-
-        function clbBoot(attempt) {
-            attempt = attempt || 0;
-            if (clbExtractRealCard()) {
-                clbBuildGrid();
-                clbLoadLayout();
-                document.getElementById('clb-status').style.display = 'none';
-                document.getElementById('clb-content').style.display = 'block';
-                return;
-            }
-            if (attempt > 40) {
-                document.getElementById('clb-status').textContent =
-                    "Couldn't find a live or final game on the Command Center right now " +
-                    "(the score block only shows for those) — try again once one's live.";
-                return;
-            }
-            setTimeout(() => clbBoot(attempt + 1), 500);
-        }
-
-        clbInjectRealCSS();
-        document.getElementById('clb-source-frame').addEventListener('load', () => {
-            clbBoot();
-        });
     </script>
-    <script src="nav.js?v=2"></script>
 </body>
 
 </html>
