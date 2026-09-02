@@ -326,17 +326,11 @@
             transition: width 0.4s ease;
         }
 
-        /* GAME MATCHUP CARDS GRID */
+        /* GAME MATCHUP CARDS CONTAINER */
         .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+            display: flex;
+            flex-direction: column;
             gap: 24px;
-        }
-
-        @media (max-width: 580px) {
-            .games-grid {
-                grid-template-columns: 1fr;
-            }
         }
 
         .game-card {
@@ -345,18 +339,17 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
-            transition: transform 0.2s, border-color 0.2s;
+            transition: border-color 0.2s;
         }
 
         .game-card:hover {
             border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
         }
 
         /* CARD HEADER */
         .card-header-bar {
             background: var(--surface2);
-            padding: 12px 18px;
+            padding: 12px 20px;
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
@@ -368,7 +361,7 @@
         .card-league-badge {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
         }
 
         .league-tag-pill {
@@ -376,20 +369,20 @@
             border: 1px solid rgba(245, 158, 11, 0.4);
             color: var(--accent);
             font-family: var(--font-head);
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 900;
-            padding: 2px 8px;
+            padding: 2px 10px;
             border-radius: 4px;
             letter-spacing: 1px;
         }
 
         .game-date-tag {
-            font-size: 11px;
+            font-size: 12px;
             color: #cbd5e1;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
 
         .game-status-pill {
@@ -397,7 +390,7 @@
             font-weight: 700;
             color: var(--muted);
             background: rgba(255, 255, 255, 0.05);
-            padding: 2px 8px;
+            padding: 3px 10px;
             border-radius: 4px;
             border: 1px solid var(--border);
         }
@@ -408,22 +401,52 @@
             background: rgba(245, 158, 11, 0.1);
         }
 
-        /* CARD MATCHUP TEAMS & SCORES */
-        .matchup-teams-box {
-            padding: 18px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        /* ACTION NETWORK / SPORTSBOOK ODDS TABLE */
+        .sportsbook-table-container {
+            width: 100%;
+            overflow-x: auto;
         }
 
-        .team-row {
+        .sportsbook-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            text-align: left;
+        }
+
+        .sportsbook-table th {
+            background: rgba(0, 0, 0, 0.25);
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sportsbook-table th.text-center {
+            text-align: center;
+        }
+
+        .sportsbook-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        .team-cell {
+            min-width: 240px;
+        }
+
+        .team-info-wrap {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 12px;
         }
 
-        .team-info {
+        .team-left-wrap {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -437,7 +460,7 @@
             border-radius: 4px;
         }
 
-        .team-names {
+        .team-text {
             display: flex;
             flex-direction: column;
         }
@@ -451,7 +474,7 @@
             letter-spacing: 0.5px;
         }
 
-        .team-full-name {
+        .team-full {
             font-size: 11px;
             color: var(--muted);
         }
@@ -473,53 +496,24 @@
             text-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
         }
 
-        /* BETTING MARKETS GRID */
-        .markets-grid-box {
-            padding: 16px;
+        /* MARKET CELLS */
+        .market-cell {
+            min-width: 140px;
+        }
+
+        .market-cell-content {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-        }
-
-        .markets-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 6px;
-            font-size: 11px;
-        }
-
-        .markets-table th {
-            font-size: 10px;
-            color: var(--muted);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 4px 8px;
-            text-align: left;
-        }
-
-        .markets-table th.text-right {
-            text-align: right;
-        }
-
-        .market-row {
-            background: var(--surface2);
-            border-radius: 6px;
-            transition: background 0.15s;
-        }
-
-        .market-row td {
-            padding: 8px 10px;
-            vertical-align: middle;
-        }
-
-        .market-name {
-            font-weight: 700;
-            color: var(--text);
-            display: flex;
             align-items: center;
-            gap: 6px;
-            white-space: nowrap;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .line-val {
+            font-family: var(--font-head);
+            font-size: 17px;
+            font-weight: 800;
+            color: #ffffff;
         }
 
         .odds-val {
@@ -528,68 +522,47 @@
             color: var(--muted);
         }
 
-        .odds-val .close-val {
-            color: #ffffff;
-            font-weight: 700;
-        }
-
         /* OUTCOME VISUAL HIGHLIGHTING PILLS */
         .outcome-pill {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 4px;
-            padding: 4px 8px;
-            border-radius: 5px;
+            padding: 3px 8px;
+            border-radius: 4px;
             font-weight: 800;
             font-size: 10px;
             letter-spacing: 0.5px;
             white-space: nowrap;
         }
 
-        /* Soft green win / covered outcome pill */
         .outcome-pill.win {
             background: var(--win-bg);
             color: var(--win);
             border: 1px solid var(--win-border);
-            box-shadow: 0 0 10px rgba(74, 222, 128, 0.15);
+            box-shadow: 0 0 8px rgba(74, 222, 128, 0.2);
         }
 
-        /* Soft slate/blue under hit pill */
         .outcome-pill.under {
             background: var(--under-bg);
             color: var(--under-text);
             border: 1px solid var(--under-border);
         }
 
-        /* Neutral amber/zinc push tag */
         .outcome-pill.push {
             background: var(--push-bg);
             color: var(--push-text);
             border: 1px solid var(--push-border);
         }
 
-        /* Default loss state */
         .outcome-pill.loss {
             background: rgba(255, 255, 255, 0.04);
             color: #64748b;
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .tag-covered {
-            background: #047857;
-            color: #ecfdf5;
-            font-size: 9px;
-            font-weight: 900;
-            padding: 1px 5px;
-            border-radius: 3px;
-            margin-left: 4px;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-        }
-
         /* GAME RECAP DRAWER */
         .recap-drawer {
-            border-top: 1px solid var(--border);
             background: rgba(0, 0, 0, 0.2);
         }
 
@@ -601,7 +574,7 @@
             font-family: var(--font-mono);
             font-size: 11px;
             font-weight: 700;
-            padding: 10px 18px;
+            padding: 10px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -614,7 +587,7 @@
         }
 
         .recap-body {
-            padding: 14px 18px 18px;
+            padding: 14px 20px 18px;
             display: none;
             flex-direction: column;
             gap: 12px;
@@ -628,12 +601,12 @@
         .boxscore-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10px;
+            font-size: 11px;
             text-align: center;
         }
 
         .boxscore-table th, .boxscore-table td {
-            padding: 4px 6px;
+            padding: 6px 8px;
             border: 1px solid var(--border);
         }
 
@@ -647,7 +620,7 @@
             color: #cbd5e1;
             line-height: 1.5;
             background: var(--surface2);
-            padding: 10px 12px;
+            padding: 10px 14px;
             border-radius: 6px;
             border-left: 3px solid var(--accent);
         }
@@ -783,7 +756,7 @@
         <header class="page-header">
             <div class="header-title">
                 <h1>Daily Betting Results & Game Recaps</h1>
-                <p>Real ESPN Game Scoreboards, Graded Closing Betting Lines, Spreads, Moneylines, Totals & Action Network Tracker</p>
+                <p>Real ESPN Game Scoreboards, Graded Closing Lines, Spreads, Moneylines, Totals & Sportsbook Outcome Trackers</p>
             </div>
 
             <!-- DATE & DATA CONTROLS -->
@@ -879,7 +852,7 @@
 
         <!-- GAME CARDS CONTAINER -->
         <div id="games-container" class="games-grid">
-            <!-- Dynamic Game Matchup Cards render here -->
+            <!-- Dynamic Sportsbook Matchup Cards render here -->
         </div>
     </div>
 
@@ -907,8 +880,16 @@
     </div>
 
     <script>
-        // Default to August 31, 2026 or today's date
-        let currentSlateDate = "2026-08-31";
+        // Get Today's Date String YYYY-MM-DD
+        function getTodayStr() {
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        let currentSlateDate = getTodayStr();
         let currentLeagueFilter = "ALL";
         let currentSlateData = null;
 
@@ -970,7 +951,7 @@
                 container.innerHTML = `
                     <div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: var(--cyan);">
                         <span style="font-size: 28px;">⏳</span>
-                        <p style="margin-top: 10px; font-weight: 700;">Fetching real scoreboards & closing odds for ${dateStr}...</p>
+                        <p style="margin-top: 10px; font-weight: 700;">Fetching live ESPN scoreboards & closing lines for ${dateStr}...</p>
                     </div>
                 `;
             }
@@ -1097,7 +1078,7 @@
             // Calculate KPIs dynamically for the filtered set
             calculateAndRenderKPIs(filteredGames);
 
-            // Render Game Matchup Cards
+            // Render Sportsbook Matchup Cards
             renderGameCards(filteredGames);
         }
 
@@ -1198,7 +1179,7 @@
             document.getElementById('kpi-tt-bar').style.width = `${ttOverPct}%`;
         }
 
-        // Render Action Network / Sportsbook Matchup Cards
+        // Render Action Network / Sportsbook Table Odds Cards
         function renderGameCards(games) {
             const container = document.getElementById('games-container');
             if (!container) return;
@@ -1209,14 +1190,18 @@
                         <span style="font-size: 32px;">🏟️</span>
                         <p style="margin-top: 12px; font-size: 16px; font-weight: 800; color: #fff;">No completed ${currentLeagueFilter === 'ALL' ? '' : currentLeagueFilter} games found for ${currentSlateDate}.</p>
                         <p style="margin-top: 6px; font-size: 12px; color: var(--muted);">
-                            This league had no scheduled games or scores on this date. Use the date picker above or switch league filters to track active game slates.
+                            Use the date picker or date navigation buttons at the top to select active dates (e.g. 2026-09-01 or 2026-08-31).
                         </p>
+                        <div style="margin-top: 16px; display: flex; justify-content: center; gap: 10px;">
+                            <button class="btn-today" onclick="fetchSlateData('2026-09-01')">VIEW SEP 1 SLATE</button>
+                            <button class="btn-today" onclick="fetchSlateData('2026-08-31')">VIEW AUG 31 SLATE</button>
+                        </div>
                     </div>
                 `;
                 return;
             }
 
-            container.innerHTML = games.map((game, idx) => {
+            container.innerHTML = games.map((game) => {
                 const awayScore = parseInt(game.away_score || 0);
                 const homeScore = parseInt(game.home_score || 0);
                 const awayWon = awayScore > homeScore;
@@ -1259,124 +1244,124 @@
                             <span class="game-status-pill ${isOT ? 'ot' : ''}">${game.status}</span>
                         </div>
 
-                        <!-- MATCHUP TEAMS & SCORES -->
-                        <div class="matchup-teams-box">
-                            <!-- AWAY TEAM -->
-                            <div class="team-row ${awayWon ? 'winner' : ''}">
-                                <div class="team-info">
-                                    <img src="${awayLogo}" class="team-logo" alt="${game.away_team}" onerror="this.src='https://a.espncdn.com/i/espn/misc_logos/500/ncaa.png'">
-                                    <div class="team-names">
-                                        <span class="team-abbr">${game.away_abbr || game.away_team}</span>
-                                        <span class="team-full-name">${game.away_team} (Away)</span>
-                                    </div>
-                                </div>
-                                <span class="team-score">${awayScore}</span>
-                            </div>
-
-                            <!-- HOME TEAM -->
-                            <div class="team-row ${homeWon ? 'winner' : ''}">
-                                <div class="team-info">
-                                    <img src="${homeLogo}" class="team-logo" alt="${game.home_team}" onerror="this.src='https://a.espncdn.com/i/espn/misc_logos/500/ncaa.png'">
-                                    <div class="team-names">
-                                        <span class="team-abbr">${game.home_abbr || game.home_team}</span>
-                                        <span class="team-full-name">${game.home_team} (Home)</span>
-                                    </div>
-                                </div>
-                                <span class="team-score">${homeScore}</span>
-                            </div>
-                        </div>
-
-                        <!-- BETTING MARKETS GRID -->
-                        <div class="markets-grid-box">
-                            <table class="markets-table">
+                        <!-- AUTHENTIC SPORTSBOOK TABLE (Action Network / DraftKings / FanDuel Style) -->
+                        <div class="sportsbook-table-container">
+                            <table class="sportsbook-table">
                                 <thead>
                                     <tr>
-                                        <th>Betting Market</th>
-                                        <th>Away Line / Odds</th>
-                                        <th>Home Line / Odds</th>
-                                        <th class="text-right">Outcome</th>
+                                        <th class="col-team">TEAM & SCORE</th>
+                                        <th class="col-market text-center">SPREAD</th>
+                                        <th class="col-market text-center">MONEYLINE</th>
+                                        <th class="col-market text-center">TOTAL (O/U)</th>
+                                        <th class="col-market text-center">TEAM TOTAL</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- MONEYLINE -->
-                                    <tr class="market-row">
-                                        <td class="market-name">💵 Moneyline</td>
-                                        <td>
-                                            <span class="odds-val">${game.moneyline?.away?.open || ''} ➔ <span class="close-val">${game.moneyline?.away?.close || ''}</span></span>
+                                    <!-- AWAY TEAM ROW -->
+                                    <tr class="team-row ${awayWon ? 'winner' : ''}">
+                                        <td class="team-cell">
+                                            <div class="team-info-wrap">
+                                                <div class="team-left-wrap">
+                                                    <img src="${awayLogo}" class="team-logo" alt="${game.away_team}" onerror="this.src='https://a.espncdn.com/i/espn/misc_logos/500/ncaa.png'">
+                                                    <div class="team-text">
+                                                        <span class="team-abbr">${game.away_abbr || game.away_team}</span>
+                                                        <span class="team-full">${game.away_team} (Away)</span>
+                                                    </div>
+                                                </div>
+                                                <span class="team-score">${awayScore}</span>
+                                            </div>
                                         </td>
-                                        <td>
-                                            <span class="odds-val">${game.moneyline?.home?.open || ''} ➔ <span class="close-val">${game.moneyline?.home?.close || ''}</span></span>
+                                        <!-- AWAY SPREAD -->
+                                        <td class="market-cell text-center">
+                                            <div class="market-cell-content">
+                                                <span class="line-val">${game.spread?.away?.line || ''}</span>
+                                                <span class="odds-val">(${game.spread?.away?.close_odds || '-110'})</span>
+                                                ${spPush ? `<span class="outcome-pill push">PUSH</span>` :
+                                                  spAwayCovered ? `<span class="outcome-pill win">COVERED</span>` :
+                                                  `<span class="outcome-pill loss">NO COVER</span>`}
+                                            </div>
                                         </td>
-                                        <td class="text-right">
-                                            ${mlAwayWin ? `<span class="outcome-pill win">AWAY ML WIN</span>` :
-                                              mlHomeWin ? `<span class="outcome-pill win">HOME ML WIN</span>` :
-                                              `<span class="outcome-pill loss">N/A</span>`}
+                                        <!-- AWAY MONEYLINE -->
+                                        <td class="market-cell text-center">
+                                            <div class="market-cell-content">
+                                                <span class="line-val">${game.moneyline?.away?.close || ''}</span>
+                                                ${mlAwayWin ? `<span class="outcome-pill win">WINNER</span>` : `<span class="outcome-pill loss">LOSS</span>`}
+                                            </div>
                                         </td>
-                                    </tr>
-
-                                    <!-- SPREAD / RUN LINE -->
-                                    <tr class="market-row">
-                                        <td class="market-name">🎯 Spread / Line</td>
-                                        <td>
-                                            <span class="odds-val">
-                                                <strong>${game.spread?.away?.line || ''}</strong> (${game.spread?.away?.open_odds || ''} ➔ <span class="close-val">${game.spread?.away?.close_odds || ''}</span>)
-                                            </span>
+                                        <!-- OVER TOTAL -->
+                                        <td class="market-cell text-center">
+                                            <div class="market-cell-content">
+                                                <span class="line-val">O ${game.total?.line || ''}</span>
+                                                <span class="odds-val">(${game.total?.over?.close_odds || '-110'})</span>
+                                                ${totPush ? `<span class="outcome-pill push">PUSH</span>` :
+                                                  totOverHit ? `<span class="outcome-pill win">OVER HIT</span>` :
+                                                  `<span class="outcome-pill loss">LOSS</span>`}
+                                            </div>
                                         </td>
-                                        <td>
-                                            <span class="odds-val">
-                                                <strong>${game.spread?.home?.line || ''}</strong> (${game.spread?.home?.open_odds || ''} ➔ <span class="close-val">${game.spread?.home?.close_odds || ''}</span>)
-                                            </span>
-                                        </td>
-                                        <td class="text-right">
-                                            ${spPush ? `<span class="outcome-pill push">PUSH</span>` :
-                                              spAwayCovered ? `<span class="outcome-pill win">AWAY <span class="tag-covered">COVERED</span></span>` :
-                                              spHomeCovered ? `<span class="outcome-pill win">HOME <span class="tag-covered">COVERED</span></span>` :
-                                              `<span class="outcome-pill loss">NO COVER</span>`}
-                                        </td>
-                                    </tr>
-
-                                    <!-- GAME TOTAL O/U -->
-                                    <tr class="market-row">
-                                        <td class="market-name">📈 Total (O/U ${game.total?.line || ''})</td>
-                                        <td>
-                                            <span class="odds-val">
-                                                O ${game.total?.line || ''} (${game.total?.over?.open_odds || ''} ➔ <span class="close-val">${game.total?.over?.close_odds || ''}</span>)
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="odds-val">
-                                                U ${game.total?.line || ''} (${game.total?.under?.open_odds || ''} ➔ <span class="close-val">${game.total?.under?.close_odds || ''}</span>)
-                                            </span>
-                                        </td>
-                                        <td class="text-right">
-                                            ${totPush ? `<span class="outcome-pill push">PUSH ${game.total?.line}</span>` :
-                                              totOverHit ? `<span class="outcome-pill win">OVER ${game.total?.line} HIT</span>` :
-                                              totUnderHit ? `<span class="outcome-pill under">UNDER ${game.total?.line} HIT</span>` :
-                                              `<span class="outcome-pill loss">N/A</span>`}
+                                        <!-- AWAY TEAM TOTAL -->
+                                        <td class="market-cell text-center">
+                                            <div class="market-cell-content">
+                                                <span class="line-val">O ${game.team_totals?.away?.line || ''}</span>
+                                                <span class="odds-val">(${awayScore} pts)</span>
+                                                ${ttAwayHit === 'over' ? `<span class="outcome-pill win">OVER HIT</span>` :
+                                                  ttAwayHit === 'under' ? `<span class="outcome-pill under">UNDER HIT</span>` :
+                                                  `<span class="outcome-pill push">PUSH</span>`}
+                                            </div>
                                         </td>
                                     </tr>
 
-                                    <!-- TEAM TOTALS -->
-                                    ${game.team_totals ? `
-                                    <tr class="market-row">
-                                        <td class="market-name">🛡️ Team Totals</td>
-                                        <td>
-                                            <span class="odds-val">
-                                                ${game.away_abbr || 'Away'}: <strong>${game.team_totals.away?.line || ''}</strong> (${game.team_totals.away?.actual || awayScore})
-                                            </span>
+                                    <!-- HOME TEAM ROW -->
+                                    <tr class="team-row ${homeWon ? 'winner' : ''}">
+                                        <td class="team-cell">
+                                            <div class="team-info-wrap">
+                                                <div class="team-left-wrap">
+                                                    <img src="${homeLogo}" class="team-logo" alt="${game.home_team}" onerror="this.src='https://a.espncdn.com/i/espn/misc_logos/500/ncaa.png'">
+                                                    <div class="team-text">
+                                                        <span class="team-abbr">${game.home_abbr || game.home_team}</span>
+                                                        <span class="team-full">${game.home_team} (Home)</span>
+                                                    </div>
+                                                </div>
+                                                <span class="team-score">${homeScore}</span>
+                                            </div>
                                         </td>
-                                        <td>
-                                            <span class="odds-val">
-                                                ${game.home_abbr || 'Home'}: <strong>${game.team_totals.home?.line || ''}</strong> (${game.team_totals.home?.actual || homeScore})
-                                            </span>
+                                        <!-- HOME SPREAD -->
+                                        <td class="market-cell text-center">
+                                            <div class="market-cell-content">
+                                                <span class="line-val">${game.spread?.home?.line || ''}</span>
+                                                <span class="odds-val">(${game.spread?.home?.close_odds || '-110'})</span>
+                                                ${spPush ? `<span class="outcome-pill push">PUSH</span>` :
+                                                  spHomeCovered ? `<span class="outcome-pill win">COVERED</span>` :
+                                                  `<span class="outcome-pill loss">NO COVER</span>`}
+                                            </div>
                                         </td>
-                                        <td class="text-right">
-                                            <span class="outcome-pill ${ttAwayHit === 'over' ? 'win' : ttAwayHit === 'under' ? 'under' : 'push'}">
-                                                ${game.away_abbr || 'AWAY'}: ${ttAwayHit.toUpperCase()}
-                                            </span>
+                                        <!-- HOME MONEYLINE -->
+                                        <td class="market-cell text-center">
+                                            <div class="market-cell-content">
+                                                <span class="line-val">${game.moneyline?.home?.close || ''}</span>
+                                                ${mlHomeWin ? `<span class="outcome-pill win">WINNER</span>` : `<span class="outcome-pill loss">LOSS</span>`}
+                                            </div>
+                                        </td>
+                                        <!-- UNDER TOTAL -->
+                                        <td class="market-cell text-center">
+                                            <div class="market-cell-content">
+                                                <span class="line-val">U ${game.total?.line || ''}</span>
+                                                <span class="odds-val">(${game.total?.under?.close_odds || '-110'})</span>
+                                                ${totPush ? `<span class="outcome-pill push">PUSH</span>` :
+                                                  totUnderHit ? `<span class="outcome-pill under">UNDER HIT</span>` :
+                                                  `<span class="outcome-pill loss">LOSS</span>`}
+                                            </div>
+                                        </td>
+                                        <!-- HOME TEAM TOTAL -->
+                                        <td class="market-cell text-center">
+                                            <div class="market-cell-content">
+                                                <span class="line-val">U ${game.team_totals?.home?.line || ''}</span>
+                                                <span class="odds-val">(${homeScore} pts)</span>
+                                                ${ttHomeHit === 'over' ? `<span class="outcome-pill win">OVER HIT</span>` :
+                                                  ttHomeHit === 'under' ? `<span class="outcome-pill under">UNDER HIT</span>` :
+                                                  `<span class="outcome-pill push">PUSH</span>`}
+                                            </div>
                                         </td>
                                     </tr>
-                                    ` : ''}
                                 </tbody>
                             </table>
                         </div>
@@ -1479,11 +1464,7 @@
         }
 
         function setTodayDate() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            fetchSlateData(`${year}-${month}-${day}`);
+            fetchSlateData(getTodayStr());
         }
 
         // JSON Modal Controls
@@ -1511,8 +1492,8 @@
                     {
                         "id": "custom-game-1",
                         "league": "MLB",
-                        "date": "2026-08-31T22:05:00Z",
-                        "formatted_date": "Mon, Aug 31, 2026 · 6:05 PM ET",
+                        "date": "2026-09-01T22:05:00Z",
+                        "formatted_date": "Tue, Sep 1, 2026 · 6:05 PM ET",
                         "away_team": "San Francisco Giants",
                         "away_abbr": "SF",
                         "home_team": "Atlanta Braves",

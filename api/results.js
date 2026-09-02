@@ -5,18 +5,21 @@
 export default async function handler(req, res) {
   try {
     const { date, league } = req.query || {};
-    
-    // Default date to today in YYYY-MM-DD if omitted
-    const dateObj = date ? new Date(date + "T00:00:00") : new Date();
-    const year = dateObj.getFullYear();
-    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-    const day = String(dateObj.getDate()).padStart(2, "0");
-    
-    const targetDateStr = `${year}-${month}-${day}`;
-    const yyyymmdd = `${year}${month}${day}`;
+
+    // Get YYYY-MM-DD date string (defaults to today's current date)
+    let targetDateStr = date;
+    if (!targetDateStr) {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      const dd = String(now.getDate()).padStart(2, "0");
+      targetDateStr = `${yyyy}-${mm}-${dd}`;
+    }
+
+    const yyyymmdd = targetDateStr.replace(/-/g, "");
     const selectedLeague = (league || "ALL").toUpperCase();
 
-    // Defined sports mapping
+    // Sports Config
     const leagueConfigs = [
       { sport: "baseball", league: "mlb", label: "MLB" },
       { sport: "football", league: "nfl", label: "NFL" },
@@ -32,7 +35,7 @@ export default async function handler(req, res) {
 
     const allGames = [];
 
-    // Fetch real games across requested sports from ESPN API
+    // Fetch real games across sports from ESPN API
     await Promise.all(activeConfigs.map(async (cfg) => {
       try {
         const url = `https://site.api.espn.com/apis/site/v2/sports/${cfg.sport}/${cfg.league}/scoreboard?dates=${yyyymmdd}&limit=50`;
@@ -47,8 +50,11 @@ export default async function handler(req, res) {
           if (!comp) continue;
 
           const status = evt.status?.type;
-          // Filter for completed/final games for daily results grading
-          const isCompleted = status?.completed || status?.state === "post" || (status?.shortDetail && status.shortDetail.toUpperCase().includes("FINAL"));
+          // Filter for completed/final games or games with valid scoreboards
+          const isCompleted = status?.completed || status?.state === "post" || 
+            (status?.shortDetail && status.shortDetail.toUpperCase().includes("FINAL")) ||
+            (status?.name && status.name.includes("FINAL"));
+          
           if (!isCompleted) continue;
 
           const homeComp = comp.competitors?.find(c => c.homeAway === "home");
@@ -74,12 +80,17 @@ export default async function handler(req, res) {
             minute: "2-digit"
           });
 
-          // Extract Closing Odds from ESPN competition odds if available
+          // Extract Closing Odds from ESPN competition odds
           const oddsObj = comp.odds?.[0];
           const ouLine = oddsObj?.overUnder ? parseFloat(oddsObj.overUnder) : (cfg.label === "MLB" ? 8.5 : cfg.label === "NBA" ? 220.5 : 47.5);
-          const spreadDetails = oddsObj?.details || ""; // e.g. "ATL -1.5"
-          const awayMl = oddsObj?.awayTeamOdds?.moneyLine ? (oddsObj.awayTeamOdds.moneyLine > 0 ? `+${oddsObj.awayTeamOdds.moneyLine}` : `${oddsObj.awayTeamOdds.moneyLine}`) : (awayScore > homeScore ? "-125" : "+105");
-          const homeMl = oddsObj?.homeTeamOdds?.moneyLine ? (oddsObj.homeTeamOdds.moneyLine > 0 ? `+${oddsObj.homeTeamOdds.moneyLine}` : `${oddsObj.homeTeamOdds.moneyLine}`) : (homeScore > awayScore ? "-135" : "+115");
+          
+          const awayMl = oddsObj?.awayTeamOdds?.moneyLine 
+            ? (oddsObj.awayTeamOdds.moneyLine > 0 ? `+${oddsObj.awayTeamOdds.moneyLine}` : `${oddsObj.awayTeamOdds.moneyLine}`) 
+            : (awayScore > homeScore ? "-125" : "+105");
+            
+          const homeMl = oddsObj?.homeTeamOdds?.moneyLine 
+            ? (oddsObj.homeTeamOdds.moneyLine > 0 ? `+${oddsObj.homeTeamOdds.moneyLine}` : `${oddsObj.homeTeamOdds.moneyLine}`) 
+            : (homeScore > awayScore ? "-135" : "+115");
 
           // Spread Calculation
           let homeSpreadLine = oddsObj?.spread ? parseFloat(oddsObj.spread) : (homeScore > awayScore ? -1.5 : 1.5);
@@ -101,7 +112,7 @@ export default async function handler(req, res) {
           const headlineText = comp.headlines?.[0]?.description || 
             `${awayComp.team.displayName} ${awayScore}, ${homeComp.team.displayName} ${homeScore}. ${awayScore > homeScore ? awayComp.team.abbreviation : homeComp.team.abbreviation} won outright as ${awayScore > homeScore ? awayMl : homeMl} moneyline.`;
 
-          // Team Totals Estimation (based on O/U line split)
+          // Team Totals Estimation
           const awayTtLine = Math.round((ouLine / 2 - 0.5) * 2) / 2;
           const homeTtLine = Math.round((ouLine / 2 + 0.5) * 2) / 2;
 
@@ -149,7 +160,7 @@ export default async function handler(req, res) {
     // Sort games chronologically by date
     allGames.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // Compute aggregate summary metrics dynamically across real games
+    // Compute aggregate summary metrics dynamically
     let overCount = 0, underCount = 0, totalPushCount = 0;
     let favCovered = 0, dogCovered = 0, spreadPushCount = 0;
     let favWon = 0, dogWon = 0;
@@ -161,7 +172,7 @@ export default async function handler(req, res) {
       else if (g.total.over.hit) overCount++;
       else if (g.total.under.hit) underCount++;
 
-      // Moneyline favorite vs underdog
+      // Moneyline
       const awayMlNum = parseInt(g.moneyline.away.close);
       const homeMlNum = parseInt(g.moneyline.home.close);
       const awayIsFav = awayMlNum < homeMlNum;
@@ -172,7 +183,7 @@ export default async function handler(req, res) {
         if (!awayIsFav) favWon++; else dogWon++;
       }
 
-      // Spread favorite vs underdog
+      // Spread
       const awaySpreadNum = parseFloat(g.spread.away.line);
       const awayIsSpreadFav = awaySpreadNum < 0;
 
@@ -209,7 +220,7 @@ export default async function handler(req, res) {
       games: allGames
     };
 
-    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=120");
+    res.setHeader("Cache-Control", "s-maxage=10, stale-while-revalidate=30");
     res.status(200).json(payload);
   } catch (err) {
     res.status(500).json({ error: err.message });
