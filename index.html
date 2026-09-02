@@ -4084,11 +4084,13 @@
         window.setTickerFilter = function(filterId) {
             currentTickerFilter = filterId;
             document.querySelectorAll('.espn-dropdown-item').forEach(item => {
-                item.classList.remove('active');
+                const attr = item.getAttribute('onclick') || '';
+                if (attr.includes(`'${filterId}'`)) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
             });
-            if (window.event?.currentTarget) {
-                window.event.currentTarget.classList.add('active');
-            }
 
             const dd = document.getElementById('espn-events-dropdown');
             if (dd) dd.classList.remove('open');
