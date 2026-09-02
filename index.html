@@ -3591,35 +3591,42 @@
 
         function renderLivePanel() {
             let allLiveEvents = [];
+            let allEvents = [];
             LEAGUES.forEach(lg => {
                 if (leagueData[lg.id] && leagueData[lg.id].events) {
-                    const liveEvents = leagueData[lg.id].events.filter(e => gameStatus(e).isLive);
-                    liveEvents.forEach(e => {
-                        allLiveEvents.push({ event: e, lg: lg });
+                    leagueData[lg.id].events.forEach(e => {
+                        allEvents.push({ event: e, lg: lg });
+                        if (gameStatus(e, lg.id).isLive) {
+                            allLiveEvents.push({ event: e, lg: lg });
+                        }
                     });
                 }
             });
 
-            if (allLiveEvents.length === 0) {
-                const loading = LEAGUES.some(lg => !leagueData[lg.id]);
-                if (loading) {
-                    return '<div class="loading">LOADING LIVE GAMES...</div>';
-                }
-                return `
-      <div class="no-games">
-        <div class="icon">◻</div>
-        No live games at the moment
-      </div>
-    `;
+            if (allLiveEvents.length > 0) {
+                allLiveEvents.sort((a, b) => {
+                    const isPinA = espnPinned.has(a.event.id), isPinB = espnPinned.has(b.event.id);
+                    if (isPinA !== isPinB) return isPinA ? -1 : 1;
+                    return new Date(a.event.date || 0) - new Date(b.event.date || 0);
+                });
+                return `<div class="games-grid">${allLiveEvents.map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>`;
             }
 
-            allLiveEvents.sort((a, b) => {
-                const isPinA = espnPinned.has(a.event.id), isPinB = espnPinned.has(b.event.id);
-                if (isPinA !== isPinB) return isPinA ? -1 : 1;
-                return new Date(a.event.date || 0) - new Date(b.event.date || 0);
-            });
+            if (allEvents.length > 0) {
+                allEvents.sort((a, b) => new Date(b.event.date || 0) - new Date(a.event.date || 0));
+                return `
+                    <div style="margin-bottom:12px; font-size:11px; color:var(--muted); font-weight:700;">
+                        No games currently live in-progress &mdash; showing today's slate scoreboards:
+                    </div>
+                    <div class="games-grid">${allEvents.slice(0, 16).map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>
+                `;
+            }
 
-            return `<div class="games-grid">${allLiveEvents.map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>`;
+            const loading = LEAGUES.some(lg => !leagueData[lg.id]);
+            if (loading) {
+                return '<div class="loading">LOADING LIVE GAMES...</div>';
+            }
+            return `<div class="no-games"><div class="icon">◻</div>No games available for current slate</div>`;
         }
 
         function renderDestinyLeaguePanel() {
@@ -4653,6 +4660,14 @@
                 lg.logo = result.leagues[0].logos[0].href;
             }
 
+            // Immediately update UI with ESPN scores
+            const panel = document.getElementById('panel-' + lg.id);
+            if (panel) panel.innerHTML = renderPanel(lg, result);
+            const livePanel = document.getElementById('panel-live');
+            if (livePanel) livePanel.innerHTML = renderLivePanel();
+            renderEspnTicker();
+            buildTabs();
+
             let shouldFetchOdds = manual || !paidOddsCache[lg.id];
             let hasActive = false;
             let hasUpcomingSoon = false;
@@ -4693,29 +4708,25 @@
             leaguePollingState[lg.id].interval = interval;
             leaguePollingState[lg.id].nextPoll = Date.now() + (interval * 1000);
 
-            // Fetch Odds API only if there was a score/status change, or manual override
             if (shouldFetchOdds) {
                 const prevUsed = globalMaxUsed;
-                const oddsData = await fetchPaidOdds(lg);
-                if (oddsData && oddsData.length > 0) {
-                    paidOddsCache[lg.id] = oddsData;
-                }
-
-                if (prevUsed !== null && globalMaxUsed !== null) {
-                    lastRefreshCost = globalMaxUsed - prevUsed;
-                    localStorage.setItem('espn_api_usage', globalMaxUsed);
-                }
+                fetchPaidOdds(lg).then(oddsData => {
+                    if (oddsData && oddsData.length > 0) {
+                        paidOddsCache[lg.id] = oddsData;
+                        const p = document.getElementById('panel-' + lg.id);
+                        if (p) p.innerHTML = renderPanel(lg, result);
+                        const lp = document.getElementById('panel-live');
+                        if (lp) lp.innerHTML = renderLivePanel();
+                    }
+                    if (prevUsed !== null && globalMaxUsed !== null) {
+                        lastRefreshCost = globalMaxUsed - prevUsed;
+                        localStorage.setItem('espn_api_usage', globalMaxUsed);
+                    }
+                }).catch(err => console.warn('Paid odds fetch skipped:', err.message));
             }
 
-            // Re-render
-            const panel = document.getElementById('panel-' + lg.id);
-            if (panel) panel.innerHTML = renderPanel(lg, result);
-            const livePanel = document.getElementById('panel-live');
-            if (livePanel) livePanel.innerHTML = renderLivePanel();
             const destinyPanel = document.getElementById('panel-destiny');
             if (destinyPanel) destinyPanel.innerHTML = renderDestinyLeaguePanel();
-            buildTabs();
-            renderEspnTicker();
             loadKalshiCharts();
             loadWeatherData();
 
