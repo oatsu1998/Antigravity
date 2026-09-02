@@ -4351,13 +4351,20 @@
             // 2. DRAGGABLE LEAGUE ITEMS (Custom reorderable list)
             const orderKeys = getSidebarOrder();
             
+            let totalSlateGames = 0;
+            LEAGUES.forEach(lg => {
+                if (leagueData[lg.id] && leagueData[lg.id].events) {
+                    totalSlateGames += leagueData[lg.id].events.length;
+                }
+            });
+
             const itemMap = {
                 'live': {
                     id: 'live',
-                    label: 'LIVE GAMES',
+                    label: 'LIVE & SLATE HQ',
                     iconHtml: '<span class="live-pulse-dot" style="width:7px; height:7px;"></span>',
                     getStats: () => {
-                        return { live: totalLiveGames, sched: 0, final: 0 };
+                        return { live: totalLiveGames, total: totalSlateGames };
                     }
                 }
             };
@@ -4369,9 +4376,9 @@
                     iconHtml: lg.logo ? `<img src="${lg.logo}" style="width: 18px; height: 18px; object-fit: contain;">` : '',
                     getStats: () => {
                         const events = leagueData[lg.id]?.events || [];
-                        const live = events.filter(e => gameStatus(e).isLive).length;
-                        const sched = events.filter(e => !gameStatus(e).isFinal && !gameStatus(e).isLive).length;
-                        const final = events.filter(e => gameStatus(e).isFinal).length;
+                        const live = events.filter(e => gameStatus(e, lg.id).isLive).length;
+                        const sched = events.filter(e => !gameStatus(e, lg.id).isFinal && !gameStatus(e, lg.id).isLive).length;
+                        const final = events.filter(e => gameStatus(e, lg.id).isFinal).length;
                         return { live, sched, final, total: events.length };
                     }
                 };
@@ -4385,7 +4392,9 @@
 
                 let statusBadgeHtml = '';
                 if (key === 'live') {
-                    statusBadgeHtml = `<span style="font-size:11px; font-weight:800; font-family:var(--font-mono); color:var(--live); background:rgba(239, 68, 68, 0.15); padding:2px 7px; border-radius:10px;">${stats.live} Live</span>`;
+                    statusBadgeHtml = stats.live > 0 
+                        ? `<span style="font-size:11px; font-weight:800; font-family:var(--font-mono); color:var(--live); background:rgba(239, 68, 68, 0.15); padding:2px 7px; border-radius:10px;">${stats.live} Live</span>`
+                        : `<span style="font-size:11px; font-weight:800; font-family:var(--font-mono); color:var(--cyan); background:rgba(6, 182, 212, 0.15); padding:2px 7px; border-radius:10px;">${stats.total || 0} Games</span>`;
                 } else {
                     statusBadgeHtml = `
                         <div style="font-size:10px; font-family:var(--font-mono); display:flex; gap:5px; align-items:center;">
