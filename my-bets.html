@@ -149,15 +149,9 @@
         /* DASHBOARD LAYOUT */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 28px;
+            grid-template-columns: 1fr;
+            gap: 24px;
             align-items: start;
-        }
-
-        @media (max-width: 1024px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
         }
 
         /* LEFT COLUMN: POSITION MANAGER */
@@ -830,124 +824,11 @@
                 </form>
             </div>
 
-            <!-- RIGHT SCREEN: TRADERS TERMINAL -->
-            <div class="analytics-terminal" id="analyticsTerminal">
-                <!-- Renders dynamically when card is active. Default empty: -->
-                <div class="terminal-empty" id="terminalEmptyState">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    <h3>Select Active Position</h3>
-                    <p>Click on any live wager card in your ledger to expand the analytical trading terminal, tracking
-                        market trajectories and hedging options.</p>
-                </div>
-
-                <div class="terminal-active" id="terminalActiveState" style="display:none;">
-
-                    <div class="terminal-header">
-                        <div class="terminal-title">
-                            <h2 id="termTarget">Donovan Mitchell — OVER 25.5 Pts</h2>
-                            <div class="terminal-subtitle" id="termMatchup">Cleveland Cavaliers @ New York Knicks ·
-                                DRAFTKINGS</div>
-                        </div>
-                        <div class="live-ticker" id="termStatusBadge">
-                            <span class="ticker-dot"></span>
-                            <span>LIVE ACTIVE</span>
-                        </div>
-                    </div>
-
-                    <!-- CHART AREA -->
-                    <div class="chart-box">
-                        <canvas id="tradingChart"></canvas>
-                    </div>
-
-                    <!-- ANALYTICS PANEL grid -->
-                    <div class="trading-panel">
-                        <!-- Valuation Ledger -->
-                        <div class="sub-panel">
-                            <div class="sub-panel-title">Valuation Metrics</div>
-                            <table class="analytics-table">
-                                <tr>
-                                    <td class="table-label">Initial Odds Placed:</td>
-                                    <td class="table-val" id="valPlacedOdds">+120</td>
-                                </tr>
-                                <tr>
-                                    <td class="table-label">Current Live Odds:</td>
-                                    <td class="table-val" id="valLiveOdds" style="color:var(--win);">-140</td>
-                                </tr>
-                                <tr>
-                                    <td class="table-label">Closing Line Value (CLV):</td>
-                                    <td class="table-val text-win" id="valCLV">+18.2%</td>
-                                </tr>
-                                <tr>
-                                    <td class="table-label">Position Margin Edge:</td>
-                                    <td class="table-val text-win" id="valEdge">+15.4%</td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <!-- Cashout Panel -->
-                        <div class="sub-panel"
-                            style="display: flex; flex-direction: column; justify-content: space-between;">
-                            <div class="sub-panel-title">Cashout / Position Settle</div>
-                            <div class="cashout-box">
-                                <div style="font-size:10px; color:var(--muted); text-transform:uppercase;">Fair Value Cashout Offer</div>
-                                <div class="cashout-badge" id="cashoutVal">$135.40</div>
-                                <div style="font-size:9px; color:var(--muted); margin-bottom:6px;" id="cashoutProfit">
-                                    Net Profit: +$35.40 (ROI: +35.4%)</div>
-
-                                <div style="display:flex; flex-direction:column; gap:6px;">
-                                    <button class="cashout-btn" id="cashoutButton" onclick="executeCashout()">
-                                        <svg style="width:16px; height:16px;" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <span>Cashout & Settle</span>
-                                    </button>
-                                    <div id="termSettleButtons" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px;">
-                                        <button onclick="settleSelectedWager('WON')" style="background:rgba(16, 185, 129, 0.2); border:1px solid #10b981; color:#10b981; font-family:var(--font-head); font-size:11px; font-weight:800; padding:6px; border-radius:4px; cursor:pointer; text-transform:uppercase;">
-                                            🟢 Win
-                                        </button>
-                                        <button onclick="settleSelectedWager('LOST')" style="background:rgba(239, 68, 68, 0.2); border:1px solid #ef4444; color:#ef4444; font-family:var(--font-head); font-size:11px; font-weight:800; padding:6px; border-radius:4px; cursor:pointer; text-transform:uppercase;">
-                                            🔴 Loss
-                                        </button>
-                                        <button onclick="settleSelectedWager('PUSH')" style="background:rgba(107, 114, 128, 0.2); border:1px solid #9ca3af; color:#9ca3af; font-family:var(--font-head); font-size:11px; font-weight:800; padding:6px; border-radius:4px; cursor:pointer; text-transform:uppercase;">
-                                            ⚪ Push
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Arbitrage Hedge Strategy Advice -->
-                    <div class="sub-panel" style="margin-bottom: 20px;">
-                        <div class="sub-panel-title"
-                            style="color:var(--accent2); display:flex; align-items:center; gap:6px;">
-                            <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>Traders Hedge Advisory</span>
-                        </div>
-                        <div style="font-size:11px; line-height:1.6; color:#d1d5db;" id="hedgeAdvice">
-                            Excellent Closing Line Value! You have locked in a +15.4% math edge. Current live line is
-                            priced heavily on the other side. Holding is recommended for maximum value, but placing a
-                            $65.20 hedge wager on the live opposing side (+130) locks in a guaranteed $18.40 profit
-                            regardless of outcome!
-                        </div>
-                    </div>
-
-                    <!-- Active feeds log -->
-                    <div class="live-log-box" id="liveFeedsLog">
-                        <!-- Real odds changes (via /api/odds and real Kalshi ticks) render here -->
-                    </div>
-
+                <!-- Active feeds log -->
+                <div class="live-log-box" id="liveFeedsLog" style="margin-top:20px;">
+                    <!-- Real odds changes (via /api/odds and real Kalshi ticks) render here -->
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -1429,14 +1310,27 @@
 
                 const chartId = `chart-canvas-${w.id}`;
                 const isSettled = w.status === 'WON' || w.status === 'LOST' || w.status === 'CASHED' || w.status === 'PUSH';
-                const cashoutVal = isSettled ? (w.status === 'WON' ? payoutReturn : (w.status === 'PUSH' ? w.stake : 0)) : (w.stake * 0.95);
+                const cashoutVal = isSettled ? (w.status === 'WON' ? payoutReturn : (w.status === 'PUSH' ? w.stake : 0)) : calculateCashoutValue(w.stake, w.placedOdds, w.currentOdds, w.status);
                 const cashoutText = isSettled ? `${w.status} SETTLED` : 'FAIR VALUE CASHOUT OFFER';
+
+                let strategyNote = 'Position line value is holding stable. Synchronized with live market conditions.';
+                if (clv > 0.05) {
+                    strategyNote = `Positive Closing Line Value (+${clvPercent}%). Placed line holds a clear math edge over current live market lines.`;
+                } else if (clv < -0.05) {
+                    strategyNote = `Line depreciated by ${clvPercent}%. Live market line (${w.currentOdds}) shifted heavily against placed line (${w.placedOdds}). Cashing out or hedging is recommended.`;
+                }
+
+                let activeTitle = w.selection || w.target || w.matchup;
+                if (legs && legs.length > 0) {
+                    const activeLeg = legs.find(l => l.status === 'PENDING') || legs[0];
+                    if (activeLeg) activeTitle = activeLeg.selection;
+                }
 
                 card.innerHTML = `
                     <div class="wager-card-top" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                         <div>
-                            <div style="font-size:10px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px;">${w.target}</div>
-                            <div style="font-size:15px; font-weight:900; color:#f59e0b; margin-top:2px; font-family:var(--font-mono); letter-spacing:0.2px;">${w.matchup || w.selection}</div>
+                            <div style="font-size:10px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px;">${w.target} · ${w.sportsbook || 'BETONLINE'}</div>
+                            <div style="font-size:16px; font-weight:900; color:#f59e0b; margin-top:2px; font-family:var(--font-mono); letter-spacing:0.2px;">${activeTitle}</div>
                         </div>
                         <span class="badge ${w.status.toLowerCase()}">${w.status}</span>
                     </div>
@@ -1446,10 +1340,10 @@
                     <div class="wager-card-body" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; font-size:11px; border-top:1px solid rgba(255,255,255,0.06); padding-top:8px; margin-top:6px;">
                         <div>
                             <div class="body-label">Bookmaker</div>
-                            <div class="body-val" style="color:#06b6d4; font-weight:900; text-transform:uppercase; font-size:12px;">BETONLINE</div>
+                            <div class="body-val" style="color:#06b6d4; font-weight:900; text-transform:uppercase; font-size:12px;">${w.sportsbook || 'BETONLINE'}</div>
                         </div>
                         <div>
-                            <div class="body-label">Placed Odds</div>
+                            <div class="body-label">Placed Line / Odds</div>
                             <div class="body-val" style="color:var(--accent); font-weight:900; font-size:12px;">${w.placedOdds}</div>
                         </div>
                         <div>
@@ -1458,17 +1352,17 @@
                         </div>
                     </div>
 
-                    <!-- INDIVIDUAL CHART & VALUATION INSPECTOR BLOCK -->
+                    <!-- COMBINED GAME CARD CHART & INSPECTOR PANEL -->
                     <div class="wager-inspector-block" style="background:rgba(15, 23, 42, 0.6); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px; margin-top:10px; font-family:var(--font-mono);" onclick="event.stopPropagation();">
                         <div style="background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px; margin-bottom:10px;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                                 <div>
-                                    <div style="font-size:11px; font-weight:900; color:#fff; text-transform:uppercase;">${w.selection || w.target}</div>
-                                    <div style="font-size:9px; color:var(--muted);">${w.matchup || w.event} · ${w.bookmaker || w.sportsbook || 'BetOnline'}</div>
+                                    <div style="font-size:11px; font-weight:900; color:#fff; text-transform:uppercase;">📈 LINE VALUE & PROBABILITY TRAJECTORY</div>
+                                    <div style="font-size:9px; color:var(--muted);">${activeTitle} · ${w.matchup || w.event}</div>
                                 </div>
                                 <span style="background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.3); color:#10b981; font-size:8px; font-weight:800; padding:2px 6px; border-radius:10px;">⚡ KALSHI SPORTS LIVE</span>
                             </div>
-                            <div style="height:100px; width:100%;">
+                            <div style="height:110px; width:100%;">
                                 <canvas id="${chartId}"></canvas>
                             </div>
                         </div>
@@ -1477,12 +1371,12 @@
                             <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px 10px;">
                                 <div style="font-size:8px; font-weight:800; color:var(--muted); text-transform:uppercase; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:3px; margin-bottom:4px;">VALUATION METRICS</div>
                                 <div style="display:flex; justify-content:space-between; font-size:9px; margin-bottom:3px;">
-                                    <span style="color:var(--muted);">Initial Odds Placed:</span>
+                                    <span style="color:var(--muted);">Initial Line Placed:</span>
                                     <strong style="color:#fff;">${w.placedOdds}</strong>
                                 </div>
                                 <div style="display:flex; justify-content:space-between; font-size:9px; margin-bottom:3px;">
-                                    <span style="color:var(--muted);">Current Live Odds:</span>
-                                    <strong style="color:#06b6d4;">${w.currentOdds}</strong>
+                                    <span style="color:var(--muted);">Current Live Line (Kalshi):</span>
+                                    <strong style="color:${clv < 0 ? '#ef4444' : '#06b6d4'};">${w.currentOdds}</strong>
                                 </div>
                                 <div style="display:flex; justify-content:space-between; font-size:9px; margin-bottom:3px;">
                                     <span style="color:var(--muted);">Closing Line Value (CLV):</span>
@@ -1490,7 +1384,7 @@
                                 </div>
                                 <div style="display:flex; justify-content:space-between; font-size:9px;">
                                     <span style="color:var(--muted);">Position Margin Edge:</span>
-                                    <strong style="color:#10b981;">+${(Math.abs(parseFloat(clvPercent)) + 1.2).toFixed(1)}%</strong>
+                                    <strong style="color:${clv < 0 ? '#ef4444' : '#10b981'};">${clv < 0 ? '' : '+'}${(Math.abs(parseFloat(clvPercent)) + 1.2).toFixed(1)}%</strong>
                                 </div>
                             </div>
 
@@ -1498,11 +1392,11 @@
                                 <div style="font-size:8px; font-weight:800; color:var(--muted); text-transform:uppercase; margin-bottom:2px;">CASHOUT / POSITION SETTLE</div>
                                 <div style="font-size:8px; color:var(--muted); margin-bottom:2px;">${cashoutText}</div>
                                 <div style="font-size:18px; font-weight:900; color:#10b981; font-family:var(--font-mono); margin:1px 0;">$${cashoutVal.toFixed(2)}</div>
-                                <div style="font-size:8px; color:var(--muted); margin-bottom:4px;">Final Payout: <strong style="color:#fff;">$${payoutReturn.toFixed(2)}</strong></div>
+                                <div style="font-size:8px; color:var(--muted); margin-bottom:4px;">Max Payout: <strong style="color:#fff;">$${payoutReturn.toFixed(2)}</strong></div>
                                 ${!isSettled ? `
                                     <div style="display:flex; flex-direction:column; gap:4px; width:100%; margin-top:2px;">
                                         <button onclick="cashoutPosition('${w.id}')" style="background:rgba(245, 158, 11, 0.15); border:1px solid rgba(245, 158, 11, 0.4); color:#f59e0b; font-family:var(--font-mono); font-size:9px; font-weight:900; padding:4px 6px; border-radius:4px; cursor:pointer; width:100%;">
-                                            ⚡ CASH OUT POSITION
+                                            ⚡ CASH OUT POSITION ($${cashoutVal.toFixed(2)})
                                         </button>
                                         <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:3px;">
                                             <button onclick="settleWagerDirect('${w.id}', 'WON')" style="background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.4); color:#10b981; font-family:var(--font-mono); font-size:8px; font-weight:900; padding:3px 0; border-radius:3px; cursor:pointer;">
@@ -1522,6 +1416,10 @@
                                     </div>
                                 `}
                             </div>
+                        </div>
+
+                        <div style="margin-top:8px; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.05); border-radius:6px; padding:6px 8px; font-size:9px; color:#d1d5db;">
+                            <span style="color:#f59e0b; font-weight:800;">💡 Strategy Note:</span> ${strategyNote}
                         </div>
                     </div>
                 `;
@@ -1544,36 +1442,43 @@
                 try { window.wagerChartInstances[wager.id].destroy(); } catch(e) {}
             }
 
-            let historyData = [54.5, 54.5, 54.5];
-            const oddsStr = String(wager.placedOdds || '-110');
-            if (oddsStr.includes('-')) {
-                const val = Math.abs(parseInt(oddsStr)) || 110;
-                const prob = (val / (val + 100)) * 100;
-                historyData = [prob - 1, prob, prob + 0.5];
-            } else if (oddsStr.includes('+')) {
-                const val = parseInt(oddsStr) || 100;
-                const prob = (100 / (val + 100)) * 100;
-                historyData = [prob - 1, prob, prob + 0.8];
+            let historyData = [];
+            if (wager.history && Array.isArray(wager.history) && wager.history.length > 0) {
+                historyData = wager.history.map(item => {
+                    const num = parseFloat(item);
+                    if (!isNaN(num) && num > 0 && num < 100) return num;
+                    const prob = getImpliedProbability(item);
+                    return parseFloat((prob * 100).toFixed(1));
+                });
+            } else {
+                const prob = getImpliedProbability(wager.placedOdds || '-110');
+                const val = parseFloat((prob * 100).toFixed(1));
+                historyData = [val - 1, val, val + 0.5];
             }
 
-            const lineColor = wager.status === 'WON' ? '#10b981' : wager.status === 'LOST' ? '#ef4444' : '#10b981';
+            const clv = calculateCLV(wager.placedOdds, wager.currentOdds);
+            const lineColor = wager.status === 'WON' ? '#10b981' : (wager.status === 'LOST' ? '#ef4444' : (clv < 0 ? '#ef4444' : '#10b981'));
+            const gradient = ctx.createLinearGradient(0, 0, 0, 110);
+            gradient.addColorStop(0, lineColor === '#ef4444' ? 'rgba(239, 68, 68, 0.25)' : 'rgba(16, 185, 129, 0.25)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
 
             try {
                 window.wagerChartInstances[wager.id] = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: ['Placed', 'Feed T-1', 'Feed T-0'],
+                        labels: historyData.map((_, i) => i === 0 ? 'Placed' : `Feed T-${historyData.length - 1 - i}`),
                         datasets: [{
+                            label: 'Line Value / Implied Prob (%)',
                             data: historyData,
                             borderColor: lineColor,
-                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                            borderWidth: 2,
+                            backgroundColor: gradient,
+                            borderWidth: 2.5,
                             pointRadius: 4,
                             pointBackgroundColor: '#ffffff',
                             pointBorderColor: lineColor,
                             pointHoverRadius: 6,
                             fill: true,
-                            tension: 0.1
+                            tension: 0.25
                         }]
                     },
                     options: {
@@ -1583,7 +1488,7 @@
                             legend: { display: false },
                             tooltip: {
                                 callbacks: {
-                                    label: (ctx) => `Live Implied Prob: ${ctx.raw.toFixed(1)}%`
+                                    label: (ctx) => `Value / Prob: ${ctx.raw.toFixed(1)}%`
                                 }
                             }
                         },
