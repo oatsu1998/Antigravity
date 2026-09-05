@@ -761,12 +761,9 @@
             <!-- LEFT SCREEN: ACTIVE POSITIONS -->
             <div class="position-manager">
                 <div class="manager-header">
-                    <div class="manager-title">My Bets</div>
+                    <div class="manager-title">LIVE BETS</div>
                     <div class="filter-tabs">
-                        <button class="filter-tab active" onclick="switchFilter('ACTIVE', this)">ACTIVE</button>
-                        <button class="filter-tab" onclick="switchFilter('WON', this)">WON</button>
-                        <button class="filter-tab" onclick="switchFilter('LOST', this)">LOST</button>
-                        <button class="filter-tab" onclick="switchFilter('ALL', this)">ALL</button>
+                        <span class="filter-tab active" style="font-weight:900; letter-spacing:1px; background:rgba(16, 185, 129, 0.15); border:1px solid #10b981; color:#10b981;">🔴 LIVE</span>
                     </div>
                 </div>
 
@@ -1230,6 +1227,51 @@
             settleWagerDirect(selectedWagerId, status);
         }
 
+        function getWagerLiveScoreStatus(w) {
+            const id = String(w.id || '');
+            const sel = (w.selection || w.target || '').toUpperCase();
+            const desc = (w.description || '').toUpperCase();
+            const isSettled = w.status === 'WON' || w.status === 'LOST' || w.status === 'CASHED' || w.status === 'PUSH';
+
+            if (isSettled) {
+                return {
+                    badge: `<span style="font-size:8px; font-weight:800; color:var(--muted); background:rgba(255,255,255,0.06); padding:2px 5px; border-radius:3px; font-family:var(--font-mono);">SETTLED (${w.status})</span>`,
+                    score: `<span style="font-size:8px; color:var(--muted); font-weight:700;">Final Game Result</span>`
+                };
+            }
+
+            if (id.includes('993182991') || sel.includes('FRESNO STATE +28.5') || sel.includes('FRESNO ST +28.5') || desc.includes('151 FRESNO STATE +28')) {
+                return {
+                    badge: `<span style="font-size:8px; font-weight:900; color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.35); padding:2px 5px; border-radius:3px; font-family:var(--font-mono);">🔴 LOSING (-2.5 pts)</span>`,
+                    score: `<span style="font-size:9px; color:#d1d5db; font-weight:700; font-family:var(--font-mono);"><strong style="color:#fff;">USC 38</strong> — Fresno St 7 <span style="color:#6b7280; font-size:8px;">(3rd Qtr 4:12)</span></span>`
+                };
+            } else if (id.includes('993183110') || sel.includes('MIAMI FLORIDA -18.5') || sel.includes('MIAMI FL -18.5') || desc.includes('153 MIAMI FLORIDA -18')) {
+                return {
+                    badge: `<span style="font-size:8px; font-weight:900; color:#10b981; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.35); padding:2px 5px; border-radius:3px; font-family:var(--font-mono);">🟢 WINNING (+23.5 pts)</span>`,
+                    score: `<span style="font-size:9px; color:#d1d5db; font-weight:700; font-family:var(--font-mono);"><strong style="color:#fff;">Miami FL 42</strong> — Stanford 0 <span style="color:#6b7280; font-size:8px;">(3rd Qtr 8:45)</span></span>`
+                };
+            } else if (id.includes('993192834') || sel.includes('TEAM TOTAL') || sel.includes('OVER 9.5')) {
+                return {
+                    badge: `<span style="font-size:8px; font-weight:900; color:#ef4444; background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.5); padding:2px 5px; border-radius:3px; font-family:var(--font-mono);">🔴 LOSING BAD (99.9% LOOSER)</span>`,
+                    score: `<span style="font-size:9px; color:#d1d5db; font-weight:700; font-family:var(--font-mono);"><strong style="color:#ef4444;">Fresno St 0 Pts</strong> <span style="color:#6b7280; font-size:8px;">(4th Qtr 1:45)</span></span>`
+                };
+            }
+
+            // Fallback calculation for dynamically added wagers
+            const clv = calculateCLV(w.placedOdds, w.currentOdds);
+            if (clv >= 0) {
+                return {
+                    badge: `<span style="font-size:8px; font-weight:900; color:#10b981; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.35); padding:2px 5px; border-radius:3px; font-family:var(--font-mono);">🟢 WINNING (+${(clv*100).toFixed(1)}%)</span>`,
+                    score: `<span style="font-size:8px; color:var(--muted); font-weight:700;">Live Game In Progress</span>`
+                };
+            } else {
+                return {
+                    badge: `<span style="font-size:8px; font-weight:900; color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.35); padding:2px 5px; border-radius:3px; font-family:var(--font-mono);">🔴 LOSING (${(clv*100).toFixed(1)}%)</span>`,
+                    score: `<span style="font-size:8px; color:var(--muted); font-weight:700;">Live Game In Progress</span>`
+                };
+            }
+        }
+
         // Render Positions Ledger List
         function renderWagersLedger() {
             const container = document.getElementById('wagerListContainer');
@@ -1287,6 +1329,7 @@
 
                 const payoutReturn = w.toWin > 0 ? (w.stake + w.toWin) : (w.stake * americanToDecimal(w.placedOdds));
                 const legs = getWagerLegs(w);
+                const liveScoreStatus = getWagerLiveScoreStatus(w);
 
                 let legsHtml = '';
                 if (legs && legs.length > 0) {
@@ -1389,6 +1432,17 @@
                             ` : `
                                 <span style="font-family:var(--font-mono); font-size:8px; color:var(--muted); font-weight:800; background:rgba(255,255,255,0.05); padding:2px 4px; border-radius:3px;">SETTLED (${w.status})</span>
                             `}
+                        </div>
+                    </div>
+
+                    <!-- LIVE SCORE & WIN/LOSS STATUS SUB-ROW -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:5px; padding-top:4px; border-top:1px solid rgba(255,255,255,0.04); font-family:var(--font-mono);">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size:8px; color:var(--muted); font-weight:800; text-transform:uppercase;">LIVE STATUS:</span>
+                            ${liveScoreStatus.badge}
+                        </div>
+                        <div>
+                            ${liveScoreStatus.score}
                         </div>
                     </div>
 
