@@ -1237,8 +1237,90 @@
             }
         }
 
+        async function fetchEspnScores() {
+            const espnLeagues = [
+                { sport: 'baseball', league: 'mlb', key: 'mlb' },
+                { sport: 'football', league: 'nfl', key: 'nfl' },
+                { sport: 'basketball', league: 'nba', key: 'nba' },
+                { sport: 'hockey', league: 'nhl', key: 'nhl' },
+                { sport: 'football', league: 'college-football', key: 'ncaaf' },
+                { sport: 'basketball', league: 'mens-college-basketball', key: 'ncaab' }
+            ];
+
+            await Promise.all(espnLeagues.map(async (lg) => {
+                try {
+                    const r = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard?limit=50`);
+                    if (!r.ok) return;
+                    const data = await r.json();
+                    (data.events || []).forEach(evt => {
+                        const comp = evt.competitions?.[0];
+                        if (!comp) return;
+                        const awayComp = comp.competitors?.find(c => c.homeAway === 'away');
+                        const homeComp = comp.competitors?.find(c => c.homeAway === 'home');
+                        if (!awayComp || !homeComp) return;
+
+                        const gameId = `espn::${lg.key}::${evt.id}`;
+                        const statusState = evt.status?.type?.state;
+                        const isLive = statusState === 'in';
+                        const isDone = statusState === 'post';
+                        const statusLabel = evt.status?.type?.shortDetail || evt.status?.type?.detail || (isLive ? 'LIVE' : (isDone ? 'FINAL' : 'SCHEDULED'));
+
+                        const awayName = awayComp.team?.displayName || awayComp.team?.name || awayComp.team?.abbreviation || 'Away';
+                        const homeName = homeComp.team?.displayName || homeComp.team?.name || homeComp.team?.abbreviation || 'Home';
+
+                        let g = Object.values(games).find(existing => {
+                            if (existing.sport_key !== lg.key) return false;
+                            const a = (existing.away_team || '').toLowerCase();
+                            const h = (existing.home_team || '').toLowerCase();
+                            const awayTarget = (awayComp.team?.name || awayComp.team?.abbreviation || '').toLowerCase();
+                            const homeTarget = (homeComp.team?.name || homeComp.team?.abbreviation || '').toLowerCase();
+                            return (awayTarget && a.includes(awayTarget)) || (homeTarget && h.includes(homeTarget));
+                        });
+
+                        if (!g) {
+                            g = {
+                                game_id: gameId,
+                                away_team: awayName,
+                                home_team: homeName,
+                                away_logo: awayComp.team?.logo || '',
+                                home_logo: homeComp.team?.logo || '',
+                                sport_key: lg.key,
+                                commence_time: evt.date || new Date().toISOString(),
+                                snapshots: [],
+                                away_score: String(awayComp.score || '0'),
+                                home_score: String(homeComp.score || '0'),
+                                game_status: isLive ? 'live' : (isDone ? 'completed' : 'pre_game'),
+                                period: String(evt.status?.period || ''),
+                                clock: statusLabel,
+                                espn_detail: statusLabel,
+                                espn_sport: lg.sport,
+                                away_linescores: awayComp.linescores || [],
+                                home_linescores: homeComp.linescores || []
+                            };
+                            games[gameId] = g;
+                        } else {
+                            g.away_score = String(awayComp.score || g.away_score);
+                            g.home_score = String(homeComp.score || g.home_score);
+                            g.game_status = isLive ? 'live' : (isDone ? 'completed' : 'pre_game');
+                            g.espn_detail = statusLabel;
+                            g.clock = statusLabel;
+                            g.period = String(evt.status?.period || g.period || '');
+                            if (awayComp.team?.logo) g.away_logo = awayComp.team.logo;
+                            if (homeComp.team?.logo) g.home_logo = homeComp.team.logo;
+                            if (awayComp.linescores) g.away_linescores = awayComp.linescores;
+                            if (homeComp.linescores) g.home_linescores = homeComp.linescores;
+                        }
+                    });
+                } catch (e) {
+                    console.warn('[LineTracker] ESPN scoreboard fetch error for ' + lg.key, e);
+                }
+            }));
+        }
+
         async function refreshData() {
             const nowTime = Math.floor(Date.now() / 1000);
+            await fetchEspnScores();
+
             try {
                 const res = await fetch('/api/kalshi');
                 if (!res.ok) throw new Error('Proxy returned ' + res.status);
@@ -1391,9 +1473,10 @@
                 return;
             }
 
-            // Sort: pinned first, then respect drag order
+            // Sort: pinned first, then active live games, then remaining scheduled/completed games
             var pinned = allGames.filter(function(g) { return pinnedGames.has(g.game_id); });
-            var unpinned = allGames.filter(function(g) { return !pinnedGames.has(g.game_id); });
+            var unpinnedLive = allGames.filter(function(g) { return !pinnedGames.has(g.game_id) && g.game_status === 'live'; });
+            var unpinnedOther = allGames.filter(function(g) { return !pinnedGames.has(g.game_id) && g.game_status !== 'live'; });
 
             // Apply drag order within each group
             function applyOrder(arr) {
@@ -1407,7 +1490,7 @@
                 return indexed.map(function(x) { return x.g; });
             }
 
-            var ordered = applyOrder(pinned).concat(applyOrder(unpinned));
+            var ordered = applyOrder(pinned).concat(unpinnedLive).concat(applyOrder(unpinnedOther));
 
             var html = '';
             ordered.forEach(function(g) {
