@@ -2680,9 +2680,11 @@
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
-                return { ok: true, events: data.events || [], leagues: data.leagues || [] };
+                const rawEvents = data.events || [];
+                const validEvents = rawEvents.filter(e => isValidGameEvent(e, lg.id));
+                return { ok: true, events: validEvents, rawEvents: rawEvents, leagues: data.leagues || [] };
             } catch (e) {
-                return { ok: false, error: e.message, events: [] };
+                return { ok: false, error: e.message, events: [], rawEvents: [] };
             }
         }
 
@@ -3472,13 +3474,14 @@
             let targetDateStr = '';
 
             // Check if ESPN result provided an upcoming event in the future
-            if (result && result.events && result.events.length > 0) {
-                const upcoming = result.events.find(e => !gameStatus(e).isFinal);
+            const allEvs = (result && result.rawEvents && result.rawEvents.length > 0) ? result.rawEvents : (result && result.events ? result.events : []);
+            if (allEvs.length > 0) {
+                const upcoming = allEvs.find(e => !gameStatus(e).isFinal);
                 if (upcoming) {
                     const comp = upcoming.competitions?.[0];
                     const home = comp?.competitors?.find(c => c.homeAway === 'home')?.team?.abbreviation || '';
                     const away = comp?.competitors?.find(c => c.homeAway === 'away')?.team?.abbreviation || '';
-                    nextGameName = `${away} @ ${home} (${lg.label})`;
+                    nextGameName = `${away || 'AWAY'} @ ${home || 'HOME'} (${lg.label})`;
                     targetDateStr = upcoming.date;
                 }
             }
