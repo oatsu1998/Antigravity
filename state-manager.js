@@ -35,7 +35,7 @@
 
         getWagers: function() {
             try {
-                let wagers = JSON.parse(localStorage.getItem(KEYS.WAGERS) || '[]');
+                let stored = JSON.parse(localStorage.getItem(KEYS.WAGERS) || '[]');
                 const defaultWagers = [
                     {
                         id: 'ticket-991363123',
@@ -121,10 +121,11 @@
                         placedOdds: '-115',
                         odds: '-115',
                         currentOdds: '-115',
-                        status: 'PENDING',
+                        status: 'WON',
+                        settledPayout: 215.00,
                         acceptedDate: '8/29/26',
                         timestamp: '2026-08-29T15:00:00.000Z',
-                        description: 'Football - NCAA - San Jose State vs USC - Total | 314 San Jose State/USC under 61½ -115 for GAME | 08/29/2026 03:00:00 PM (EST) | Pending',
+                        description: 'Football - NCAA - San Jose State vs USC - Total | 314 San Jose State/USC under 61½ -115 for GAME | 08/29/2026 03:00:00 PM (EST) | Settled WON',
                         history: ['-115', '-115', '-115']
                     },
                     {
@@ -144,14 +145,15 @@
                         placedOdds: '-120',
                         odds: '-120',
                         currentOdds: '-120',
-                        status: 'PENDING',
+                        status: 'WON',
+                        settledPayout: 220.00,
                         acceptedDate: '8/29/26',
                         timestamp: '2026-08-29T15:30:00.000Z',
-                        description: 'Football - NCAA - NC State vs Virginia - Teaser | 317 NC State +10½ -115 for GAME | 08/29/2026 03:30:00 PM (EST) | Pending | Neutral Field | Football - NCAA - Memphis vs UNLV - Teaser | 315 Memphis +10½ -108 for GAME | 08/29/2026 10:00:00 PM (EST) | Pending',
+                        description: 'Football - NCAA - NC State vs Virginia - Teaser | 317 NC State +10½ -115 for GAME | 08/29/2026 03:30:00 PM (EST) | Settled WON | Neutral Field | Football - NCAA - Memphis vs UNLV - Teaser | 315 Memphis +10½ -108 for GAME | 08/29/2026 10:00:00 PM (EST) | Settled WON',
                         history: ['-120', '-120', '-120'],
                         legs: [
-                            { matchup: 'NC STATE at VIRGINIA', awayTag: 'NCST', homeTag: 'UVA', selection: 'NC State +10.5', odds: '-115', status: 'PENDING' },
-                            { matchup: 'MEMPHIS at UNLV', awayTag: 'MEM', homeTag: 'UNLV', selection: 'Memphis +10.5', odds: '-108', status: 'PENDING' }
+                            { matchup: 'NC STATE at VIRGINIA', awayTag: 'NCST', homeTag: 'UVA', selection: 'NC State +10.5', odds: '-115', status: 'WON' },
+                            { matchup: 'MEMPHIS at UNLV', awayTag: 'MEM', homeTag: 'UNLV', selection: 'Memphis +10.5', odds: '-108', status: 'WON' }
                         ]
                     },
                     {
@@ -171,30 +173,136 @@
                         placedOdds: '+260',
                         odds: '+260',
                         currentOdds: '+260',
-                        status: 'PENDING',
+                        status: 'WON',
+                        settledPayout: 180.00,
                         acceptedDate: '8/29/26',
                         timestamp: '2026-08-29T15:30:00.000Z',
-                        description: 'Football - NCAA - NC State vs Virginia - Parlay | 317 NC State +4 -115 for GAME | 08/29/2026 03:30:00 PM (EST) | Pending | Neutral Field | Football - NCAA - Memphis vs UNLV - Parlay | 315 Memphis +4 -108 for GAME | 08/29/2026 10:00:00 PM (EST) | Pending',
+                        description: 'Football - NCAA - NC State vs Virginia - Parlay | 317 NC State +4 -115 for GAME | 08/29/2026 03:30:00 PM (EST) | Settled WON | Neutral Field | Football - NCAA - Memphis vs UNLV - Parlay | 315 Memphis +4 -108 for GAME | 08/29/2026 10:00:00 PM (EST) | Settled WON',
                         history: ['+260', '+260', '+260'],
                         legs: [
-                            { matchup: 'NC STATE at VIRGINIA', awayTag: 'NCST', homeTag: 'UVA', selection: 'NC State +4', odds: '-115', status: 'PENDING' },
-                            { matchup: 'MEMPHIS at UNLV', awayTag: 'MEM', homeTag: 'UNLV', selection: 'Memphis +4', odds: '-108', status: 'PENDING' }
+                            { matchup: 'NC STATE at VIRGINIA', awayTag: 'NCST', homeTag: 'UVA', selection: 'NC State +4', odds: '-115', status: 'WON' },
+                            { matchup: 'MEMPHIS at UNLV', awayTag: 'MEM', homeTag: 'UNLV', selection: 'Memphis +4', odds: '-108', status: 'WON' }
+                        ]
+                    },
+                    {
+                        id: 'ticket-993182991-1',
+                        ticketNumber: '993182991-1',
+                        event: 'FRESNO ST at USC / CLEMSON at LSU / MIAMI FL at STANFORD',
+                        matchup: 'FRESNO ST @ USC / CLEM @ LSU / MIA @ STAN',
+                        target: 'Teaser (3 Teams) — Fresno St +28.5, LSU -4 & Stanford +30.5',
+                        selection: 'Teaser — Fresno St +28.5, LSU -4 & Stanford +30.5 (+160)',
+                        type: 'Teaser',
+                        side: 'Fresno St +28.5 / LSU -4 / Stanford +30.5',
+                        sportsbook: 'BetOnline',
+                        bookmaker: 'BetOnline',
+                        stake: 25.00,
+                        wager: 25.00,
+                        toWin: 40.00,
+                        placedOdds: '+160',
+                        odds: '+160',
+                        currentOdds: '+160',
+                        status: 'PENDING',
+                        acceptedDate: '09/04/26 07:56 PM GMT-5',
+                        timestamp: '2026-09-04T19:56:00.000Z',
+                        description: 'Football - NCAA - Fresno State vs USC - Teaser | 151 Fresno State +28½ -102 For Game | 09/04/2026 | 09:00:00 PM (EST) | Pending | Football - NCAA - Clemson vs LSU - Teaser | 220 LSU -4 -110 For Game | 09/05/2026 | 07:30:00 PM (EST) | Pending | Football - NCAA - Miami Florida vs Stanford - Teaser | 154 Stanford +30½ -105 For Game | 09/04/2026 | 09:00:00 PM (EST) | Pending',
+                        history: ['+160', '+160', '+160'],
+                        legs: [
+                            { matchup: 'FRESNO STATE at USC', event: 'FRESNO STATE at USC', awayTag: 'FRESNO ST', homeTag: 'USC', selection: 'Fresno State +28.5', odds: '-102', status: 'PENDING' },
+                            { matchup: 'CLEMSON at LSU', event: 'CLEMSON at LSU', awayTag: 'CLEM', homeTag: 'LSU', selection: 'LSU -4', odds: '-110', status: 'PENDING' },
+                            { matchup: 'MIAMI FLORIDA at STANFORD', event: 'MIAMI FLORIDA at STANFORD', awayTag: 'MIA', homeTag: 'STAN', selection: 'Stanford +30.5', odds: '-105', status: 'PENDING' }
+                        ]
+                    },
+                    {
+                        id: 'ticket-993183110-1',
+                        ticketNumber: '993183110-1',
+                        event: 'MIAMI FL at STANFORD / FRESNO ST at USC / CLEMSON at LSU',
+                        matchup: 'MIA @ STAN / FRESNO ST @ USC / CLEM @ LSU',
+                        target: 'Teaser (3 Teams) — Miami FL -18.5, USC -16.5 & LSU -4',
+                        selection: 'Teaser — Miami FL -18.5, USC -16.5 & LSU -4 (+160)',
+                        type: 'Teaser',
+                        side: 'Miami FL -18.5 / USC -16.5 / LSU -4',
+                        sportsbook: 'BetOnline',
+                        bookmaker: 'BetOnline',
+                        stake: 25.00,
+                        wager: 25.00,
+                        toWin: 40.00,
+                        placedOdds: '+160',
+                        odds: '+160',
+                        currentOdds: '+160',
+                        status: 'PENDING',
+                        acceptedDate: '09/04/26 07:57 PM GMT-5',
+                        timestamp: '2026-09-04T19:57:00.000Z',
+                        description: 'Football - NCAA - Miami Florida vs Stanford - Teaser | 153 Miami Florida -18½ -115 For Game | 09/04/2026 | 09:00:00 PM (EST) | Pending | Football - NCAA - Fresno State vs USC - Teaser | 152 USC -16½ -118 For Game | 09/04/2026 | 09:00:00 PM (EST) | Pending | Football - NCAA - Clemson vs LSU - Teaser | 220 LSU -4 -110 For Game | 09/05/2026 | 07:30:00 PM (EST) | Pending',
+                        history: ['+160', '+160', '+160'],
+                        legs: [
+                            { matchup: 'MIAMI FLORIDA at STANFORD', event: 'MIAMI FLORIDA at STANFORD', awayTag: 'MIA', homeTag: 'STAN', selection: 'Miami Florida -18.5', odds: '-115', status: 'PENDING' },
+                            { matchup: 'FRESNO STATE at USC', event: 'FRESNO STATE at USC', awayTag: 'FRESNO ST', homeTag: 'USC', selection: 'USC -16.5', odds: '-118', status: 'PENDING' },
+                            { matchup: 'CLEMSON at LSU', event: 'CLEMSON at LSU', awayTag: 'CLEM', homeTag: 'LSU', selection: 'LSU -4', odds: '-110', status: 'PENDING' }
+                        ]
+                    },
+                    {
+                        id: 'ticket-993192834-1',
+                        ticketNumber: '993192834-1',
+                        event: 'FRESNO STATE at USC',
+                        matchup: 'FRESNO ST @ USC',
+                        target: 'FRESNO STATE at USC',
+                        selection: 'FRESNO ST — Team Total — OVER 9.5',
+                        type: 'Live',
+                        side: 'Fresno St Team Total Over 9.5',
+                        sportsbook: 'BetOnline',
+                        bookmaker: 'BetOnline',
+                        stake: 79.32,
+                        wager: 79.32,
+                        toWin: 66.10,
+                        placedOdds: '-120',
+                        odds: '-120',
+                        currentOdds: '-120',
+                        status: 'PENDING',
+                        acceptedDate: '09/04/26 08:44 PM GMT-5',
+                        timestamp: '2026-09-04T20:44:00.000Z',
+                        description: 'FRESNO STATE at USC - FRESNO ST - Team Total - OVER 9.5',
+                        history: ['-120', '-120', '-120'],
+                        legs: [
+                            { matchup: 'FRESNO STATE at USC', event: 'FRESNO STATE at USC', awayTag: 'FRESNO ST', homeTag: 'USC', selection: 'Fresno St Team Total Over 9.5', odds: '-120', status: 'PENDING' }
                         ]
                     }
                 ];
 
-                wagers = defaultWagers;
+                if (!stored || !Array.isArray(stored) || stored.length === 0) {
+                    stored = defaultWagers;
+                } else {
+                    // Merge any missing default wagers into stored and sync default settled statuses
+                    defaultWagers.forEach(dw => {
+                        const matchIdx = stored.findIndex(sw => 
+                            sw.id === dw.id || 
+                            (sw.ticketNumber && dw.ticketNumber && sw.ticketNumber === dw.ticketNumber) || 
+                            (sw.id && dw.ticketNumber && sw.id.includes(dw.ticketNumber)) ||
+                            (sw.ticketNumber && dw.id && dw.id.includes(sw.ticketNumber))
+                        );
+                        if (matchIdx < 0) {
+                            stored.push(dw);
+                        } else if (dw.status === 'WON' && stored[matchIdx].status === 'PENDING') {
+                            stored[matchIdx].status = 'WON';
+                            stored[matchIdx].settledPayout = dw.settledPayout;
+                            if (dw.legs) stored[matchIdx].legs = dw.legs;
+                        }
+                    });
+                }
 
-                wagers = wagers.map(w => ({
-                    ...w,
-                    odds: w.placedOdds || w.odds || '-110',
-                    placedOdds: w.placedOdds || w.odds || '-110',
-                    sportsbook: 'BetOnline',
-                    bookmaker: 'BetOnline'
-                }));
+                stored = stored.map(w => {
+                    const st = String(w.status || 'PENDING').toUpperCase();
+                    return {
+                        ...w,
+                        status: (st === 'PENDING' || st === 'OPEN') ? 'PENDING' : st,
+                        odds: w.placedOdds || w.odds || '-110',
+                        placedOdds: w.placedOdds || w.odds || '-110',
+                        sportsbook: 'BetOnline',
+                        bookmaker: 'BetOnline'
+                    };
+                });
 
-                localStorage.setItem(KEYS.WAGERS, JSON.stringify(wagers));
-                return wagers;
+                localStorage.setItem(KEYS.WAGERS, JSON.stringify(stored));
+                return stored;
             } catch (e) {
                 console.error('[DestinyState] Error reading wagers:', e);
                 return [];
@@ -206,6 +314,40 @@
             localStorage.setItem(KEYS.WAGERS, JSON.stringify(data));
             if (notify) this._notify(KEYS.WAGERS, data);
             return data;
+        },
+
+        settleWager: function(wagerId, newStatus, customPayout = null) {
+            const wagers = this.getWagers();
+            const w = wagers.find(item => item.id === wagerId);
+            if (!w) return null;
+
+            w.status = newStatus;
+
+            let payout = 0;
+            if (customPayout !== null && !isNaN(parseFloat(customPayout))) {
+                payout = parseFloat(customPayout);
+            } else if (newStatus === 'WON') {
+                payout = (parseFloat(w.stake) || 0) + (parseFloat(w.toWin) || 0);
+            } else if (newStatus === 'PUSH' || newStatus === 'VOID') {
+                payout = parseFloat(w.stake) || 0;
+            } else if (newStatus === 'LOST') {
+                payout = 0;
+            } else if (newStatus === 'CASHED') {
+                payout = parseFloat(w.cashout) || ((parseFloat(w.stake) || 0) * 0.95);
+            }
+
+            w.settledPayout = payout;
+            w.settledDate = new Date().toISOString();
+
+            this.saveWagers(wagers);
+
+            if (payout > 0) {
+                const currentBankroll = this.getBankroll();
+                this.setBankroll(currentBankroll + payout);
+            }
+
+            this.showToast(`Wager ${w.ticketNumber || w.id} settled as ${newStatus} ($${payout.toFixed(2)})`, newStatus === 'WON' || newStatus === 'CASHED' ? 'win' : 'accent');
+            return w;
         },
 
         addWager: function(wagerObj) {

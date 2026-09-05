@@ -891,20 +891,32 @@
                             style="display: flex; flex-direction: column; justify-content: space-between;">
                             <div class="sub-panel-title">Cashout / Position Settle</div>
                             <div class="cashout-box">
-                                <div style="font-size:10px; color:var(--muted); text-transform:uppercase;">Fair Value
-                                    Cashout Offer</div>
+                                <div style="font-size:10px; color:var(--muted); text-transform:uppercase;">Fair Value Cashout Offer</div>
                                 <div class="cashout-badge" id="cashoutVal">$135.40</div>
                                 <div style="font-size:9px; color:var(--muted); margin-bottom:6px;" id="cashoutProfit">
                                     Net Profit: +$35.40 (ROI: +35.4%)</div>
 
-                                <button class="cashout-btn" id="cashoutButton" onclick="executeCashout()">
-                                    <svg style="width:16px; height:16px;" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span>Cashout & Settle</span>
-                                </button>
+                                <div style="display:flex; flex-direction:column; gap:6px;">
+                                    <button class="cashout-btn" id="cashoutButton" onclick="executeCashout()">
+                                        <svg style="width:16px; height:16px;" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>Cashout & Settle</span>
+                                    </button>
+                                    <div id="termSettleButtons" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px;">
+                                        <button onclick="settleSelectedWager('WON')" style="background:rgba(16, 185, 129, 0.2); border:1px solid #10b981; color:#10b981; font-family:var(--font-head); font-size:11px; font-weight:800; padding:6px; border-radius:4px; cursor:pointer; text-transform:uppercase;">
+                                            🟢 Win
+                                        </button>
+                                        <button onclick="settleSelectedWager('LOST')" style="background:rgba(239, 68, 68, 0.2); border:1px solid #ef4444; color:#ef4444; font-family:var(--font-head); font-size:11px; font-weight:800; padding:6px; border-radius:4px; cursor:pointer; text-transform:uppercase;">
+                                            🔴 Loss
+                                        </button>
+                                        <button onclick="settleSelectedWager('PUSH')" style="background:rgba(107, 114, 128, 0.2); border:1px solid #9ca3af; color:#9ca3af; font-family:var(--font-head); font-size:11px; font-weight:800; padding:6px; border-radius:4px; cursor:pointer; text-transform:uppercase;">
+                                            ⚪ Push
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -943,7 +955,7 @@
         // Placed bets sc        let wagers = [];
         let selectedWagerId = null;
         let chartInstance = null;
-        let activeFilter = 'ACTIVE';
+        let activeFilter = 'ALL';
 
         // Normalize wagers to ensure cross-page compatibility and prevent errors
         function normalizeWager(w) {
@@ -975,10 +987,12 @@
 
             const eventTitle = w.event || w.target || 'VIKINGS at BRONCOS';
             const selectionTitle = w.selection || w.matchup || w.description || 'Selection';
+            const rawStatus = String(w.status || 'PENDING').toUpperCase();
+            const normStatus = (rawStatus === 'PENDING' || rawStatus === 'OPEN') ? 'PENDING' : rawStatus;
 
             return {
                 id: w.id || ('wager-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)),
-                ticketNumber: w.ticketNumber || '',
+                ticketNumber: w.ticketNumber || (w.id ? String(w.id).replace('ticket-', '') : ''),
                 target: eventTitle,
                 matchup: selectionTitle,
                 selection: selectionTitle,
@@ -989,9 +1003,11 @@
                 currentOdds: w.currentOdds || payoutOdds,
                 sportsbook: 'BetOnline',
                 bookmaker: 'BetOnline',
-                status: w.status || 'PENDING',
+                status: normStatus,
                 history: Array.isArray(w.history) ? w.history : [payoutOdds],
-                type: w.type || 'GAME'
+                type: w.type || 'GAME',
+                description: w.description || '',
+                legs: Array.isArray(w.legs) ? w.legs : []
             };
         }
 
@@ -1058,144 +1074,6 @@
                 }
             }
 
-            const gradedWagers = [
-                {
-                    id: 'ticket-991363123',
-                    ticketNumber: '991363123',
-                    event: 'VIKINGS at BRONCOS',
-                    matchup: 'MIN @ DEN',
-                    target: 'VIKINGS at BRONCOS',
-                    selection: 'Total — UNDER 40.5',
-                    type: 'Live',
-                    side: 'Under 40.5',
-                    sportsbook: 'BetOnline',
-                    bookmaker: 'BetOnline',
-                    stake: 120.00,
-                    wager: 120.00,
-                    toWin: 100.00,
-                    placedOdds: '-120',
-                    currentOdds: '-120',
-                    status: 'WON',
-                    acceptedDate: '8/29/26',
-                    timestamp: '2026-08-29T00:00:00.000Z',
-                    description: 'VIKINGS at BRONCOS - Total - UNDER 40.5',
-                    history: ['-120', '-120', '-120']
-                },
-                {
-                    id: 'ticket-991291159',
-                    ticketNumber: '991291159',
-                    event: 'VIKINGS at BRONCOS',
-                    matchup: 'MIN @ DEN',
-                    target: 'Teaser — MIN Vikings +9.5',
-                    selection: 'MIN Vikings +9.5 (-117)',
-                    type: 'Teaser',
-                    side: 'MIN Vikings +9.5',
-                    sportsbook: 'BetOnline',
-                    bookmaker: 'BetOnline',
-                    stake: 25.00,
-                    wager: 25.00,
-                    toWin: 22.73,
-                    placedOdds: '-110',
-                    currentOdds: '-110',
-                    status: 'LOST',
-                    acceptedDate: '8/28/26',
-                    timestamp: '2026-08-28T21:00:00.000Z',
-                    description: 'Football - NFL - Minnesota Vikings vs Denver Broncos - Teaser | 127 Minnesota Vikings +9½ -117 for GAME',
-                    history: ['-110', '-110', '-110']
-                },
-                {
-                    id: 'ticket-991291089',
-                    ticketNumber: '991291089',
-                    event: 'VIKINGS at BRONCOS',
-                    matchup: 'MIN @ DEN',
-                    target: 'Parlay — MIN Vikings +3.5',
-                    selection: 'MIN Vikings +3.5 (-117)',
-                    type: 'Parlay',
-                    side: 'MIN Vikings +3.5',
-                    sportsbook: 'BetOnline',
-                    bookmaker: 'BetOnline',
-                    stake: 25.00,
-                    wager: 25.00,
-                    toWin: 63.50,
-                    placedOdds: '+254',
-                    currentOdds: '+254',
-                    status: 'LOST',
-                    acceptedDate: '8/28/26',
-                    timestamp: '2026-08-28T21:00:00.000Z',
-                    description: 'Football - NFL - Minnesota Vikings vs Denver Broncos - Parlay | 127 Minnesota Vikings +3½ -117 for GAME',
-                    history: ['+254', '+254', '+254']
-                },
-                {
-                    id: 'ticket-991397407',
-                    ticketNumber: '991397407',
-                    event: 'SAN JOSE STATE at USC',
-                    matchup: 'SJSU @ USC',
-                    target: 'SAN JOSE STATE at USC',
-                    selection: 'Total — UNDER 61.5 (-115)',
-                    type: 'Total',
-                    side: 'Under 61.5',
-                    sportsbook: 'BetOnline',
-                    bookmaker: 'BetOnline',
-                    stake: 115.00,
-                    wager: 115.00,
-                    toWin: 100.00,
-                    placedOdds: '-115',
-                    currentOdds: '-115',
-                    status: 'PENDING',
-                    acceptedDate: '8/29/26',
-                    timestamp: '2026-08-29T15:00:00.000Z',
-                    description: 'Football - NCAA - San Jose State vs USC - Total | 314 San Jose State/USC under 61½ -115 for GAME | 08/29/2026 03:00:00 PM (EST) | Pending',
-                    history: ['-115', '-115', '-115']
-                },
-                {
-                    id: 'ticket-991399486',
-                    ticketNumber: '991399486',
-                    event: 'NC STATE at VIRGINIA / MEMPHIS at UNLV',
-                    matchup: 'NCST @ UVA / MEM @ UNLV',
-                    target: 'Teaser (2 Teams) — NC State +10.5 & Memphis +10.5',
-                    selection: 'Teaser — NC State +10.5 & Memphis +10.5 (-120)',
-                    type: 'Teaser',
-                    side: 'NC State +10.5 / Memphis +10.5',
-                    sportsbook: 'BetOnline',
-                    bookmaker: 'BetOnline',
-                    stake: 120.00,
-                    wager: 120.00,
-                    toWin: 100.00,
-                    placedOdds: '-120',
-                    currentOdds: '-120',
-                    status: 'PENDING',
-                    acceptedDate: '8/29/26',
-                    timestamp: '2026-08-29T15:30:00.000Z',
-                    description: 'Football - NCAA - NC State vs Virginia - Teaser | 317 NC State +10½ -115 for GAME | 08/29/2026 03:30:00 PM (EST) | Pending | Neutral Field | Football - NCAA - Memphis vs UNLV - Teaser | 315 Memphis +10½ -108 for GAME | 08/29/2026 10:00:00 PM (EST) | Pending',
-                    history: ['-120', '-120', '-120']
-                },
-                {
-                    id: 'ticket-991399310',
-                    ticketNumber: '991399310',
-                    event: 'NC STATE at VIRGINIA / MEMPHIS at UNLV',
-                    matchup: 'NCST @ UVA / MEM @ UNLV',
-                    target: 'Parlay (2 Teams) — NC State +4 & Memphis +4',
-                    selection: 'Parlay — NC State +4 & Memphis +4 (+260)',
-                    type: 'Parlay',
-                    side: 'NC State +4 / Memphis +4',
-                    sportsbook: 'BetOnline',
-                    bookmaker: 'BetOnline',
-                    stake: 50.00,
-                    wager: 50.00,
-                    toWin: 130.00,
-                    placedOdds: '+260',
-                    currentOdds: '+260',
-                    status: 'PENDING',
-                    acceptedDate: '8/29/26',
-                    timestamp: '2026-08-29T15:30:00.000Z',
-                    description: 'Football - NCAA - NC State vs Virginia - Parlay | 317 NC State +4 -115 for GAME | 08/29/2026 03:30:00 PM (EST) | Pending | Neutral Field | Football - NCAA - Memphis vs UNLV - Parlay | 315 Memphis +4 -108 for GAME | 08/29/2026 10:00:00 PM (EST) | Pending',
-                    history: ['+260', '+260', '+260']
-                }
-            ];
-
-            fetched = gradedWagers;
-            localStorage.setItem('destiny_game_wagers', JSON.stringify(fetched));
-
             wagers = fetched.map(normalizeWager);
         }
 
@@ -1246,6 +1124,66 @@
                         <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="16" cy="16" r="15" fill="#002244" stroke="#FB4F14" stroke-width="2"/>
                             <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#FB4F14" text-anchor="middle">DEN</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('FRESNO') || key.includes('BULLDOGS')) {
+                return `
+                    <div class="team-logo-badge" title="Fresno State Bulldogs" style="display:inline-flex; align-items:center;">
+                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#C41230" stroke="#FFFFFF" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="9" fill="#FFFFFF" text-anchor="middle">FRES</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('USC') || key.includes('TROJANS')) {
+                return `
+                    <div class="team-logo-badge" title="USC Trojans" style="display:inline-flex; align-items:center;">
+                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#990000" stroke="#FFC72C" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="10" fill="#FFC72C" text-anchor="middle">USC</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('CLEM') || key.includes('CLEMSON')) {
+                return `
+                    <div class="team-logo-badge" title="Clemson Tigers" style="display:inline-flex; align-items:center;">
+                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#F56600" stroke="#522D80" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="9" fill="#FFFFFF" text-anchor="middle">CLEM</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('LSU') || key.includes('LOUISIANA STATE')) {
+                return `
+                    <div class="team-logo-badge" title="LSU Tigers" style="display:inline-flex; align-items:center;">
+                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#461D7C" stroke="#FDD023" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="10" fill="#FDD023" text-anchor="middle">LSU</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('MIA') || key.includes('MIAMI')) {
+                return `
+                    <div class="team-logo-badge" title="Miami Hurricanes" style="display:inline-flex; align-items:center;">
+                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#F47321" stroke="#005030" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="10" fill="#FFFFFF" text-anchor="middle">MIA</text>
+                        </svg>
+                    </div>
+                `;
+            }
+            if (key.includes('STAN') || key.includes('STANFORD')) {
+                return `
+                    <div class="team-logo-badge" title="Stanford Cardinal" style="display:inline-flex; align-items:center;">
+                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" fill="#8C1515" stroke="#FFFFFF" stroke-width="2"/>
+                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="9" fill="#FFFFFF" text-anchor="middle">STAN</text>
                         </svg>
                     </div>
                 `;
@@ -1354,15 +1292,63 @@
             ];
         }
 
+        function settleWagerDirect(id, status) {
+            const w = wagers.find(item => item.id === id);
+            if (!w) return;
+
+            if (confirm(`Settle wager ${w.ticketNumber || w.id} (${w.selection || w.target}) as ${status}?`)) {
+                if (window.DestinyState && window.DestinyState.settleWager) {
+                    window.DestinyState.settleWager(id, status);
+                    wagers = window.DestinyState.getWagers().map(normalizeWager);
+                } else {
+                    w.status = status;
+                    localStorage.setItem('destiny_game_wagers', JSON.stringify(wagers));
+                }
+
+                renderWagersLedger();
+                if (selectedWagerId === id || !selectedWagerId) {
+                    selectWager(id);
+                }
+                addLiveFeedLog(`Wager ${w.ticketNumber || w.id} manually settled as ${status}`, status === 'WON' ? 'up' : 'down');
+            }
+        }
+
+        function cashoutPosition(id) {
+            const w = wagers.find(item => item.id === id);
+            if (!w || w.status !== 'PENDING') return;
+
+            const cashValue = calculateCashoutValue(w.stake, w.placedOdds, w.currentOdds, w.status);
+            if (confirm(`Confirm Cashout position for $${cashValue.toFixed(2)}? This closes the trading block immediately.`)) {
+                if (window.DestinyState && window.DestinyState.settleWager) {
+                    window.DestinyState.settleWager(id, 'CASHED', cashValue);
+                    wagers = window.DestinyState.getWagers().map(normalizeWager);
+                } else {
+                    w.status = 'CASHED';
+                    w.stake = cashValue;
+                    localStorage.setItem('destiny_game_wagers', JSON.stringify(wagers));
+                }
+
+                renderWagersLedger();
+                selectWager(id);
+                addLiveFeedLog(`Position Settled via Cashout: ${w.target} for $${cashValue.toFixed(2)}`, 'up');
+            }
+        }
+
+        function settleSelectedWager(status) {
+            if (!selectedWagerId) return;
+            settleWagerDirect(selectedWagerId, status);
+        }
+
         // Render Positions Ledger List
         function renderWagersLedger() {
             const container = document.getElementById('wagerListContainer');
             container.innerHTML = '';
 
             const filtered = wagers.filter(w => {
+                const st = String(w.status || '').toUpperCase();
                 if (activeFilter === 'ALL') return true;
-                if (activeFilter === 'ACTIVE' || activeFilter === 'PENDING') return w.status === 'PENDING';
-                if (activeFilter === 'SETTLED') return w.status === 'WON' || w.status === 'LOST';
+                if (activeFilter === 'ACTIVE' || activeFilter === 'PENDING') return st === 'PENDING' || st === 'OPEN';
+                if (activeFilter === 'SETTLED') return st === 'WON' || st === 'LOST' || st === 'CASHED' || st === 'PUSH';
                 return true;
             });
 
@@ -1430,9 +1416,9 @@
                 }
 
                 const chartId = `chart-canvas-${w.id}`;
-                const isSettled = w.status === 'WON' || w.status === 'LOST' || w.status === 'CASHED';
-                const cashoutVal = isSettled ? (w.status === 'WON' ? payoutReturn : 0) : (w.stake * 0.95);
-                const cashoutText = isSettled ? (w.status === 'WON' ? 'WON SETTLED' : 'LOST SETTLED') : 'FAIR VALUE CASHOUT OFFER';
+                const isSettled = w.status === 'WON' || w.status === 'LOST' || w.status === 'CASHED' || w.status === 'PUSH';
+                const cashoutVal = isSettled ? (w.status === 'WON' ? payoutReturn : (w.status === 'PUSH' ? w.stake : 0)) : (w.stake * 0.95);
+                const cashoutText = isSettled ? `${w.status} SETTLED` : 'FAIR VALUE CASHOUT OFFER';
 
                 card.innerHTML = `
                     <div class="wager-card-top" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
@@ -1456,12 +1442,12 @@
                         </div>
                         <div>
                             <div class="body-label">Stake / Return</div>
-                            <div class="body-val" style="color:#fff; font-weight:800; font-size:12px;">$${w.stake.toFixed(0)} → <span style="color:var(--win); font-weight:900;">$${payoutReturn.toFixed(0)}</span></div>
+                            <div class="body-val" style="color:#fff; font-weight:800; font-size:12px;">$${w.stake.toFixed(2)} → <span style="color:var(--win); font-weight:900;">$${payoutReturn.toFixed(2)}</span></div>
                         </div>
                     </div>
 
                     <!-- INDIVIDUAL CHART & VALUATION INSPECTOR BLOCK -->
-                    <div class="wager-inspector-block" style="background:rgba(15, 23, 42, 0.6); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px; margin-top:10px; font-family:var(--font-mono);">
+                    <div class="wager-inspector-block" style="background:rgba(15, 23, 42, 0.6); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px; margin-top:10px; font-family:var(--font-mono);" onclick="event.stopPropagation();">
                         <div style="background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px; margin-bottom:10px;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                                 <div>
@@ -1502,12 +1488,25 @@
                                 <div style="font-size:18px; font-weight:900; color:#10b981; font-family:var(--font-mono); margin:1px 0;">$${cashoutVal.toFixed(2)}</div>
                                 <div style="font-size:8px; color:var(--muted); margin-bottom:4px;">Final Payout: <strong style="color:#fff;">$${payoutReturn.toFixed(2)}</strong></div>
                                 ${!isSettled ? `
-                                    <button onclick="cashoutPosition('${w.id}')" style="background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.4); color:#10b981; font-family:var(--font-mono); font-size:9px; font-weight:900; padding:4px 8px; border-radius:4px; cursor:pointer; width:100%;">
-                                        CASH OUT POSITION
-                                    </button>
+                                    <div style="display:flex; flex-direction:column; gap:4px; width:100%; margin-top:2px;">
+                                        <button onclick="cashoutPosition('${w.id}')" style="background:rgba(245, 158, 11, 0.15); border:1px solid rgba(245, 158, 11, 0.4); color:#f59e0b; font-family:var(--font-mono); font-size:9px; font-weight:900; padding:4px 6px; border-radius:4px; cursor:pointer; width:100%;">
+                                            ⚡ CASH OUT POSITION
+                                        </button>
+                                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:3px;">
+                                            <button onclick="settleWagerDirect('${w.id}', 'WON')" style="background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.4); color:#10b981; font-family:var(--font-mono); font-size:8px; font-weight:900; padding:3px 0; border-radius:3px; cursor:pointer;">
+                                                🟢 WIN
+                                            </button>
+                                            <button onclick="settleWagerDirect('${w.id}', 'LOST')" style="background:rgba(239, 68, 68, 0.15); border:1px solid rgba(239, 68, 68, 0.4); color:#ef4444; font-family:var(--font-mono); font-size:8px; font-weight:900; padding:3px 0; border-radius:3px; cursor:pointer;">
+                                                🔴 LOSS
+                                            </button>
+                                            <button onclick="settleWagerDirect('${w.id}', 'PUSH')" style="background:rgba(107, 114, 128, 0.15); border:1px solid rgba(107, 114, 128, 0.4); color:#9ca3af; font-family:var(--font-mono); font-size:8px; font-weight:900; padding:3px 0; border-radius:3px; cursor:pointer;">
+                                                ⚪ PUSH
+                                            </button>
+                                        </div>
+                                    </div>
                                 ` : `
-                                    <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--muted); font-family:var(--font-mono); font-size:9px; font-weight:800; padding:3px 6px; border-radius:4px; width:100%;">
-                                        POSITION SETTLED
+                                    <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--muted); font-family:var(--font-mono); font-size:9px; font-weight:800; padding:4px 6px; border-radius:4px; width:100%;">
+                                        POSITION SETTLED (${w.status})
                                     </div>
                                 `}
                             </div>
