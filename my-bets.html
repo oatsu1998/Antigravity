@@ -767,11 +767,12 @@
             <!-- LEFT SCREEN: ACTIVE POSITIONS -->
             <div class="position-manager">
                 <div class="manager-header">
-                    <div class="manager-title">Positions Ledger</div>
+                    <div class="manager-title">My Bets</div>
                     <div class="filter-tabs">
-                        <button class="filter-tab active" onclick="switchFilter('ALL', this)">ALL</button>
-                        <button class="filter-tab" onclick="switchFilter('PENDING', this)">ACTIVE</button>
-                        <button class="filter-tab" onclick="switchFilter('SETTLED', this)">SETTLED</button>
+                        <button class="filter-tab active" onclick="switchFilter('ACTIVE', this)">ACTIVE</button>
+                        <button class="filter-tab" onclick="switchFilter('WON', this)">WON</button>
+                        <button class="filter-tab" onclick="switchFilter('LOST', this)">LOST</button>
+                        <button class="filter-tab" onclick="switchFilter('ALL', this)">ALL</button>
                     </div>
                 </div>
 
@@ -952,10 +953,10 @@
 
     <!-- CORE SCRIPT IMPLEMENTATION -->
     <script>
-        // Placed bets sc        let wagers = [];
+        let wagers = [];
         let selectedWagerId = null;
         let chartInstance = null;
-        let activeFilter = 'ALL';
+        let activeFilter = 'ACTIVE';
 
         // Normalize wagers to ensure cross-page compatibility and prevent errors
         function normalizeWager(w) {
@@ -1078,22 +1079,22 @@
         }
 
         function parseMatchupTeams(eventStr = '', matchupStr = '') {
-            let cleanStr = (eventStr + ' ' + matchupStr).toUpperCase().trim();
+            let cleanStr = (matchupStr || eventStr || '').toUpperCase().trim();
             let awayStr = '';
             let homeStr = '';
 
-            if (cleanStr.includes('@')) {
-                const parts = cleanStr.split('@');
-                awayStr = parts[0].trim();
-                homeStr = parts[1].trim();
-            } else if (cleanStr.includes(' AT ')) {
+            if (cleanStr.includes(' AT ')) {
                 const parts = cleanStr.split(' AT ');
                 awayStr = parts[0].trim();
-                homeStr = parts[1].trim();
+                homeStr = parts[parts.length - 1].trim();
+            } else if (cleanStr.includes('@')) {
+                const parts = cleanStr.split('@');
+                awayStr = parts[0].trim();
+                homeStr = parts[parts.length - 1].trim();
             } else if (cleanStr.includes(' VS ')) {
                 const parts = cleanStr.split(' VS ');
                 awayStr = parts[0].trim();
-                homeStr = parts[1].trim();
+                homeStr = parts[parts.length - 1].trim();
             } else {
                 awayStr = cleanStr;
                 homeStr = cleanStr;
@@ -1348,6 +1349,8 @@
                 const st = String(w.status || '').toUpperCase();
                 if (activeFilter === 'ALL') return true;
                 if (activeFilter === 'ACTIVE' || activeFilter === 'PENDING') return st === 'PENDING' || st === 'OPEN';
+                if (activeFilter === 'WON') return st === 'WON';
+                if (activeFilter === 'LOST') return st === 'LOST';
                 if (activeFilter === 'SETTLED') return st === 'WON' || st === 'LOST' || st === 'CASHED' || st === 'PUSH';
                 return true;
             });

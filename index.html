@@ -3665,22 +3665,22 @@
         }
 
         function parseMatchupTeams(eventStr = '', matchupStr = '') {
-            let cleanStr = (eventStr + ' ' + matchupStr).toUpperCase().trim();
+            let cleanStr = (matchupStr || eventStr || '').toUpperCase().trim();
             let awayStr = '';
             let homeStr = '';
 
             if (cleanStr.includes(' AT ')) {
                 const parts = cleanStr.split(' AT ');
                 awayStr = parts[0].trim();
-                homeStr = parts[1].trim();
+                homeStr = parts[parts.length - 1].trim();
             } else if (cleanStr.includes('@')) {
                 const parts = cleanStr.split('@');
                 awayStr = parts[0].trim();
-                homeStr = parts[1].trim();
+                homeStr = parts[parts.length - 1].trim();
             } else if (cleanStr.includes(' VS ')) {
                 const parts = cleanStr.split(' VS ');
                 awayStr = parts[0].trim();
-                homeStr = parts[1].trim();
+                homeStr = parts[parts.length - 1].trim();
             } else {
                 awayStr = cleanStr;
                 homeStr = cleanStr;
