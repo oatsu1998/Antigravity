@@ -1505,7 +1505,7 @@
 
             const liveWagers = wagers.filter(w => w.status === 'PENDING' || w.status === 'OPEN');
             const gradedWagers = wagers.filter(w => w.status === 'WON' || w.status === 'LOST' || w.status === 'CASHED' || w.status === 'PUSH');
-            const allWagersList = wagers;
+            const allWagersList = wagers.filter(w => w.status === 'WON' || w.status === 'LOST' || w.status === 'CASHED' || w.status === 'PUSH');
 
             // Update Header Badges
             const liveBadge = document.getElementById('liveBetsCountBadge');
@@ -1515,7 +1515,7 @@
             if (gradedBadge) gradedBadge.textContent = `${gradedWagers.length} GRADED TODAY`;
 
             const allBadge = document.getElementById('allBetsCountBadge');
-            if (allBadge) allBadge.textContent = `${allWagersList.length} POSITIONS TOTAL`;
+            if (allBadge) allBadge.textContent = `${allWagersList.length} SETTLED POSITION${allWagersList.length === 1 ? '' : 'S'}`;
 
             // Render Section 1: LIVE BETS
             if (liveContainer) {
