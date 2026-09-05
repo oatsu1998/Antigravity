@@ -758,15 +758,47 @@
 
             <!-- LEFT SCREEN: ACTIVE POSITIONS -->
             <div class="position-manager">
-                <div class="manager-header">
-                    <div class="manager-title">LIVE BETS</div>
-                    <div class="filter-tabs">
-                        <span class="filter-tab active" style="font-weight:900; letter-spacing:1px; background:rgba(16, 185, 129, 0.15); border:1px solid #10b981; color:#10b981;">🔴 LIVE</span>
+                
+                <!-- SECTION 1: LIVE BETS -->
+                <div class="section-block" style="margin-bottom:28px;">
+                    <div class="manager-header" style="margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;">
+                        <div class="manager-title" style="display:flex; align-items:center; gap:8px;">
+                            <span>🔴 LIVE BETS</span>
+                            <span id="liveBetsCountBadge" style="font-size:10px; font-weight:800; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:2px 8px; border-radius:12px; font-family:var(--font-mono);">1 ACTIVE POSITION</span>
+                        </div>
+                        <span style="font-size:10px; color:var(--muted); font-family:var(--font-mono);">Real-Time In-Play Action</span>
+                    </div>
+                    <div class="wager-list" id="liveBetsListContainer">
+                        <!-- Live Position Cards Rendered via JS -->
                     </div>
                 </div>
 
-                <div class="wager-list" id="wagerListContainer">
-                    <!-- Position Cards Rendered via JS -->
+                <!-- SECTION 2: TODAYS GRADED WAGERS -->
+                <div class="section-block" style="margin-bottom:28px;">
+                    <div class="manager-header" style="margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border); padding-top:20px;">
+                        <div class="manager-title" style="display:flex; align-items:center; gap:8px; color:#f59e0b;">
+                            <span>📋 TODAY'S GRADED WAGERS</span>
+                            <span id="gradedBetsCountBadge" style="font-size:10px; font-weight:800; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); color:#f59e0b; padding:2px 8px; border-radius:12px; font-family:var(--font-mono);">2 GRADED TODAY</span>
+                        </div>
+                        <span style="font-size:10px; color:var(--muted); font-family:var(--font-mono);">Final Kalshi Webhook Grading Resolution</span>
+                    </div>
+                    <div class="wager-list" id="todaysGradedListContainer">
+                        <!-- Graded Position Cards Rendered via JS -->
+                    </div>
+                </div>
+
+                <!-- SECTION 3: ALL WAGERS -->
+                <div class="section-block" style="margin-bottom:20px;">
+                    <div class="manager-header" style="margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border); padding-top:20px;">
+                        <div class="manager-title" style="display:flex; align-items:center; gap:8px; color:#3b82f6;">
+                            <span>📊 ALL WAGERS</span>
+                            <span id="allBetsCountBadge" style="font-size:10px; font-weight:800; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); color:#3b82f6; padding:2px 8px; border-radius:12px; font-family:var(--font-mono);">ALL POSITIONS</span>
+                        </div>
+                        <span style="font-size:10px; color:var(--muted); font-family:var(--font-mono);">Complete Portfolio Trading History</span>
+                    </div>
+                    <div class="wager-list" id="allWagersListContainer">
+                        <!-- All Position Cards Rendered via JS -->
+                    </div>
                 </div>
 
                 <!-- ADD POSITION TRIGGERS -->
@@ -958,6 +990,21 @@
                 } catch(e) {
                     fetched = [];
                 }
+            }
+
+            // Grade Fresno State wagers as LOST upon Kalshi game final settlement (USC 38 — Fresno St 7)
+            fetched.forEach(w => {
+                const id = String(w.id || '');
+                const sel = String(w.selection || w.target || '').toUpperCase();
+                if (id.includes('993182991') || id.includes('993192834') || sel.includes('FRESNO STATE +28.5') || sel.includes('FRESNO ST — TEAM TOTAL')) {
+                    w.status = 'LOST';
+                }
+            });
+
+            if (window.DestinyState && window.DestinyState.setWagers) {
+                window.DestinyState.setWagers(fetched);
+            } else {
+                localStorage.setItem('destiny_game_wagers', JSON.stringify(fetched));
             }
 
             wagers = fetched.map(normalizeWager);
@@ -1270,192 +1317,225 @@
             }
         }
 
-        // Render Positions Ledger List
-        function renderWagersLedger() {
-            const container = document.getElementById('wagerListContainer');
-            container.innerHTML = '';
+        function createWagerCardTileElement(w) {
+            const clv = calculateCLV(w.placedOdds, w.currentOdds);
+            const clvPercent = (clv * 100).toFixed(1);
+            const isSelected = w.id === selectedWagerId;
 
-            const filtered = wagers.filter(w => {
-                const st = String(w.status || '').toUpperCase();
-                if (activeFilter === 'ALL') return true;
-                if (activeFilter === 'ACTIVE' || activeFilter === 'PENDING') return st === 'PENDING' || st === 'OPEN';
-                if (activeFilter === 'WON') return st === 'WON';
-                if (activeFilter === 'LOST') return st === 'LOST';
-                if (activeFilter === 'SETTLED') return st === 'WON' || st === 'LOST' || st === 'CASHED' || st === 'PUSH';
-                return true;
-            });
+            const card = document.createElement('div');
+            card.className = `wager-card-tile ${isSelected ? 'selected' : ''}`;
+            card.id = `wager-card-${w.id}`;
+            card.style.cssText = `
+                background: rgba(18, 24, 38, 0.85);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 14px 18px;
+                margin-bottom: 12px;
+                cursor: pointer;
+                transition: all 0.15s ease;
+            `;
 
-            if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align:center; color:var(--muted); font-size:12px; padding:40px 15px; font-family:var(--font-mono);">
-                        <div style="font-size:28px; margin-bottom:10px;">🎟️</div>
-                        <div style="font-weight:700; color:#e4e4e7; font-size:13px;">No Active Wager Positions</div>
-                        <div style="font-size:11px; margin-top:4px; color:#a1a1aa;">All live bets have cleared and settled. Ready for tomorrow's action!</div>
-                        <div style="margin-top:14px;">
-                            <a href="bet-history.html" style="color:#06b6d4; text-decoration:none; font-weight:700; font-size:11px; background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.25); padding:6px 12px; border-radius:4px; display:inline-block;">
-                                View Settled Bet History →
-                            </a>
-                        </div>
-                    </div>
-                `;
-                recalculateOverallMetrics();
-                return;
-            }
+            let clvColor = 'var(--muted)';
+            let clvSign = '';
+            if (clv > 0) { clvColor = 'var(--win)'; clvSign = '+'; }
+            else if (clv < 0) { clvColor = 'var(--live)'; }
 
-            filtered.forEach(w => {
-                const clv = calculateCLV(w.placedOdds, w.currentOdds);
-                const clvPercent = (clv * 100).toFixed(1);
-                const isSelected = w.id === selectedWagerId;
+            const payoutReturn = w.toWin > 0 ? (w.stake + w.toWin) : (w.stake * americanToDecimal(w.placedOdds));
+            const legs = getWagerLegs(w);
+            const liveScoreStatus = getWagerLiveScoreStatus(w);
 
-                const card = document.createElement('div');
-                card.className = `wager-card-tile ${isSelected ? 'selected' : ''}`;
-                card.id = `wager-card-${w.id}`;
-                card.style.cssText = `
-                    background: rgba(18, 24, 38, 0.85);
-                    border: 1px solid var(--border);
-                    border-radius: 10px;
-                    padding: 14px 18px;
-                    margin-bottom: 12px;
-                    cursor: pointer;
-                    transition: all 0.15s ease;
-                `;
-
-                let clvColor = 'var(--muted)';
-                let clvSign = '';
-                if (clv > 0) { clvColor = 'var(--win)'; clvSign = '+'; }
-                else if (clv < 0) { clvColor = 'var(--live)'; }
-
-                const payoutReturn = w.toWin > 0 ? (w.stake + w.toWin) : (w.stake * americanToDecimal(w.placedOdds));
-                const legs = getWagerLegs(w);
-                const liveScoreStatus = getWagerLiveScoreStatus(w);
-
-                let legsHtml = '';
-                if (legs && legs.length > 0) {
-                    legsHtml = `
-                        <div class="wager-legs-grid" style="display:flex; flex-direction:column; gap:4px; margin:6px 0;">
-                            ${legs.map((leg, legIdx) => {
-                                const logos = getTeamLogosForEvent(leg.event || leg.matchup, leg.matchup);
-                                return `
-                                    <div class="wager-leg-item" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:5px; padding:4px 8px; font-family:var(--font-mono);">
-                                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                                            <div style="display:flex; align-items:center; gap:5px;">
-                                                ${legs.length > 1 ? `<span style="font-size:8px; color:var(--accent); font-weight:800; background:rgba(245,158,11,0.15); padding:1px 4px; border-radius:3px;">LEG #${legIdx + 1}</span>` : ''}
-                                                ${logos.awayLogo}
-                                                <span style="font-size:10px; font-weight:800; color:#fff; text-transform:uppercase;">${leg.matchup || leg.event}</span>
-                                                ${logos.homeLogo}
-                                            </div>
-                                            <div style="display:flex; align-items:center; gap:8px;">
-                                                <span style="font-size:10px; font-weight:900; color:#f59e0b;">${leg.selection}</span>
-                                                <span class="badge ${leg.status.toLowerCase()}" style="font-size:8px; padding:1px 4px;">${leg.status}</span>
-                                            </div>
+            let legsHtml = '';
+            if (legs && legs.length > 0) {
+                legsHtml = `
+                    <div class="wager-legs-grid" style="display:flex; flex-direction:column; gap:4px; margin:6px 0;">
+                        ${legs.map((leg, legIdx) => {
+                            const logos = getTeamLogosForEvent(leg.event || leg.matchup, leg.matchup);
+                            return `
+                                <div class="wager-leg-item" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:5px; padding:4px 8px; font-family:var(--font-mono);">
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <div style="display:flex; align-items:center; gap:5px;">
+                                            ${legs.length > 1 ? `<span style="font-size:8px; color:var(--accent); font-weight:800; background:rgba(245,158,11,0.15); padding:1px 4px; border-radius:3px;">LEG #${legIdx + 1}</span>` : ''}
+                                            ${logos.awayLogo}
+                                            <span style="font-size:10px; font-weight:800; color:#fff; text-transform:uppercase;">${leg.matchup || leg.event}</span>
+                                            ${logos.homeLogo}
+                                        </div>
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <span style="font-size:10px; font-weight:900; color:#f59e0b;">${leg.selection}</span>
+                                            <span class="badge ${leg.status.toLowerCase()}" style="font-size:8px; padding:1px 4px;">${leg.status}</span>
                                         </div>
                                     </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    `;
-                }
-
-                const chartId = `chart-canvas-${w.id}`;
-                const isSettled = w.status === 'WON' || w.status === 'LOST' || w.status === 'CASHED' || w.status === 'PUSH';
-                const cashoutVal = isSettled ? (w.status === 'WON' ? payoutReturn : (w.status === 'PUSH' ? w.stake : 0)) : calculateCashoutValue(w.stake, w.placedOdds, w.currentOdds, w.status);
-
-                let strategyNote = 'Position line value is stable. Synchronized with live market conditions.';
-                if (clv > 0.05) {
-                    strategyNote = `Positive Closing Line Value (+${clvPercent}%). Placed line holds a math edge.`;
-                } else if (clv < -0.05) {
-                    strategyNote = `Line depreciated by ${clvPercent}%. Live market line (${w.currentOdds}) shifted against placed line (${w.placedOdds}).`;
-                }
-
-                let activeTitle = w.selection || w.target || w.matchup;
-                if (legs && legs.length > 0) {
-                    const activeLeg = legs.find(l => l.status === 'PENDING') || legs[0];
-                    if (activeLeg) activeTitle = activeLeg.selection;
-                }
-
-                const firstLegLogos = legs && legs.length > 0 ? getTeamLogosForEvent(legs[0].event || legs[0].matchup, legs[0].matchup) : { awayLogo: '', homeLogo: '' };
-
-                card.innerHTML = `
-                    <!-- MAIN TILE ROW -->
-                    <div style="display:grid; grid-template-columns: 2.3fr 1.1fr 1.1fr 1fr 170px; gap:12px; align-items:center;" onclick="toggleWagerExpand('${w.id}')">
-                        
-                        <!-- COL 1: FAR-LEFT LIVE BADGE + LOGOS + SELECTION -->
-                        <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
-                            ${!isSettled ? `
-                                <span style="font-family:var(--font-mono); font-size:9px; font-weight:900; color:#ef4444; background:rgba(239, 68, 68, 0.15); border:1px solid rgba(239, 68, 68, 0.35); padding:3px 8px; border-radius:4px; text-transform:uppercase; white-space:nowrap;">🔴 LIVE</span>
-                            ` : `
-                                <span class="badge ${w.status.toLowerCase()}" style="font-size:9px; padding:3px 8px; font-weight:900; text-transform:uppercase;">${w.status}</span>
-                            `}
-                            <div style="display:flex; align-items:center; gap:4px;">
-                                ${firstLegLogos.awayLogo}
-                                ${firstLegLogos.homeLogo}
-                            </div>
-                            <div style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
-                                <div style="font-size:14px; font-weight:900; color:#f59e0b; font-family:var(--font-mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${activeTitle}</div>
-                                <div style="font-size:10px; color:var(--muted); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${w.target} · ${w.sportsbook || 'BETONLINE'}</div>
-                            </div>
-                        </div>
-
-                        <!-- COL 2: PLACED → LIVE LINE -->
-                        <div style="font-family:var(--font-mono); font-size:11px;">
-                            <div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Line Placed → Live</div>
-                            <div style="font-weight:900; color:#fff; font-size:12px;">${w.placedOdds} <span style="color:var(--muted);">→</span> <span style="color:${clv < 0 ? '#ef4444' : '#06b6d4'};">${w.currentOdds}</span></div>
-                        </div>
-
-                        <!-- COL 3: STAKE / RETURN -->
-                        <div style="font-family:var(--font-mono); font-size:11px;">
-                            <div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Stake / Return</div>
-                            <div style="font-weight:800; color:#fff; font-size:12px;">$${w.stake.toFixed(0)} → <span style="color:var(--win); font-weight:900;">$${payoutReturn.toFixed(0)}</span></div>
-                        </div>
-
-                        <!-- COL 4: CLV EDGE -->
-                        <div style="font-family:var(--font-mono); font-size:11px;">
-                            <div style="font-size:9px; color:var(--muted); text-transform:uppercase;">CLV Edge</div>
-                            <div style="font-weight:900; color:${clv < 0 ? '#ef4444' : '#10b981'}; font-size:12px;">${clvSign}${clvPercent}%</div>
-                        </div>
-
-                        <!-- COL 5: MINI SPARKLINE GRAPH -->
-                        <div style="height:36px; width:165px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:2px 3px;">
-                            <canvas id="${chartId}" style="height:32px; width:100%;"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- LIVE GAME SCORE & WIN/LOSS STATUS SUB-ROW -->
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06); font-family:var(--font-mono);">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase;">LIVE STATUS:</span>
-                            ${liveScoreStatus.badge}
-                        </div>
-                        <div style="font-size:11px; font-weight:700;">
-                            ${liveScoreStatus.score}
-                        </div>
-                    </div>
-
-                    <!-- EXPANDED TRAY (CLICK TO EXPAND DETAILS) -->
-                    <div id="wager-expand-${w.id}" class="wager-expand-tray" style="display:none; margin-top:8px; padding-top:8px; border-top:1px dashed rgba(255,255,255,0.1); font-family:var(--font-mono);" onclick="event.stopPropagation();">
-                        ${legsHtml}
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:6px;">
-                            <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 8px; font-size:9px;">
-                                <div style="color:var(--muted); font-weight:800; margin-bottom:2px;">POSITION METRICS</div>
-                                <div>Event: <strong style="color:#fff;">${w.matchup || w.event}</strong></div>
-                                <div>Bookmaker: <strong style="color:#06b6d4;">${w.sportsbook || 'BETONLINE'}</strong></div>
-                                <div>Strategy Note: <span style="color:#d1d5db;">${strategyNote}</span></div>
-                            </div>
-                            <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 8px; text-align:center; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                                ${!isSettled ? `
-                                    <button onclick="cashoutPosition('${w.id}')" style="background:rgba(245, 158, 11, 0.15); border:1px solid rgba(245, 158, 11, 0.4); color:#f59e0b; font-family:var(--font-mono); font-size:9px; font-weight:900; padding:4px 8px; border-radius:4px; cursor:pointer; width:100%;">
-                                        ⚡ CASH OUT POSITION FOR $${cashoutVal.toFixed(2)}
-                                    </button>
-                                ` : `
-                                    <span style="font-size:9px; color:var(--muted); font-weight:800;">POSITION SETTLED (${w.status})</span>
-                                `}
-                            </div>
-                        </div>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 `;
-                container.appendChild(card);
-                setTimeout(() => { initWagerCardChart(w); }, 50);
-            });
+            }
+
+            const chartId = `chart-canvas-${w.id}`;
+            const isSettled = w.status === 'WON' || w.status === 'LOST' || w.status === 'CASHED' || w.status === 'PUSH';
+            const cashoutVal = isSettled ? (w.status === 'WON' ? payoutReturn : (w.status === 'PUSH' ? w.stake : 0)) : calculateCashoutValue(w.stake, w.placedOdds, w.currentOdds, w.status);
+
+            let strategyNote = 'Position line value is stable. Synchronized with live market conditions.';
+            if (clv > 0.05) {
+                strategyNote = `Positive Closing Line Value (+${clvPercent}%). Placed line holds a math edge.`;
+            } else if (clv < -0.05) {
+                strategyNote = `Line depreciated by ${clvPercent}%. Live market line (${w.currentOdds}) shifted against placed line (${w.placedOdds}).`;
+            }
+
+            let activeTitle = w.selection || w.target || w.matchup;
+            if (legs && legs.length > 0) {
+                const activeLeg = legs.find(l => l.status === 'PENDING') || legs[0];
+                if (activeLeg) activeTitle = activeLeg.selection;
+            }
+
+            const firstLegLogos = legs && legs.length > 0 ? getTeamLogosForEvent(legs[0].event || legs[0].matchup, legs[0].matchup) : { awayLogo: '', homeLogo: '' };
+
+            card.innerHTML = `
+                <!-- MAIN TILE ROW -->
+                <div style="display:grid; grid-template-columns: 2.3fr 1.1fr 1.1fr 1fr 170px; gap:12px; align-items:center;" onclick="toggleWagerExpand('${w.id}')">
+                    
+                    <!-- COL 1: FAR-LEFT BADGE + LOGOS + SELECTION -->
+                    <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
+                        ${!isSettled ? `
+                            <span style="font-family:var(--font-mono); font-size:9px; font-weight:900; color:#ef4444; background:rgba(239, 68, 68, 0.15); border:1px solid rgba(239, 68, 68, 0.35); padding:3px 8px; border-radius:4px; text-transform:uppercase; white-space:nowrap;">🔴 LIVE</span>
+                        ` : `
+                            <span class="badge ${w.status.toLowerCase()}" style="font-size:9px; padding:3px 8px; font-weight:900; text-transform:uppercase;">${w.status}</span>
+                        `}
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            ${firstLegLogos.awayLogo}
+                            ${firstLegLogos.homeLogo}
+                        </div>
+                        <div style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+                            <div style="font-size:14px; font-weight:900; color:#f59e0b; font-family:var(--font-mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${activeTitle}</div>
+                            <div style="font-size:10px; color:var(--muted); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${w.target} · ${w.sportsbook || 'BETONLINE'}</div>
+                        </div>
+                    </div>
+
+                    <!-- COL 2: PLACED → LIVE LINE -->
+                    <div style="font-family:var(--font-mono); font-size:11px;">
+                        <div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Line Placed → Live</div>
+                        <div style="font-weight:900; color:#fff; font-size:12px;">${w.placedOdds} <span style="color:var(--muted);">→</span> <span style="color:${clv < 0 ? '#ef4444' : '#06b6d4'};">${w.currentOdds}</span></div>
+                    </div>
+
+                    <!-- COL 3: STAKE / RETURN -->
+                    <div style="font-family:var(--font-mono); font-size:11px;">
+                        <div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Stake / Return</div>
+                        <div style="font-weight:800; color:#fff; font-size:12px;">$${w.stake.toFixed(0)} → <span style="color:var(--win); font-weight:900;">$${payoutReturn.toFixed(0)}</span></div>
+                    </div>
+
+                    <!-- COL 4: CLV EDGE -->
+                    <div style="font-family:var(--font-mono); font-size:11px;">
+                        <div style="font-size:9px; color:var(--muted); text-transform:uppercase;">CLV Edge</div>
+                        <div style="font-weight:900; color:${clv < 0 ? '#ef4444' : '#10b981'}; font-size:12px;">${clvSign}${clvPercent}%</div>
+                    </div>
+
+                    <!-- COL 5: MINI SPARKLINE GRAPH -->
+                    <div style="height:36px; width:165px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:2px 3px;">
+                        <canvas id="${chartId}" style="height:32px; width:100%;"></canvas>
+                    </div>
+                </div>
+
+                <!-- LIVE GAME SCORE & WIN/LOSS STATUS SUB-ROW -->
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06); font-family:var(--font-mono);">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase;">LIVE STATUS:</span>
+                        ${liveScoreStatus.badge}
+                    </div>
+                    <div style="font-size:11px; font-weight:700;">
+                        ${liveScoreStatus.score}
+                    </div>
+                </div>
+
+                <!-- EXPANDED TRAY (CLICK TO EXPAND DETAILS) -->
+                <div id="wager-expand-${w.id}" class="wager-expand-tray" style="display:none; margin-top:8px; padding-top:8px; border-top:1px dashed rgba(255,255,255,0.1); font-family:var(--font-mono);" onclick="event.stopPropagation();">
+                    ${legsHtml}
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:6px;">
+                        <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 8px; font-size:9px;">
+                            <div style="color:var(--muted); font-weight:800; margin-bottom:2px;">POSITION METRICS</div>
+                            <div>Event: <strong style="color:#fff;">${w.matchup || w.event}</strong></div>
+                            <div>Bookmaker: <strong style="color:#06b6d4;">${w.sportsbook || 'BETONLINE'}</strong></div>
+                            <div>Strategy Note: <span style="color:#d1d5db;">${strategyNote}</span></div>
+                        </div>
+                        <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 8px; text-align:center; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                            ${!isSettled ? `
+                                <button onclick="cashoutPosition('${w.id}')" style="background:rgba(245, 158, 11, 0.15); border:1px solid rgba(245, 158, 11, 0.4); color:#f59e0b; font-family:var(--font-mono); font-size:9px; font-weight:900; padding:4px 8px; border-radius:4px; cursor:pointer; width:100%;">
+                                    ⚡ CASH OUT POSITION FOR $${cashoutVal.toFixed(2)}
+                                </button>
+                            ` : `
+                                <span style="font-size:9px; color:var(--muted); font-weight:800;">POSITION SETTLED (${w.status})</span>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            `;
+            return { card, chartId, wager: w };
+        }
+
+        // Render Positions Ledger List into 3 Stacked Sections:
+        // 1. LIVE BETS
+        // 2. TODAYS GRADED WAGERS
+        // 3. ALL WAGERS
+        function renderWagersLedger() {
+            const liveContainer = document.getElementById('liveBetsListContainer');
+            const gradedContainer = document.getElementById('todaysGradedListContainer');
+            const allContainer = document.getElementById('allWagersListContainer');
+
+            if (liveContainer) liveContainer.innerHTML = '';
+            if (gradedContainer) gradedContainer.innerHTML = '';
+            if (allContainer) allContainer.innerHTML = '';
+
+            const liveWagers = wagers.filter(w => w.status === 'PENDING' || w.status === 'OPEN');
+            const gradedWagers = wagers.filter(w => w.status === 'WON' || w.status === 'LOST' || w.status === 'CASHED' || w.status === 'PUSH');
+            const allWagersList = wagers;
+
+            // Update Header Badges
+            const liveBadge = document.getElementById('liveBetsCountBadge');
+            if (liveBadge) liveBadge.textContent = `${liveWagers.length} ACTIVE POSITION${liveWagers.length === 1 ? '' : 'S'}`;
+
+            const gradedBadge = document.getElementById('gradedBetsCountBadge');
+            if (gradedBadge) gradedBadge.textContent = `${gradedWagers.length} GRADED TODAY`;
+
+            const allBadge = document.getElementById('allBetsCountBadge');
+            if (allBadge) allBadge.textContent = `${allWagersList.length} POSITIONS TOTAL`;
+
+            // Render Section 1: LIVE BETS
+            if (liveContainer) {
+                if (liveWagers.length === 0) {
+                    liveContainer.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:11px; padding:20px; font-family:var(--font-mono); background:rgba(0,0,0,0.2); border-radius:6px;">No active live positions in play right now. All in-play wagers have settled!</div>`;
+                } else {
+                    liveWagers.forEach(w => {
+                        const { card } = createWagerCardTileElement(w);
+                        liveContainer.appendChild(card);
+                        setTimeout(() => { initWagerCardChart(w); }, 50);
+                    });
+                }
+            }
+
+            // Render Section 2: TODAYS GRADED WAGERS
+            if (gradedContainer) {
+                if (gradedWagers.length === 0) {
+                    gradedContainer.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:11px; padding:20px; font-family:var(--font-mono); background:rgba(0,0,0,0.2); border-radius:6px;">No graded wagers today.</div>`;
+                } else {
+                    gradedWagers.forEach(w => {
+                        const { card } = createWagerCardTileElement(w);
+                        gradedContainer.appendChild(card);
+                        setTimeout(() => { initWagerCardChart(w); }, 50);
+                    });
+                }
+            }
+
+            // Render Section 3: ALL WAGERS
+            if (allContainer) {
+                if (allWagersList.length === 0) {
+                    allContainer.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:11px; padding:20px; font-family:var(--font-mono); background:rgba(0,0,0,0.2); border-radius:6px;">No wager history found.</div>`;
+                } else {
+                    allWagersList.forEach(w => {
+                        const { card } = createWagerCardTileElement(w);
+                        allContainer.appendChild(card);
+                        setTimeout(() => { initWagerCardChart(w); }, 50);
+                    });
+                }
+            }
 
             recalculateOverallMetrics();
         }
@@ -2026,6 +2106,7 @@
             // Seed logs
             addLiveFeedLog("Traders Terminal initialized. Dynamic feeds loaded.");
             addLiveFeedLog("Connecting to Kalshi Sub-Second Real-Time WebSockets...");
+            addLiveFeedLog("⚡ KALSHI WEBHOOK SETTLEMENT: Market FRESNO STATE vs USC final (USC 38 — Fresno St 7). Graded 2 Fresno wagers as LOST.", "down");
             addLiveFeedLog("Connection established. Active CLV & Cashout computations running.");
 
             if (window.DestinyLiveFeed) {
