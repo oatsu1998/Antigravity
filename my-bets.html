@@ -1379,7 +1379,7 @@
 
                 card.innerHTML = `
                     <!-- MAIN COMPACT ROW -->
-                    <div style="display:grid; grid-template-columns: 2.2fr 1fr 1fr 1fr 140px 145px; gap:8px; align-items:center;" onclick="toggleWagerExpand('${w.id}')">
+                    <div style="display:grid; grid-template-columns: 2.2fr 1fr 1fr 1fr 140px 90px; gap:8px; align-items:center;" onclick="toggleWagerExpand('${w.id}')">
                         
                         <!-- COL 1: SELECTION + LOGOS + BADGE -->
                         <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
@@ -1417,20 +1417,12 @@
                             <canvas id="${chartId}" style="height:24px; width:100%;"></canvas>
                         </div>
 
-                        <!-- COL 6: QUICK SETTLE ACTIONS -->
-                        <div style="display:flex; align-items:center; justify-content:flex-end; gap:3px;" onclick="event.stopPropagation();">
+                        <!-- COL 6: STATUS BADGE -->
+                        <div style="display:flex; align-items:center; justify-content:flex-end;" onclick="event.stopPropagation();">
                             ${!isSettled ? `
-                                <button onclick="settleWagerDirect('${w.id}', 'WON')" style="background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.4); color:#10b981; font-family:var(--font-mono); font-size:8px; font-weight:900; padding:2px 4px; border-radius:3px; cursor:pointer;" title="Settle Win">
-                                    🟢 WIN
-                                </button>
-                                <button onclick="settleWagerDirect('${w.id}', 'LOST')" style="background:rgba(239, 68, 68, 0.15); border:1px solid rgba(239, 68, 68, 0.4); color:#ef4444; font-family:var(--font-mono); font-size:8px; font-weight:900; padding:2px 4px; border-radius:3px; cursor:pointer;" title="Settle Loss">
-                                    🔴 LOSS
-                                </button>
-                                <button onclick="settleWagerDirect('${w.id}', 'PUSH')" style="background:rgba(107, 114, 128, 0.15); border:1px solid rgba(107, 114, 128, 0.4); color:#9ca3af; font-family:var(--font-mono); font-size:8px; font-weight:900; padding:2px 4px; border-radius:3px; cursor:pointer;" title="Settle Push">
-                                    ⚪ PUSH
-                                </button>
+                                <span style="font-family:var(--font-mono); font-size:8px; color:#10b981; font-weight:900; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); padding:2px 6px; border-radius:3px; text-transform:uppercase;">🔴 LIVE</span>
                             ` : `
-                                <span style="font-family:var(--font-mono); font-size:8px; color:var(--muted); font-weight:800; background:rgba(255,255,255,0.05); padding:2px 4px; border-radius:3px;">SETTLED (${w.status})</span>
+                                <span style="font-family:var(--font-mono); font-size:8px; color:var(--muted); font-weight:800; background:rgba(255,255,255,0.05); padding:2px 4px; border-radius:3px; text-transform:uppercase;">SETTLED (${w.status})</span>
                             `}
                         </div>
                     </div>
