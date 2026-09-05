@@ -3636,14 +3636,16 @@
 
         function renderLivePanel() {
             let allLiveEvents = [];
-            let allEvents = [];
+            let upcomingEvents = [];
             LEAGUES.forEach(lg => {
                 if (leagueData[lg.id] && leagueData[lg.id].events) {
                     leagueData[lg.id].events.forEach(e => {
                         if (!isValidGameEvent(e, lg.id)) return;
-                        allEvents.push({ event: e, lg: lg });
-                        if (gameStatus(e, lg.id).isLive) {
+                        const st = gameStatus(e, lg.id);
+                        if (st.isLive) {
                             allLiveEvents.push({ event: e, lg: lg });
+                        } else if (!st.isFinal) {
+                            upcomingEvents.push({ event: e, lg: lg });
                         }
                     });
                 }
@@ -3658,13 +3660,13 @@
                 return `<div class="games-grid">${allLiveEvents.map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>`;
             }
 
-            if (allEvents.length > 0) {
-                allEvents.sort((a, b) => new Date(a.event.date || 0) - new Date(b.event.date || 0));
+            if (upcomingEvents.length > 0) {
+                upcomingEvents.sort((a, b) => new Date(a.event.date || 0) - new Date(b.event.date || 0));
                 return `
                     <div style="margin-bottom:12px; font-size:11px; color:var(--muted); font-weight:700;">
-                        No games currently live in-progress &mdash; showing upcoming games (next 3 days):
+                        No games currently live in-progress &mdash; showing next upcoming games (next 3 days):
                     </div>
-                    <div class="games-grid">${allEvents.slice(0, 16).map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>
+                    <div class="games-grid">${upcomingEvents.slice(0, 16).map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>
                 `;
             }
 
@@ -3672,7 +3674,7 @@
             if (loading) {
                 return '<div class="loading">LOADING LIVE GAMES...</div>';
             }
-            return `<div class="no-games"><div class="icon">◻</div>No live or upcoming games available within the next 3 days</div>`;
+            return `<div class="no-games"><div class="icon">◻</div>No live or upcoming games scheduled within the next 3 days</div>`;
         }
 
         function renderDestinyLeaguePanel() {
@@ -4419,7 +4421,7 @@
             let totalSlateGames = 0;
             LEAGUES.forEach(lg => {
                 if (leagueData[lg.id] && leagueData[lg.id].events) {
-                    totalSlateGames += leagueData[lg.id].events.length;
+                    totalSlateGames += leagueData[lg.id].events.filter(e => isValidGameEvent(e, lg.id) && !gameStatus(e, lg.id).isFinal).length;
                 }
             });
 
@@ -4459,7 +4461,7 @@
                 if (key === 'live') {
                     statusBadgeHtml = stats.live > 0 
                         ? `<span style="font-size:11px; font-weight:800; font-family:var(--font-mono); color:var(--live); background:rgba(239, 68, 68, 0.15); padding:2px 7px; border-radius:10px;">${stats.live} Live</span>`
-                        : `<span style="font-size:11px; font-weight:800; font-family:var(--font-mono); color:var(--cyan); background:rgba(6, 182, 212, 0.15); padding:2px 7px; border-radius:10px;">${stats.total || 0} Games</span>`;
+                        : `<span style="font-size:11px; font-weight:800; font-family:var(--font-mono); color:var(--cyan); background:rgba(6, 182, 212, 0.15); padding:2px 7px; border-radius:10px;">${stats.total || 0} Upcoming</span>`;
                 } else {
                     statusBadgeHtml = `
                         <div style="font-size:10px; font-family:var(--font-mono); display:flex; gap:5px; align-items:center;">
