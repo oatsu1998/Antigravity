@@ -33,6 +33,21 @@
             return sanitized;
         },
 
+        isLegacyWager: function(w) {
+            if (!w) return false;
+            const id = String(w.id || '');
+            const ticket = String(w.ticketNumber || '');
+            const date = String(w.acceptedDate || '');
+            const ts = String(w.timestamp || '');
+            const text = (String(w.event || '') + ' ' + String(w.target || '') + ' ' + String(w.matchup || '') + ' ' + String(w.selection || '') + ' ' + String(w.description || '')).toUpperCase();
+
+            if (id.includes('9913') || id.includes('9912') || ticket.includes('9913') || ticket.includes('9912')) return true;
+            if (date.includes('8/28') || date.includes('8/29') || ts.includes('2026-08-28') || ts.includes('2026-08-29')) return true;
+            if (text.includes('VIKINGS') || text.includes('BRONCOS') || text.includes('SAN JOSE') || text.includes('SJSU') || text.includes('NC STATE') || text.includes('NCST') || text.includes('MEMPHIS')) return true;
+
+            return false;
+        },
+
         getWagers: function() {
             try {
                 let stored = JSON.parse(localStorage.getItem(KEYS.WAGERS) || '[]');
@@ -121,9 +136,8 @@
                     }
                 ];
 
-                const legacyIds = ['ticket-991363123', 'ticket-991291159', 'ticket-991291089', 'ticket-991397407', 'ticket-991399486', 'ticket-991399310'];
                 if (stored && Array.isArray(stored)) {
-                    stored = stored.filter(sw => !legacyIds.includes(sw.id) && !legacyIds.some(lid => sw.ticketNumber && lid.includes(sw.ticketNumber)));
+                    stored = stored.filter(sw => !this.isLegacyWager(sw));
                 }
 
                 if (!stored || !Array.isArray(stored) || stored.length === 0) {
