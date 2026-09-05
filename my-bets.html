@@ -1599,12 +1599,26 @@
             }
         }
 
-        // Switch filtering tabs (ALL, ACTIVE, SETTLED)
+        // Switch filtering tabs (ALL, ACTIVE, WON, LOST, SETTLED)
         function switchFilter(type, btn) {
             activeFilter = type;
             document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             renderWagersLedger();
+
+            const filtered = wagers.filter(w => {
+                const st = String(w.status || '').toUpperCase();
+                if (activeFilter === 'ALL') return true;
+                if (activeFilter === 'ACTIVE' || activeFilter === 'PENDING') return st === 'PENDING' || st === 'OPEN';
+                if (activeFilter === 'WON') return st === 'WON';
+                if (activeFilter === 'LOST') return st === 'LOST';
+                if (activeFilter === 'SETTLED') return st === 'WON' || st === 'LOST' || st === 'CASHED' || st === 'PUSH';
+                return true;
+            });
+
+            if (filtered.length > 0 && !filtered.some(w => w.id === selectedWagerId)) {
+                selectWager(filtered[0].id);
+            }
         }
 
         // Recalculate Portfolio Metric Cards
@@ -1663,8 +1677,10 @@
             if (!w) return;
 
             // Bind terminal details
-            document.getElementById('termTarget').textContent = w.matchup || w.selection;
-            document.getElementById('termMatchup').textContent = `${w.target} · BETONLINE`;
+            const mainTitle = w.selection || w.target || w.matchup;
+            const subTitle = (w.event || w.target || w.matchup) + ' · ' + (w.sportsbook || w.bookmaker || 'BETONLINE');
+            document.getElementById('termTarget').textContent = mainTitle;
+            document.getElementById('termMatchup').textContent = subTitle;
 
             const badgeEl = document.getElementById('termStatusBadge');
             badgeEl.className = `live-ticker ${w.status.toLowerCase()}`;
@@ -2021,8 +2037,11 @@
             seedInitialWagers();
             renderWagersLedger();
 
-            // Auto-select first active wager on start
-            if (wagers.length > 0) {
+            // Auto-select first active (pending) wager on start
+            const firstActive = wagers.find(w => w.status === 'PENDING' || w.status === 'OPEN');
+            if (firstActive) {
+                selectWager(firstActive.id);
+            } else if (wagers.length > 0) {
                 selectWager(wagers[0].id);
             }
 
