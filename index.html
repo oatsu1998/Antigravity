@@ -2674,20 +2674,6 @@
             return `${fmt(d1)}-${fmt(d2)}`;
         }
 
-        async function fetchLeague(lg) {
-            const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard?limit=50`;
-            try {
-                const res = await fetch(url);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const data = await res.json();
-                const rawEvents = data.events || [];
-                const validEvents = rawEvents.filter(e => isValidGameEvent(e, lg.id));
-                return { ok: true, events: validEvents, rawEvents: rawEvents, leagues: data.leagues || [] };
-            } catch (e) {
-                return { ok: false, error: e.message, events: [], rawEvents: [] };
-            }
-        }
-
         function ordinalSuffix(i) {
             const j = i % 10, k = i % 100;
             if (j === 1 && k !== 11) return i + "st";
@@ -2760,6 +2746,59 @@
             const d = event.date ? new Date(event.date) : null;
             const timeStr = d ? d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : s.description;
             return { label: timeStr, cls: 'status-sched', isLive: false, isFinal: false };
+        }
+
+        function isValidGameEvent(e, lgId) {
+            if (!e) return false;
+            const comp = e.competitions?.[0];
+            if (!comp) return false;
+
+            const now = new Date();
+            const maxWindowMs = 3 * 24 * 60 * 60 * 1000; // Strictly max 3 days into future
+            const pastWindowMs = 36 * 60 * 60 * 1000;   // Past 36 hours for recent final scores
+
+            const st = gameStatus(e, lgId);
+            if (st.isLive) return true;
+
+            const eventDate = e.date ? new Date(e.date) : null;
+
+            // 1. Strict 3-day future date check
+            if (eventDate) {
+                const diff = eventDate.getTime() - now.getTime();
+                if (diff > maxWindowMs) {
+                    return false; // Reject any game > 3 days away
+                }
+                if (diff < -pastWindowMs && !st.isFinal) {
+                    return false; // Reject outdated stale games
+                }
+            } else {
+                return false;
+            }
+
+            // 2. Out-of-season / unplayed 0-0 placeholder check for NBA & NHL
+            const homeScore = parseInt(comp.competitors?.find(c => c.homeAway === 'home')?.score || 0);
+            const awayScore = parseInt(comp.competitors?.find(c => c.homeAway === 'away')?.score || 0);
+            const hasOdds = comp.odds && comp.odds.length > 0 && (comp.odds[0].details || comp.odds[0].overUnder || comp.odds[0].spread);
+
+            if ((lgId === 'nba' || lgId === 'nhl') && homeScore === 0 && awayScore === 0 && !st.isFinal && !hasOdds) {
+                return false;
+            }
+
+            return true;
+        }
+
+        async function fetchLeague(lg) {
+            const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard?limit=50`;
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                const rawEvents = data.events || [];
+                const validEvents = rawEvents.filter(e => isValidGameEvent(e, lg.id));
+                return { ok: true, events: validEvents, rawEvents: rawEvents, leagues: data.leagues || [] };
+            } catch (e) {
+                return { ok: false, error: e.message, events: [], rawEvents: [] };
+            }
         }
 
         // ── Card pin & drag state ──────────────────────────────────────────
@@ -3559,43 +3598,6 @@
         }
 
         setInterval(updateAllCountdownClocks, 1000);
-
-        function isValidGameEvent(e, lgId) {
-            if (!e) return false;
-            const comp = e.competitions?.[0];
-            if (!comp) return false;
-
-            const now = new Date();
-            const maxWindowMs = 3 * 24 * 60 * 60 * 1000; // Max 3 days into future
-            const pastWindowMs = 36 * 60 * 60 * 1000;   // Past 36 hours for recent final scores
-
-            const st = gameStatus(e, lgId);
-            const eventDate = e.date ? new Date(e.date) : null;
-
-            // 1. Strict 3-day future date check
-            if (eventDate) {
-                const diff = eventDate.getTime() - now.getTime();
-                if (diff > maxWindowMs) {
-                    return false; // Reject any game > 3 days away
-                }
-                if (diff < -pastWindowMs && !st.isLive && !st.isFinal) {
-                    return false; // Reject outdated stale games
-                }
-            } else if (!st.isLive) {
-                return false;
-            }
-
-            // 2. Out-of-season / unplayed 0-0 placeholder check for NBA & NHL
-            const homeScore = parseInt(comp.competitors?.find(c => c.homeAway === 'home')?.score || 0);
-            const awayScore = parseInt(comp.competitors?.find(c => c.homeAway === 'away')?.score || 0);
-            const hasOdds = comp.odds && comp.odds.length > 0 && (comp.odds[0].details || comp.odds[0].overUnder || comp.odds[0].spread);
-
-            if ((lgId === 'nba' || lgId === 'nhl') && homeScore === 0 && awayScore === 0 && !st.isLive && !st.isFinal && !hasOdds) {
-                return false;
-            }
-
-            return true;
-        }
 
         function renderPanel(lg, result) {
             let html = '';
