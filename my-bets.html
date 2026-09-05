@@ -787,14 +787,14 @@
                     </div>
                 </div>
 
-                <!-- SECTION 3: ALL WAGERS -->
+                <!-- SECTION 3: WAGER HISTORY -->
                 <div class="section-block" style="margin-bottom:20px;">
                     <div class="manager-header" style="margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border); padding-top:20px;">
                         <div class="manager-title" style="display:flex; align-items:center; gap:8px; color:#3b82f6;">
-                            <span>📊 ALL WAGERS</span>
-                            <span id="allBetsCountBadge" style="font-size:10px; font-weight:800; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); color:#3b82f6; padding:2px 8px; border-radius:12px; font-family:var(--font-mono);">ALL POSITIONS</span>
+                            <span>📊 WAGER HISTORY</span>
+                            <span id="allBetsCountBadge" style="font-size:10px; font-weight:800; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); color:#3b82f6; padding:2px 8px; border-radius:12px; font-family:var(--font-mono);">SETTLED POSITIONS</span>
                         </div>
-                        <span style="font-size:10px; color:var(--muted); font-family:var(--font-mono);">Complete Portfolio Trading History</span>
+                        <span style="font-size:10px; color:var(--muted); font-family:var(--font-mono);">Complete Portfolio Settled History</span>
                     </div>
                     <div class="wager-list" id="allWagersListContainer">
                         <!-- All Position Cards Rendered via JS -->
@@ -1400,9 +1400,11 @@
             }
 
             let activeTitle = w.selection || w.target || w.matchup;
-            if (legs && legs.length > 0) {
+            if (!isSettled && legs && legs.length > 0) {
                 const activeLeg = legs.find(l => l.status === 'PENDING') || legs[0];
                 if (activeLeg) activeTitle = activeLeg.selection;
+            } else if (legs && legs.length > 0) {
+                activeTitle = legs[0].selection || w.selection || w.target;
             }
 
             const firstLegLogos = legs && legs.length > 0 ? getTeamLogosForEvent(legs[0].event || legs[0].matchup, legs[0].matchup) : { awayLogo: '', homeLogo: '' };
