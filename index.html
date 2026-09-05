@@ -3387,7 +3387,7 @@
           ${weatherBadge ? `<span style="font-size:10px; font-weight:700; color:#f59e0b; background:rgba(245,158,11,0.1); padding:2px 6px; border-radius:4px; border:1px solid rgba(245,158,11,0.25); font-family:var(--font-mono);">${weatherBadge}</span>` : ''}
         </div>
         <button class="card-my-bets-btn" onclick="event.stopPropagation(); window.location.href='my-bets.html'">
-          Live Bets ${betsCount > 0 ? `<span class="bets-count">${betsCount}</span>` : ''}
+          My Bets ${betsCount > 0 ? `<span class="bets-count">${betsCount}</span>` : ''}
         </button>
         <button class="pin-btn ${espnPinned.has(event.id) ? 'active' : ''}" onclick="event.stopPropagation(); toggleEspnPin('${event.id}', this)" title="${espnPinned.has(event.id) ? 'Unpin' : 'Pin'}">★</button>
       </div>

@@ -1057,6 +1057,11 @@
                     if (tick.period !== undefined) g.period = String(tick.period);
                     if (tick.clock !== undefined) g.clock = tick.clock;
                     if (tick.status_label) g.espn_detail = tick.status_label;
+                    if (tick.game_status) {
+                        g.game_status = tick.game_status;
+                    } else if ((g.period && g.period !== '0') || (g.clock && g.clock !== '00:00') || (g.espn_detail && g.espn_detail.toLowerCase().includes('in progress'))) {
+                        g.game_status = 'live';
+                    }
 
                     const yesP = tick.yesPrice || (tick.price ? Math.round(tick.price * 100) : 50);
                     const teamOddsStr = tick.americanOdds || (window.DestinyLiveFeed.centsToAmericanOdds ? window.DestinyLiveFeed.centsToAmericanOdds(yesP) : (yesP > 50 ? '-' + Math.round((yesP/(100-yesP))*100) : '+' + Math.round(((100-yesP)/yesP)*100)));
@@ -1126,14 +1131,18 @@
                         giEl.classList.add(tick.direction === 'DOWN' ? 'flash-red' : 'flash-green');
 
                         let kalshiPill = giEl.querySelector('.kalshi-lead-pill');
-                        if (!kalshiPill) {
-                            kalshiPill = document.createElement('span');
-                            kalshiPill.className = 'kalshi-lead-pill';
-                            kalshiPill.style.cssText = 'font-size:9px; font-weight:bold; color:#06b6d4; background:rgba(6,182,212,0.12); padding:1px 5px; border-radius:3px; margin-left:6px;';
-                            const topRow = giEl.querySelector('.gi-top-row') || giEl;
-                            topRow.appendChild(kalshiPill);
+                        if (g.game_status === 'live') {
+                            if (!kalshiPill) {
+                                kalshiPill = document.createElement('span');
+                                kalshiPill.className = 'kalshi-lead-pill';
+                                kalshiPill.style.cssText = 'font-size:9px; font-weight:bold; color:#06b6d4; background:rgba(6,182,212,0.12); padding:1px 5px; border-radius:3px; margin-left:6px;';
+                                const topRow = giEl.querySelector('.gi-top-row') || giEl;
+                                topRow.appendChild(kalshiPill);
+                            }
+                            kalshiPill.innerText = `⚡ ${yesP}¢ (${teamOddsStr})`;
+                        } else if (kalshiPill) {
+                            kalshiPill.remove();
                         }
-                        kalshiPill.innerText = `⚡ ${yesP}¢ (${teamOddsStr})`;
                     }
 
                     if (g.game_id === selectedGame) {
@@ -1289,7 +1298,7 @@
                             homeTicker: mList[1] ? mList[1].ticker : mList[0].ticker,
                             away_score: '0',
                             home_score: '0',
-                            game_status: 'live',
+                            game_status: 'pre_game',
                             period: '',
                             clock: ''
                         };
