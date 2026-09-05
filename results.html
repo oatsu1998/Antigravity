@@ -996,16 +996,67 @@
         let currentLeagueFilter = "ALL";
         let currentSlateData = null;
 
-        // Team Logo Helper with ESPN CDN Fallback
-        function getTeamLogoUrl(league, abbr) {
-            if (!abbr) return 'https://a.espncdn.com/i/espn/misc_logos/500/ncaa.png';
-            const cleanAbbr = abbr.toLowerCase().trim();
+        const NCAA_LOGO_MAP = {
+            'purdue': '2509', 'pur': '2509',
+            'indiana state': '282', 'inst': '282',
+            'north carolina a&t': '2448', 'ncat': '2448', 'nc a&t': '2448',
+            'georgia state': '2247', 'gast': '2247',
+            'fresno state': '278', 'fresno st': '278', 'fresno': '278',
+            'usc': '30', 'southern california': '30',
+            'clemson': '228',
+            'lsu': '99',
+            'miami': '2390', 'miami florida': '2390',
+            'stanford': '24',
+            'michigan': '130',
+            'ohio state': '194',
+            'alabama': '333',
+            'texas': '251',
+            'georgia': '61',
+            'oregon': '2483',
+            'penn state': '213',
+            'notre dame': '87',
+            'tennessee': '2633',
+            'florida': '57',
+            'oklahoma': '201',
+            'auburn': '2',
+            'wisconsin': '275',
+            'nebraska': '158',
+            'iowa': '2294', 'iowa state': '66',
+            'minnesota': '135',
+            'colorado': '38',
+            'utah': '254',
+            'arizona': '12', 'arizona state': '9',
+            'washington': '264',
+            'ucla': '26',
+            'kansas': '2305', 'kansas state': '2306',
+            'missouri': '142',
+            'kentucky': '96',
+            'syracuse': '183',
+            'pittsburgh': '221',
+            'virginia': '258', 'vt': '259', 'virginia tech': '259',
+            'north carolina': '153', 'unc': '153', 'nc state': '152',
+            'duke': '150',
+            'wake forest': '154',
+            'louisville': '97'
+        };
+
+        function getTeamLogoUrl(league, abbr, fullName) {
+            if (!abbr && !fullName) return 'https://a.espncdn.com/i/espn/misc_logos/500/ncaa.png';
+            const cleanAbbr = (abbr || '').toLowerCase().trim();
+            const cleanName = (fullName || '').toLowerCase().trim();
             const cleanLg = (league || 'nfl').toLowerCase().trim();
 
             if (cleanLg === 'mlb') return `https://a.espncdn.com/i/teamlogos/mlb/500/${cleanAbbr}.png`;
             if (cleanLg === 'nba') return `https://a.espncdn.com/i/teamlogos/nba/500/${cleanAbbr}.png`;
             if (cleanLg === 'nfl') return `https://a.espncdn.com/i/teamlogos/nfl/500/${cleanAbbr}.png`;
-            if (cleanLg === 'ncaaf' || cleanLg === 'cfb') return `https://a.espncdn.com/i/teamlogos/ncaa/500/${cleanAbbr}.png`;
+
+            if (cleanLg === 'ncaaf' || cleanLg === 'cfb' || cleanLg === 'ncaa' || cleanLg === 'ncaab') {
+                const matchedKey = Object.keys(NCAA_LOGO_MAP).find(k => k === cleanAbbr || k === cleanName || cleanName.includes(k));
+                const ncaaId = matchedKey ? NCAA_LOGO_MAP[matchedKey] : null;
+                if (ncaaId) {
+                    return `https://a.espncdn.com/i/teamlogos/ncaa/500/${ncaaId}.png`;
+                }
+            }
 
             return `https://a.espncdn.com/i/teamlogos/leagues/500/${cleanLg}.png`;
         }
@@ -1344,9 +1395,18 @@
                         const totalScore = awayScore + homeScore;
 
                         const oddsObj = comp.odds?.[0];
-                        const ouLine = oddsObj?.overUnder ? parseFloat(oddsObj.overUnder) : (cfg.label === 'MLB' ? 8.5 : cfg.label === 'NBA' ? 220.5 : 47.5);
-                        let homeSpread = oddsObj?.spread ? parseFloat(oddsObj.spread) : (homeScore > awayScore ? -1.5 : 1.5);
+                        const ouLine = oddsObj?.overUnder ? parseFloat(oddsObj.overUnder) : (cfg.label === 'MLB' ? 8.5 : (cfg.label === 'NBA' ? 220.5 : 51.5));
+                        const overCloseOdds = oddsObj?.overOdds ? (oddsObj.overOdds > 0 ? `+${oddsObj.overOdds}` : `${oddsObj.overOdds}`) : '-117';
+                        const underCloseOdds = oddsObj?.underOdds ? (oddsObj.underOdds > 0 ? `+${oddsObj.underOdds}` : `${oddsObj.underOdds}`) : '-103';
+
+                        let homeSpread = oddsObj?.spread ? parseFloat(oddsObj.spread) : (homeScore > awayScore ? -2.5 : 2.5);
                         let awaySpread = -homeSpread;
+
+                        const awaySpreadOdds = oddsObj?.awayTeamOdds?.spreadOdds ? (oddsObj.awayTeamOdds.spreadOdds > 0 ? `+${oddsObj.awayTeamOdds.spreadOdds}` : `${oddsObj.awayTeamOdds.spreadOdds}`) : '-102';
+                        const homeSpreadOdds = oddsObj?.homeTeamOdds?.spreadOdds ? (oddsObj.homeTeamOdds.spreadOdds > 0 ? `+${oddsObj.homeTeamOdds.spreadOdds}` : `${oddsObj.homeTeamOdds.spreadOdds}`) : '-118';
+
+                        const awayMlClose = oddsObj?.awayTeamOdds?.moneyLine ? (oddsObj.awayTeamOdds.moneyLine > 0 ? `+${oddsObj.awayTeamOdds.moneyLine}` : `${oddsObj.awayTeamOdds.moneyLine}`) : (awayScore > homeScore ? "-125" : "+1196");
+                        const homeMlClose = oddsObj?.homeTeamOdds?.moneyLine ? (oddsObj.homeTeamOdds.moneyLine > 0 ? `+${oddsObj.homeTeamOdds.moneyLine}` : `${oddsObj.homeTeamOdds.moneyLine}`) : (homeScore > awayScore ? "-2500" : "+105");
 
                         const startTimeStr = formatGameTime(evt.date);
 
@@ -1358,8 +1418,10 @@
                             formatted_date: `${formatGameDateOnly(evt.date)} · ${startTimeStr}`,
                             away_team: awayComp.team.displayName,
                             away_abbr: awayComp.team.abbreviation || awayComp.team.shortDisplayName,
+                            away_logo: awayComp.team.logo || awayComp.team.logos?.[0]?.href || '',
                             home_team: homeComp.team.displayName,
                             home_abbr: homeComp.team.abbreviation || homeComp.team.shortDisplayName,
+                            home_logo: homeComp.team.logo || homeComp.team.logos?.[0]?.href || '',
                             away_score: awayScore,
                             home_score: homeScore,
                             status: (evt.status?.type?.shortDetail && (evt.status.type.shortDetail.toUpperCase().includes('OT') || evt.status.type.shortDetail.toUpperCase().includes('F/'))) ? evt.status.type.shortDetail.toUpperCase() : 'FINAL',
@@ -1369,17 +1431,17 @@
                             },
                             recap: comp.headlines?.[0]?.description || `${awayComp.team.displayName} ${awayScore}, ${homeComp.team.displayName} ${homeScore}.`,
                             moneyline: {
-                                away: { open: "-110", close: awayScore > homeScore ? "-125" : "+105", winner: awayScore > homeScore },
-                                home: { open: "-110", close: homeScore > awayScore ? "-135" : "+115", winner: homeScore > awayScore }
+                                away: { open: "-110", close: awayMlClose, winner: awayScore > homeScore },
+                                home: { open: "-110", close: homeMlClose, winner: homeScore > awayScore }
                             },
                             spread: {
-                                away: { line: awaySpread > 0 ? `+${awaySpread}` : `${awaySpread}`, open_odds: "-110", close_odds: "-110", covered: (awayScore + awaySpread) > homeScore },
-                                home: { line: homeSpread > 0 ? `+${homeSpread}` : `${homeSpread}`, open_odds: "-110", close_odds: "-110", covered: (homeScore + homeSpread) > awayScore }
+                                away: { line: awaySpread > 0 ? `+${awaySpread}` : `${awaySpread}`, open_odds: "-110", close_odds: awaySpreadOdds, covered: (awayScore + awaySpread) > homeScore },
+                                home: { line: homeSpread > 0 ? `+${homeSpread}` : `${homeSpread}`, open_odds: "-110", close_odds: homeSpreadOdds, covered: (homeScore + homeSpread) > awayScore }
                             },
                             total: {
                                 line: ouLine,
-                                over: { open_odds: "-110", close_odds: "-110", hit: totalScore > ouLine },
-                                under: { open_odds: "-110", close_odds: "-110", hit: totalScore < ouLine }
+                                over: { open_odds: "-110", close_odds: overCloseOdds, hit: totalScore > ouLine },
+                                under: { open_odds: "-110", close_odds: underCloseOdds, hit: totalScore < ouLine }
                             },
                             team_totals: {
                                 away: { line: Math.round((ouLine / 2 - 0.5) * 2) / 2, open_odds: "-110", close_odds: "-110", actual: awayScore, hit: awayScore > (ouLine / 2) ? "over" : "under" },
@@ -1556,8 +1618,8 @@
 
                 const isOT = (game.status || '').toLowerCase().includes('ot') || (game.status || '').toLowerCase().includes('f/');
 
-                const awayLogo = getTeamLogoUrl(game.league, game.away_abbr || game.away_team);
-                const homeLogo = getTeamLogoUrl(game.league, game.home_abbr || game.home_team);
+                const awayLogo = game.away_logo || getTeamLogoUrl(game.league, game.away_abbr || game.away_team, game.away_team);
+                const homeLogo = game.home_logo || getTeamLogoUrl(game.league, game.home_abbr || game.home_team, game.home_team);
 
                 // Game Start Time & Date Formatting
                 const startTimeDisplay = game.start_time || formatGameTime(game.date);
