@@ -1883,24 +1883,6 @@
                     toWin: 21.74
                 });
             }
-            
-            // Only preserve this Thunder spread bet, and clear out other extra bets (like seeded ML) to ensure they have exactly 1 active bet
-            const defaultWagers = [
-                { id: 'wager-seed-1', matchup: 'GB @ DEN', target: 'Total — UNDER 40.5', type: 'Total', side: 'Under', line: '40.5', detail: 'Under 40.5', wager: 50, stake: 50, toWin: 45.45, placedOdds: '-110' },
-                { id: 'wager-seed-2', matchup: 'GB @ DEN', target: 'Total — UNDER 40.5', type: 'Total', side: 'Under', line: '40.5', detail: 'Under 40.5', wager: 50, stake: 50, toWin: 45.45, placedOdds: '-110' },
-                { id: 'wager-seed-3', matchup: 'GB @ DEN', target: 'Total — OVER 34.5', type: 'Total', side: 'Over', line: '34.5', detail: 'Over 34.5', wager: 50, stake: 50, toWin: 45.45, placedOdds: '-110', status: 'CASHED' },
-                { id: 'wager-seed-4', matchup: 'GB @ DEN', target: 'Total — UNDER 48.5', type: 'Total', side: 'Under', line: '48.5', detail: 'Under 48.5', wager: 55, stake: 55, toWin: 47.83, placedOdds: '-115' },
-                { id: 'wager-seed-5', matchup: 'GB @ DEN', target: 'Packers Team Total — OVER 32.5', type: 'Team Total', side: 'Over', line: '32.5', detail: 'Over 32.5', wager: 115, stake: 115, toWin: 100.00, placedOdds: '-115' },
-                { id: 'wager-seed-6', matchup: 'GB @ DEN', target: 'Broncos Team Total — OVER 19.5', type: 'Team Total', side: 'Over', line: '19.5', detail: 'Over 19.5', wager: 50, stake: 50, toWin: 37.04, placedOdds: '-135' },
-                { id: 'wager-seed-7', matchup: 'GB @ DEN', target: 'Total — OVER 46.5', type: 'Total', side: 'Over', line: '46.5', detail: 'Over 46.5', wager: 55, stake: 55, toWin: 55.00, placedOdds: '+100' }
-            ];
-
-            defaultWagers.forEach(dw => {
-                const exists = wagers.some(w => w.id === dw.id);
-                if (!exists) {
-                    wagers.push(dw);
-                }
-            });
             localStorage.setItem(KEY, JSON.stringify(wagers));
         }
 
