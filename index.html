@@ -3557,6 +3557,43 @@
 
         setInterval(updateAllCountdownClocks, 1000);
 
+        function isValidGameEvent(e, lgId) {
+            if (!e) return false;
+            const comp = e.competitions?.[0];
+            if (!comp) return false;
+
+            const now = new Date();
+            const maxWindowMs = 3 * 24 * 60 * 60 * 1000; // Max 3 days into future
+            const pastWindowMs = 36 * 60 * 60 * 1000;   // Past 36 hours for recent final scores
+
+            const st = gameStatus(e, lgId);
+            const eventDate = e.date ? new Date(e.date) : null;
+
+            // 1. Strict 3-day future date check
+            if (eventDate) {
+                const diff = eventDate.getTime() - now.getTime();
+                if (diff > maxWindowMs) {
+                    return false; // Reject any game > 3 days away
+                }
+                if (diff < -pastWindowMs && !st.isLive && !st.isFinal) {
+                    return false; // Reject outdated stale games
+                }
+            } else if (!st.isLive) {
+                return false;
+            }
+
+            // 2. Out-of-season / unplayed 0-0 placeholder check for NBA & NHL
+            const homeScore = parseInt(comp.competitors?.find(c => c.homeAway === 'home')?.score || 0);
+            const awayScore = parseInt(comp.competitors?.find(c => c.homeAway === 'away')?.score || 0);
+            const hasOdds = comp.odds && comp.odds.length > 0 && (comp.odds[0].details || comp.odds[0].overUnder || comp.odds[0].spread);
+
+            if ((lgId === 'nba' || lgId === 'nhl') && homeScore === 0 && awayScore === 0 && !st.isLive && !st.isFinal && !hasOdds) {
+                return false;
+            }
+
+            return true;
+        }
+
         function renderPanel(lg, result) {
             let html = '';
 
@@ -3564,10 +3601,12 @@
                 html += `<div class="error-msg">ESPN API error — ${result.error}. Try refreshing.</div>`;
             }
 
-            if (result.events.length === 0) {
+            const validEvents = (result.events || []).filter(e => isValidGameEvent(e, lg.id));
+
+            if (validEvents.length === 0) {
                 html += renderNextGameCountdown(lg, result);
             } else {
-                const sortedEvents = [...result.events].sort((a, b) => {
+                const sortedEvents = [...validEvents].sort((a, b) => {
                     const isPinA = espnPinned.has(a.id), isPinB = espnPinned.has(b.id);
                     if (isPinA !== isPinB) return isPinA ? -1 : 1; // pinned first
                     const statusOrder = (e) => {
@@ -3590,26 +3629,13 @@
             return html;
         }
 
-        function isOffseasonPlaceholder(e, lgId) {
-            const comp = e.competitions?.[0];
-            if (!comp) return true;
-            const homeScore = parseInt(comp.competitors?.find(c => c.homeAway === 'home')?.score || 0);
-            const awayScore = parseInt(comp.competitors?.find(c => c.homeAway === 'away')?.score || 0);
-            const st = gameStatus(e, lgId);
-            const hasOdds = comp.odds && comp.odds.length > 0 && (comp.odds[0].details || comp.odds[0].overUnder);
-            if ((lgId === 'nba' || lgId === 'nhl') && homeScore === 0 && awayScore === 0 && !st.isLive && !st.isFinal && !hasOdds) {
-                return true;
-            }
-            return false;
-        }
-
         function renderLivePanel() {
             let allLiveEvents = [];
             let allEvents = [];
             LEAGUES.forEach(lg => {
                 if (leagueData[lg.id] && leagueData[lg.id].events) {
                     leagueData[lg.id].events.forEach(e => {
-                        if (isOffseasonPlaceholder(e, lg.id)) return;
+                        if (!isValidGameEvent(e, lg.id)) return;
                         allEvents.push({ event: e, lg: lg });
                         if (gameStatus(e, lg.id).isLive) {
                             allLiveEvents.push({ event: e, lg: lg });
@@ -3628,10 +3654,10 @@
             }
 
             if (allEvents.length > 0) {
-                allEvents.sort((a, b) => new Date(b.event.date || 0) - new Date(a.event.date || 0));
+                allEvents.sort((a, b) => new Date(a.event.date || 0) - new Date(b.event.date || 0));
                 return `
                     <div style="margin-bottom:12px; font-size:11px; color:var(--muted); font-weight:700;">
-                        No games currently live in-progress &mdash; showing today's slate scoreboards:
+                        No games currently live in-progress &mdash; showing upcoming games (next 3 days):
                     </div>
                     <div class="games-grid">${allEvents.slice(0, 16).map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>
                 `;
@@ -3641,7 +3667,7 @@
             if (loading) {
                 return '<div class="loading">LOADING LIVE GAMES...</div>';
             }
-            return `<div class="no-games"><div class="icon">◻</div>No games available for current slate</div>`;
+            return `<div class="no-games"><div class="icon">◻</div>No live or upcoming games available within the next 3 days</div>`;
         }
 
         function renderDestinyLeaguePanel() {
@@ -3649,7 +3675,7 @@
             LEAGUES.forEach(lg => {
                 if (leagueData[lg.id] && leagueData[lg.id].events) {
                     leagueData[lg.id].events.forEach(e => {
-                        if (isOffseasonPlaceholder(e, lg.id)) return;
+                        if (!isValidGameEvent(e, lg.id)) return;
                         allEvents.push({ event: e, lg: lg });
                     });
                 }
@@ -3870,7 +3896,7 @@
             LEAGUES.forEach(lg => {
                 if (leagueData[lg.id] && leagueData[lg.id].events) {
                     leagueData[lg.id].events.forEach(e => {
-                        if (isOffseasonPlaceholder(e, lg.id)) return;
+                        if (!isValidGameEvent(e, lg.id)) return;
                         allUpcomingEvents.push({ event: e, lg: lg });
                     });
                 }
@@ -4181,7 +4207,7 @@
                 const result = leagueData[lg.id];
                 if (result && result.events) {
                     result.events.forEach(e => {
-                        if (isOffseasonPlaceholder(e, lg.id)) return;
+                        if (!isValidGameEvent(e, lg.id)) return;
                         allEvents.push({ event: e, lg: lg });
                     });
                 }
