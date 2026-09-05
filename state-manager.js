@@ -38,153 +38,6 @@
                 let stored = JSON.parse(localStorage.getItem(KEYS.WAGERS) || '[]');
                 const defaultWagers = [
                     {
-                        id: 'ticket-991363123',
-                        ticketNumber: '991363123',
-                        event: 'VIKINGS at BRONCOS',
-                        matchup: 'MIN @ DEN',
-                        target: 'VIKINGS at BRONCOS',
-                        selection: 'Total — UNDER 40.5',
-                        type: 'Live',
-                        side: 'Under 40.5',
-                        sportsbook: 'BetOnline',
-                        bookmaker: 'BetOnline',
-                        stake: 120.00,
-                        wager: 120.00,
-                        toWin: 100.00,
-                        placedOdds: '-120',
-                        currentOdds: '-120',
-                        status: 'WON',
-                        acceptedDate: '8/29/26',
-                        timestamp: '2026-08-29T00:00:00.000Z',
-                        description: 'VIKINGS at BRONCOS - Total - UNDER 40.5',
-                        history: ['-120', '-120', '-120']
-                    },
-                    {
-                        id: 'ticket-991291159',
-                        ticketNumber: '991291159',
-                        event: 'VIKINGS at BRONCOS',
-                        matchup: 'MIN @ DEN',
-                        target: 'Teaser — MIN Vikings +9.5',
-                        selection: 'MIN Vikings +9.5 (-117)',
-                        type: 'Teaser',
-                        side: 'MIN Vikings +9.5',
-                        sportsbook: 'BetOnline',
-                        bookmaker: 'BetOnline',
-                        stake: 25.00,
-                        wager: 25.00,
-                        toWin: 22.73,
-                        placedOdds: '-110',
-                        currentOdds: '-110',
-                        status: 'LOST',
-                        acceptedDate: '8/28/26',
-                        timestamp: '2026-08-28T21:00:00.000Z',
-                        description: 'Football - NFL - Minnesota Vikings vs Denver Broncos - Teaser | 127 Minnesota Vikings +9½ -117 for GAME',
-                        history: ['-110', '-110', '-110']
-                    },
-                    {
-                        id: 'ticket-991291089',
-                        ticketNumber: '991291089',
-                        event: 'VIKINGS at BRONCOS',
-                        matchup: 'MIN @ DEN',
-                        target: 'Parlay — MIN Vikings +3.5',
-                        selection: 'MIN Vikings +3.5 (-117)',
-                        type: 'Parlay',
-                        side: 'MIN Vikings +3.5',
-                        sportsbook: 'BetOnline',
-                        bookmaker: 'BetOnline',
-                        stake: 25.00,
-                        wager: 25.00,
-                        toWin: 63.50,
-                        placedOdds: '+254',
-                        odds: '+254',
-                        currentOdds: '+254',
-                        status: 'LOST',
-                        acceptedDate: '8/28/26',
-                        timestamp: '2026-08-28T21:00:00.000Z',
-                        description: 'Football - NFL - Minnesota Vikings vs Denver Broncos - Parlay | 127 Minnesota Vikings +3½ -117 for GAME',
-                        history: ['+254', '+254', '+254']
-                    },
-                    {
-                        id: 'ticket-991397407',
-                        ticketNumber: '991397407',
-                        event: 'SAN JOSE STATE at USC',
-                        matchup: 'SJSU @ USC',
-                        target: 'SAN JOSE STATE at USC',
-                        selection: 'Total — UNDER 61.5 (-115)',
-                        type: 'Total',
-                        side: 'Under 61.5',
-                        sportsbook: 'BetOnline',
-                        bookmaker: 'BetOnline',
-                        stake: 115.00,
-                        wager: 115.00,
-                        toWin: 100.00,
-                        placedOdds: '-115',
-                        odds: '-115',
-                        currentOdds: '-115',
-                        status: 'WON',
-                        settledPayout: 215.00,
-                        acceptedDate: '8/29/26',
-                        timestamp: '2026-08-29T15:00:00.000Z',
-                        description: 'Football - NCAA - San Jose State vs USC - Total | 314 San Jose State/USC under 61½ -115 for GAME | 08/29/2026 03:00:00 PM (EST) | Settled WON',
-                        history: ['-115', '-115', '-115']
-                    },
-                    {
-                        id: 'ticket-991399486',
-                        ticketNumber: '991399486',
-                        event: 'NC STATE at VIRGINIA / MEMPHIS at UNLV',
-                        matchup: 'NCST @ UVA / MEM @ UNLV',
-                        target: 'Teaser (2 Teams) — NC State +10.5 & Memphis +10.5',
-                        selection: 'Teaser — NC State +10.5 & Memphis +10.5 (-120)',
-                        type: 'Teaser',
-                        side: 'NC State +10.5 / Memphis +10.5',
-                        sportsbook: 'BetOnline',
-                        bookmaker: 'BetOnline',
-                        stake: 120.00,
-                        wager: 120.00,
-                        toWin: 100.00,
-                        placedOdds: '-120',
-                        odds: '-120',
-                        currentOdds: '-120',
-                        status: 'WON',
-                        settledPayout: 220.00,
-                        acceptedDate: '8/29/26',
-                        timestamp: '2026-08-29T15:30:00.000Z',
-                        description: 'Football - NCAA - NC State vs Virginia - Teaser | 317 NC State +10½ -115 for GAME | 08/29/2026 03:30:00 PM (EST) | Settled WON | Neutral Field | Football - NCAA - Memphis vs UNLV - Teaser | 315 Memphis +10½ -108 for GAME | 08/29/2026 10:00:00 PM (EST) | Settled WON',
-                        history: ['-120', '-120', '-120'],
-                        legs: [
-                            { matchup: 'NC STATE at VIRGINIA', awayTag: 'NCST', homeTag: 'UVA', selection: 'NC State +10.5', odds: '-115', status: 'WON' },
-                            { matchup: 'MEMPHIS at UNLV', awayTag: 'MEM', homeTag: 'UNLV', selection: 'Memphis +10.5', odds: '-108', status: 'WON' }
-                        ]
-                    },
-                    {
-                        id: 'ticket-991399310',
-                        ticketNumber: '991399310',
-                        event: 'NC STATE at VIRGINIA / MEMPHIS at UNLV',
-                        matchup: 'NCST @ UVA / MEM @ UNLV',
-                        target: 'Parlay (2 Teams) — NC State +4 & Memphis +4',
-                        selection: 'Parlay — NC State +4 & Memphis +4 (+260)',
-                        type: 'Parlay',
-                        side: 'NC State +4 / Memphis +4',
-                        sportsbook: 'BetOnline',
-                        bookmaker: 'BetOnline',
-                        stake: 50.00,
-                        wager: 50.00,
-                        toWin: 130.00,
-                        placedOdds: '+260',
-                        odds: '+260',
-                        currentOdds: '+260',
-                        status: 'WON',
-                        settledPayout: 180.00,
-                        acceptedDate: '8/29/26',
-                        timestamp: '2026-08-29T15:30:00.000Z',
-                        description: 'Football - NCAA - NC State vs Virginia - Parlay | 317 NC State +4 -115 for GAME | 08/29/2026 03:30:00 PM (EST) | Settled WON | Neutral Field | Football - NCAA - Memphis vs UNLV - Parlay | 315 Memphis +4 -108 for GAME | 08/29/2026 10:00:00 PM (EST) | Settled WON',
-                        history: ['+260', '+260', '+260'],
-                        legs: [
-                            { matchup: 'NC STATE at VIRGINIA', awayTag: 'NCST', homeTag: 'UVA', selection: 'NC State +4', odds: '-115', status: 'WON' },
-                            { matchup: 'MEMPHIS at UNLV', awayTag: 'MEM', homeTag: 'UNLV', selection: 'Memphis +4', odds: '-108', status: 'WON' }
-                        ]
-                    },
-                    {
                         id: 'ticket-993182991-1',
                         ticketNumber: '993182991-1',
                         event: 'FRESNO STATE at USC',
@@ -201,13 +54,13 @@
                         placedOdds: '+28.5',
                         odds: '+28.5',
                         currentOdds: '+38.5',
-                        status: 'PENDING',
+                        status: 'LOST',
                         acceptedDate: '09/04/26 07:56 PM GMT-5',
                         timestamp: '2026-09-04T19:56:00.000Z',
-                        description: 'Football - NCAA - Fresno State vs USC - Teaser | 151 Fresno State +28½ -102 For Game | 09/04/2026 | 09:00:00 PM (EST) | Pending | Football - NCAA - Clemson vs LSU - Teaser | 220 LSU -4 -110 For Game | 09/05/2026 | 07:30:00 PM (EST) | Pending | Football - NCAA - Miami Florida vs Stanford - Teaser | 154 Stanford +30½ -105 For Game | 09/04/2026 | 09:00:00 PM (EST) | Pending',
+                        description: 'Football - NCAA - Fresno State vs USC - Teaser | 151 Fresno State +28½ -102 For Game | 09/04/2026 | 09:00:00 PM (EST) | Settled LOST | Football - NCAA - Clemson vs LSU - Teaser | 220 LSU -4 -110 For Game | 09/05/2026 | 07:30:00 PM (EST) | Pending | Football - NCAA - Miami Florida vs Stanford - Teaser | 154 Stanford +30½ -105 For Game | 09/04/2026 | 09:00:00 PM (EST) | Pending',
                         history: ['54.5', '38.0', '22.0'],
                         legs: [
-                            { matchup: 'FRESNO STATE at USC', event: 'FRESNO STATE at USC', awayTag: 'FRESNO ST', homeTag: 'USC', selection: 'Fresno State +28.5', odds: '+28.5', status: 'PENDING' },
+                            { matchup: 'FRESNO STATE at USC', event: 'FRESNO STATE at USC', awayTag: 'FRESNO ST', homeTag: 'USC', selection: 'Fresno State +28.5', odds: '+28.5', status: 'LOST' },
                             { matchup: 'CLEMSON at LSU', event: 'CLEMSON at LSU', awayTag: 'CLEM', homeTag: 'LSU', selection: 'LSU -4', odds: '-110', status: 'PENDING' },
                             { matchup: 'MIAMI FLORIDA at STANFORD', event: 'MIAMI FLORIDA at STANFORD', awayTag: 'MIA', homeTag: 'STAN', selection: 'Stanford +30.5', odds: '-105', status: 'PENDING' }
                         ]
@@ -257,16 +110,21 @@
                         placedOdds: '-120',
                         odds: '-120',
                         currentOdds: '-120',
-                        status: 'PENDING',
+                        status: 'LOST',
                         acceptedDate: '09/04/26 08:44 PM GMT-5',
                         timestamp: '2026-09-04T20:44:00.000Z',
                         description: 'FRESNO STATE at USC - FRESNO ST - Team Total - OVER 9.5',
                         history: ['-120', '-120', '-120'],
                         legs: [
-                            { matchup: 'FRESNO STATE at USC', event: 'FRESNO STATE at USC', awayTag: 'FRESNO ST', homeTag: 'USC', selection: 'Fresno St Team Total Over 9.5', odds: '-120', status: 'PENDING' }
+                            { matchup: 'FRESNO STATE at USC', event: 'FRESNO STATE at USC', awayTag: 'FRESNO ST', homeTag: 'USC', selection: 'Fresno St Team Total Over 9.5', odds: '-120', status: 'LOST' }
                         ]
                     }
                 ];
+
+                const legacyIds = ['ticket-991363123', 'ticket-991291159', 'ticket-991291089', 'ticket-991397407', 'ticket-991399486', 'ticket-991399310'];
+                if (stored && Array.isArray(stored)) {
+                    stored = stored.filter(sw => !legacyIds.includes(sw.id) && !legacyIds.some(lid => sw.ticketNumber && lid.includes(sw.ticketNumber)));
+                }
 
                 if (!stored || !Array.isArray(stored) || stored.length === 0) {
                     stored = defaultWagers;
@@ -281,10 +139,15 @@
                         );
                         if (matchIdx < 0) {
                             stored.push(dw);
-                        } else if (dw.status === 'WON' && stored[matchIdx].status === 'PENDING') {
-                            stored[matchIdx].status = 'WON';
-                            stored[matchIdx].settledPayout = dw.settledPayout;
-                            if (dw.legs) stored[matchIdx].legs = dw.legs;
+                        } else {
+                            if (dw.status === 'LOST' && stored[matchIdx].status === 'PENDING') {
+                                stored[matchIdx].status = 'LOST';
+                                if (dw.legs) stored[matchIdx].legs = dw.legs;
+                            } else if (dw.status === 'WON' && stored[matchIdx].status === 'PENDING') {
+                                stored[matchIdx].status = 'WON';
+                                stored[matchIdx].settledPayout = dw.settledPayout;
+                                if (dw.legs) stored[matchIdx].legs = dw.legs;
+                            }
                         }
                     });
                 }

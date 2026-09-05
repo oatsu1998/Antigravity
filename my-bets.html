@@ -992,6 +992,9 @@
                 }
             }
 
+            const legacyIds = ['ticket-991363123', 'ticket-991291159', 'ticket-991291089', 'ticket-991397407', 'ticket-991399486', 'ticket-991399310'];
+            fetched = fetched.filter(w => !legacyIds.includes(w.id) && !legacyIds.some(lid => w.ticketNumber && lid.includes(w.ticketNumber)));
+
             // Grade Fresno State wagers as LOST upon Kalshi game final settlement (USC 38 — Fresno St 7)
             fetched.forEach(w => {
                 const id = String(w.id || '');
@@ -1001,8 +1004,8 @@
                 }
             });
 
-            if (window.DestinyState && window.DestinyState.setWagers) {
-                window.DestinyState.setWagers(fetched);
+            if (window.DestinyState && window.DestinyState.saveWagers) {
+                window.DestinyState.saveWagers(fetched, false);
             } else {
                 localStorage.setItem('destiny_game_wagers', JSON.stringify(fetched));
             }
