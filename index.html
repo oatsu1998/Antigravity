@@ -3870,6 +3870,7 @@
             LEAGUES.forEach(lg => {
                 if (leagueData[lg.id] && leagueData[lg.id].events) {
                     leagueData[lg.id].events.forEach(e => {
+                        if (isOffseasonPlaceholder(e, lg.id)) return;
                         allUpcomingEvents.push({ event: e, lg: lg });
                     });
                 }
@@ -4180,6 +4181,7 @@
                 const result = leagueData[lg.id];
                 if (result && result.events) {
                     result.events.forEach(e => {
+                        if (isOffseasonPlaceholder(e, lg.id)) return;
                         allEvents.push({ event: e, lg: lg });
                     });
                 }
