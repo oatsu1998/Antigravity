@@ -1037,6 +1037,15 @@
 
         // Calculate CLV (Closing Line Value) / Edge
         function calculateCLV(placedOdds, currentOdds) {
+            const pStr = String(placedOdds || '');
+            const cStr = String(currentOdds || '');
+            if (pStr.includes('.') || cStr.includes('.')) {
+                const pVal = parseFloat(pStr);
+                const cVal = parseFloat(cStr);
+                if (!isNaN(pVal) && !isNaN(cVal) && cVal !== 0) {
+                    return (pVal - cVal) / Math.abs(cVal);
+                }
+            }
             const probPlaced = getImpliedProbability(placedOdds);
             const probCurrent = getImpliedProbability(currentOdds);
             if (probPlaced === 0) return 0;
@@ -1677,8 +1686,17 @@
             if (!w) return;
 
             // Bind terminal details
-            const mainTitle = w.selection || w.target || w.matchup;
-            const subTitle = (w.event || w.target || w.matchup) + ' · ' + (w.sportsbook || w.bookmaker || 'BETONLINE');
+            let mainTitle = w.selection || w.target || w.matchup;
+            let subTitle = (w.event || w.target || w.matchup) + ' · ' + (w.sportsbook || w.bookmaker || 'BETONLINE');
+
+            if (w.legs && Array.isArray(w.legs) && w.legs.length > 0) {
+                const activeLeg = w.legs.find(l => l.status === 'PENDING') || w.legs[0];
+                if (activeLeg) {
+                    mainTitle = `${activeLeg.selection}`;
+                    subTitle = `${activeLeg.event || activeLeg.matchup} · ${w.sportsbook || w.bookmaker || 'BETONLINE'}`;
+                }
+            }
+
             document.getElementById('termTarget').textContent = mainTitle;
             document.getElementById('termMatchup').textContent = subTitle;
 
@@ -1764,11 +1782,15 @@
 
             // Convert history American odds to decimal prices / implied probabilities for neat trading curves
             const dataPoints = wObj.history.map(odds => {
+                const val = parseFloat(odds);
+                if (!isNaN(val) && val > 0 && val < 100) {
+                    return val.toFixed(1);
+                }
                 const prob = getImpliedProbability(odds);
                 return (prob * 100).toFixed(1); // Represented as Implied Win Probability (%)
             });
 
-            const initialProb = (getImpliedProbability(wObj.placedOdds) * 100).toFixed(1);
+            const initialProb = dataPoints[0] || (getImpliedProbability(wObj.placedOdds) * 100).toFixed(1);
 
             // Labels represent time intervals
             const labels = wObj.history.map((_, i) => i === 0 ? 'Placed' : `Feed T-${wObj.history.length - 1 - i}`);
