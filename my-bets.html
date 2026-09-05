@@ -773,31 +773,17 @@
                     </div>
                 </div>
 
-                <!-- SECTION 2: TODAYS GRADED WAGERS -->
-                <div class="section-block" style="margin-bottom:28px;">
-                    <div class="manager-header" style="margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border); padding-top:20px;">
-                        <div class="manager-title" style="display:flex; align-items:center; gap:8px; color:#f59e0b;">
-                            <span>📋 TODAY'S GRADED WAGERS</span>
-                            <span id="gradedBetsCountBadge" style="font-size:10px; font-weight:800; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); color:#f59e0b; padding:2px 8px; border-radius:12px; font-family:var(--font-mono);">2 GRADED TODAY</span>
-                        </div>
-                        <span style="font-size:10px; color:var(--muted); font-family:var(--font-mono);">Final Kalshi Webhook Grading Resolution</span>
-                    </div>
-                    <div class="wager-list" id="todaysGradedListContainer">
-                        <!-- Graded Position Cards Rendered via JS -->
-                    </div>
-                </div>
-
-                <!-- SECTION 3: WAGER HISTORY -->
+                <!-- SECTION 2: WAGER HISTORY -->
                 <div class="section-block" style="margin-bottom:20px;">
                     <div class="manager-header" style="margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border); padding-top:20px;">
                         <div class="manager-title" style="display:flex; align-items:center; gap:8px; color:#3b82f6;">
                             <span>📊 WAGER HISTORY</span>
-                            <span id="allBetsCountBadge" style="font-size:10px; font-weight:800; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); color:#3b82f6; padding:2px 8px; border-radius:12px; font-family:var(--font-mono);">SETTLED POSITIONS</span>
+                            <span id="historyBetsCountBadge" style="font-size:10px; font-weight:800; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); color:#3b82f6; padding:2px 8px; border-radius:12px; font-family:var(--font-mono);">SETTLED POSITIONS</span>
                         </div>
                         <span style="font-size:10px; color:var(--muted); font-family:var(--font-mono);">Complete Portfolio Settled History</span>
                     </div>
-                    <div class="wager-list" id="allWagersListContainer">
-                        <!-- All Position Cards Rendered via JS -->
+                    <div class="wager-list" id="historyBetsListContainer">
+                        <!-- Settled Wager History Cards Rendered via JS -->
                     </div>
                 </div>
 
@@ -1535,34 +1521,27 @@
             return { card, chartId, wager: w };
         }
 
-        // Render Positions Ledger List into 3 Stacked Sections:
+        // Render Positions Ledger List into 2 Vertical Sections:
         // 1. LIVE BETS
-        // 2. TODAYS GRADED WAGERS
-        // 3. ALL WAGERS
+        // 2. WAGER HISTORY
         function renderWagersLedger() {
             wagers = wagers.filter(w => !isLegacyWager(w));
 
             const liveContainer = document.getElementById('liveBetsListContainer');
-            const gradedContainer = document.getElementById('todaysGradedListContainer');
-            const allContainer = document.getElementById('allWagersListContainer');
+            const historyContainer = document.getElementById('historyBetsListContainer');
 
             if (liveContainer) liveContainer.innerHTML = '';
-            if (gradedContainer) gradedContainer.innerHTML = '';
-            if (allContainer) allContainer.innerHTML = '';
+            if (historyContainer) historyContainer.innerHTML = '';
 
             const liveWagers = wagers.filter(w => w.status === 'PENDING' || w.status === 'OPEN');
-            const gradedWagers = wagers.filter(w => w.status === 'WON' || w.status === 'LOST' || w.status === 'CASHED' || w.status === 'PUSH');
-            const allWagersList = wagers.filter(w => w.status === 'WON' || w.status === 'LOST' || w.status === 'CASHED' || w.status === 'PUSH');
+            const historyWagers = wagers.filter(w => w.status === 'WON' || w.status === 'LOST' || w.status === 'CASHED' || w.status === 'PUSH');
 
             // Update Header Badges
             const liveBadge = document.getElementById('liveBetsCountBadge');
             if (liveBadge) liveBadge.textContent = `${liveWagers.length} ACTIVE POSITION${liveWagers.length === 1 ? '' : 'S'}`;
 
-            const gradedBadge = document.getElementById('gradedBetsCountBadge');
-            if (gradedBadge) gradedBadge.textContent = `${gradedWagers.length} GRADED TODAY`;
-
-            const allBadge = document.getElementById('allBetsCountBadge');
-            if (allBadge) allBadge.textContent = `${allWagersList.length} SETTLED POSITION${allWagersList.length === 1 ? '' : 'S'}`;
+            const historyBadge = document.getElementById('historyBetsCountBadge');
+            if (historyBadge) historyBadge.textContent = `${historyWagers.length} SETTLED POSITION${historyWagers.length === 1 ? '' : 'S'}`;
 
             // Render Section 1: LIVE BETS
             if (liveContainer) {
@@ -1577,27 +1556,14 @@
                 }
             }
 
-            // Render Section 2: TODAYS GRADED WAGERS
-            if (gradedContainer) {
-                if (gradedWagers.length === 0) {
-                    gradedContainer.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:11px; padding:20px; font-family:var(--font-mono); background:rgba(0,0,0,0.2); border-radius:6px;">No graded wagers today.</div>`;
+            // Render Section 2: WAGER HISTORY
+            if (historyContainer) {
+                if (historyWagers.length === 0) {
+                    historyContainer.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:11px; padding:20px; font-family:var(--font-mono); background:rgba(0,0,0,0.2); border-radius:6px;">No settled wager history found.</div>`;
                 } else {
-                    gradedWagers.forEach(w => {
+                    historyWagers.forEach(w => {
                         const { card } = createWagerCardTileElement(w);
-                        gradedContainer.appendChild(card);
-                        setTimeout(() => { initWagerCardChart(w); }, 50);
-                    });
-                }
-            }
-
-            // Render Section 3: ALL WAGERS
-            if (allContainer) {
-                if (allWagersList.length === 0) {
-                    allContainer.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:11px; padding:20px; font-family:var(--font-mono); background:rgba(0,0,0,0.2); border-radius:6px;">No wager history found.</div>`;
-                } else {
-                    allWagersList.forEach(w => {
-                        const { card } = createWagerCardTileElement(w);
-                        allContainer.appendChild(card);
+                        historyContainer.appendChild(card);
                         setTimeout(() => { initWagerCardChart(w); }, 50);
                     });
                 }
