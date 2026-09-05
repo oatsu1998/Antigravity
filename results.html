@@ -895,9 +895,21 @@
     </div>
 
     <script>
-        // Get Today's Date String YYYY-MM-DD
+        function getYesterdayStr(dateStr) {
+            const base = dateStr ? new Date(dateStr.replace(/-/g, '/')) : new Date();
+            base.setDate(base.getDate() - 1);
+            const yyyy = base.getFullYear();
+            const mm = String(base.getMonth() + 1).padStart(2, '0');
+            const dd = String(base.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        // Get Today's Date String YYYY-MM-DD (accounting for early morning sports slate)
         function getTodayStr() {
             const now = new Date();
+            if (now.getHours() < 5) {
+                now.setDate(now.getDate() - 1);
+            }
             const yyyy = now.getFullYear();
             const mm = String(now.getMonth() + 1).padStart(2, '0');
             const dd = String(now.getDate()).padStart(2, '0');
@@ -1109,6 +1121,14 @@
                 }
             }));
 
+            if (games.length === 0 && !window._autoFallbackAttempted && new Date().getHours() < 6) {
+                window._autoFallbackAttempted = true;
+                const yest = getYesterdayStr(dateStr);
+                console.log(`[Results] 0 games for ${dateStr} during early morning. Auto-falling back to ${yest}`);
+                fetchSlateData(yest);
+                return;
+            }
+
             games.sort((a, b) => new Date(a.date) - new Date(b.date));
 
             currentSlateData = {
@@ -1239,16 +1259,18 @@
             if (!container) return;
 
             if (!games || games.length === 0) {
+                const yestStr = getYesterdayStr(currentSlateDate);
                 container.innerHTML = `
                     <div style="grid-column: 1 / -1; padding: 48px; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; color: var(--muted);">
                         <span style="font-size: 32px;">🏟️</span>
                         <p style="margin-top: 12px; font-size: 16px; font-weight: 800; color: #fff;">No completed ${currentLeagueFilter === 'ALL' ? '' : currentLeagueFilter} games found for ${currentSlateDate}.</p>
                         <p style="margin-top: 6px; font-size: 12px; color: var(--muted);">
-                            Use the date picker or date navigation buttons at the top to select active dates (e.g. 2026-09-01 or 2026-08-31).
+                            Use the date picker or date navigation buttons at the top to select active dates.
                         </p>
-                        <div style="margin-top: 16px; display: flex; justify-content: center; gap: 10px;">
+                        <div style="margin-top: 16px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-today" onclick="fetchSlateData('${yestStr}')">VIEW ${yestStr} SLATE</button>
+                            <button class="btn-today" onclick="fetchSlateData('2026-09-04')">VIEW SEP 4 SLATE</button>
                             <button class="btn-today" onclick="fetchSlateData('2026-09-01')">VIEW SEP 1 SLATE</button>
-                            <button class="btn-today" onclick="fetchSlateData('2026-08-31')">VIEW AUG 31 SLATE</button>
                         </div>
                     </div>
                 `;
