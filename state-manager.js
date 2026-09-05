@@ -5,6 +5,29 @@
 (function() {
     'use strict';
 
+    try {
+        const raw = localStorage.getItem('destiny_game_wagers');
+        if (raw) {
+            const list = JSON.parse(raw);
+            if (Array.isArray(list)) {
+                const cleaned = list.filter(w => {
+                    if (!w) return false;
+                    const id = String(w.id || '');
+                    const ticket = String(w.ticketNumber || '');
+                    const date = String(w.acceptedDate || '');
+                    const ts = String(w.timestamp || '');
+                    const text = (String(w.event || '') + ' ' + String(w.target || '') + ' ' + String(w.matchup || '') + ' ' + String(w.selection || '') + ' ' + String(w.description || '') + ' ' + String(w.side || '')).toUpperCase();
+
+                    if (id.includes('wager-seed') || id.includes('mock-okc') || id.includes('9913') || id.includes('9912')) return false;
+                    if (date.includes('8/28') || date.includes('8/29') || ts.includes('2026-08-28') || ts.includes('2026-08-29')) return false;
+                    if (text.includes('VIKINGS') || text.includes('BRONCOS') || text.includes('SAN JOSE') || text.includes('SJSU') || text.includes('NC STATE') || text.includes('NCST') || text.includes('MEMPHIS') || text.includes('GB @ DEN') || text.includes('PACKERS') || text.includes('GREEN BAY') || text.includes('THUNDER') || text.includes('SPURS') || text.includes('OKLAHOMA') || text.includes('OKC @ SAS') || text.includes('DENVER') || text.includes('GB')) return false;
+                    return true;
+                });
+                localStorage.setItem('destiny_game_wagers', JSON.stringify(cleaned));
+            }
+        }
+    } catch(e) {}
+
     const KEYS = {
         BANKROLL: 'bankroll',
         WAGERS: 'destiny_game_wagers',

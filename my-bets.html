@@ -982,6 +982,17 @@
         }
 
         function seedInitialWagers() {
+            try {
+                const raw = localStorage.getItem('destiny_game_wagers');
+                if (raw) {
+                    const list = JSON.parse(raw);
+                    if (Array.isArray(list)) {
+                        const cleaned = list.filter(w => !isLegacyWager(w));
+                        localStorage.setItem('destiny_game_wagers', JSON.stringify(cleaned));
+                    }
+                }
+            } catch(e) {}
+
             let fetched = [];
             if (window.DestinyState) {
                 fetched = DestinyState.getWagers();
