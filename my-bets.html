@@ -1013,8 +1013,19 @@
             fetched.forEach(w => {
                 const id = String(w.id || '');
                 const sel = String(w.selection || w.target || '').toUpperCase();
+                const desc = String(w.description || '').toUpperCase();
                 if (id.includes('993182991') || id.includes('993192834') || sel.includes('FRESNO STATE +28.5') || sel.includes('FRESNO ST — TEAM TOTAL')) {
                     w.status = 'LOST';
+                }
+                if (id.includes('993183110') || sel.includes('MIAMI FL') || desc.includes('153 MIAMI FLORIDA')) {
+                    if (w.legs && Array.isArray(w.legs)) {
+                        w.legs.forEach(leg => {
+                            const lsel = String(leg.selection || '').toUpperCase();
+                            if (lsel.includes('MIAMI') || lsel.includes('USC')) {
+                                leg.status = 'WON';
+                            }
+                        });
+                    }
                 }
             });
 
@@ -1204,6 +1215,38 @@
             }
 
             const desc = (w.description || w.selection || w.target || '').toUpperCase();
+
+            if (desc.includes('MIAMI') && desc.includes('USC') && desc.includes('LSU')) {
+                return [
+                    {
+                        matchup: 'MIAMI FLORIDA at STANFORD',
+                        event: 'MIAMI FLORIDA at STANFORD',
+                        awayTag: 'MIA',
+                        homeTag: 'STAN',
+                        selection: 'Miami Florida -18.5',
+                        odds: '-115',
+                        status: 'WON'
+                    },
+                    {
+                        matchup: 'FRESNO STATE at USC',
+                        event: 'FRESNO STATE at USC',
+                        awayTag: 'FRESNO ST',
+                        homeTag: 'USC',
+                        selection: 'USC -16.5',
+                        odds: '-118',
+                        status: 'WON'
+                    },
+                    {
+                        matchup: 'CLEMSON at LSU',
+                        event: 'CLEMSON at LSU',
+                        awayTag: 'CLEM',
+                        homeTag: 'LSU',
+                        selection: 'LSU -4',
+                        odds: '-110',
+                        status: 'PENDING'
+                    }
+                ];
+            }
 
             if (desc.includes('NC STATE') && desc.includes('MEMPHIS')) {
                 const isTeaser = (w.type || '').toLowerCase().includes('teaser') || desc.includes('+10');
