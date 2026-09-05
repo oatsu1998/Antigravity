@@ -1307,10 +1307,10 @@
                     badge: `<span style="font-size:8px; font-weight:900; color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.35); padding:2px 5px; border-radius:3px; font-family:var(--font-mono);">🔴 LOSING (-2.5 pts)</span>`,
                     score: `<span style="font-size:9px; color:#d1d5db; font-weight:700; font-family:var(--font-mono);"><strong style="color:#fff;">USC 38</strong> — Fresno St 7 <span style="color:#6b7280; font-size:8px;">(3rd Qtr 4:12)</span></span>`
                 };
-            } else if (id.includes('993183110') || sel.includes('MIAMI FLORIDA -18.5') || sel.includes('MIAMI FL -18.5') || desc.includes('153 MIAMI FLORIDA -18')) {
+            } else if (id.includes('993183110') || sel.includes('MIAMI FLORIDA') || sel.includes('LSU -4') || desc.includes('153 MIAMI FLORIDA')) {
                 return {
-                    badge: `<span style="font-size:8px; font-weight:900; color:#10b981; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.35); padding:2px 5px; border-radius:3px; font-family:var(--font-mono);">🟢 WINNING (+23.5 pts)</span>`,
-                    score: `<span style="font-size:9px; color:#d1d5db; font-weight:700; font-family:var(--font-mono);"><strong style="color:#fff;">Miami FL 42</strong> — Stanford 0 <span style="color:#6b7280; font-size:8px;">(3rd Qtr 8:45)</span></span>`
+                    badge: `<span style="font-size:8px; font-weight:900; color:#10b981; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.35); padding:2px 5px; border-radius:3px; font-family:var(--font-mono);">🟢 2 LEGS COVERED (MIA -18.5 ✓ & USC -16.5 ✓)</span>`,
+                    score: `<span style="font-size:9px; color:#d1d5db; font-weight:700; font-family:var(--font-mono);"><strong style="color:#f59e0b;">LSU -4 Pending</strong> <span style="color:#6b7280; font-size:8px;">(Clemson @ LSU · Sat 7:30 PM EST)</span></span>`
                 };
             } else if (id.includes('993192834') || sel.includes('TEAM TOTAL') || sel.includes('OVER 9.5')) {
                 return {
@@ -1400,14 +1400,16 @@
             }
 
             let activeTitle = w.selection || w.target || w.matchup;
+            let activeLegObj = null;
             if (!isSettled && legs && legs.length > 0) {
-                const activeLeg = legs.find(l => l.status === 'PENDING') || legs[0];
-                if (activeLeg) activeTitle = activeLeg.selection;
+                activeLegObj = legs.find(l => l.status === 'PENDING') || legs[0];
+                if (activeLegObj) activeTitle = activeLegObj.selection;
             } else if (legs && legs.length > 0) {
+                activeLegObj = legs[0];
                 activeTitle = legs[0].selection || w.selection || w.target;
             }
 
-            const firstLegLogos = legs && legs.length > 0 ? getTeamLogosForEvent(legs[0].event || legs[0].matchup, legs[0].matchup) : { awayLogo: '', homeLogo: '' };
+            const activeLogos = activeLegObj ? getTeamLogosForEvent(activeLegObj.event || activeLegObj.matchup, activeLegObj.matchup) : getTeamLogosForEvent(w.event || w.target || w.matchup, w.matchup);
 
             card.innerHTML = `
                 <!-- MAIN TILE ROW -->
@@ -1421,8 +1423,8 @@
                             <span class="badge ${w.status.toLowerCase()}" style="font-size:9px; padding:3px 8px; font-weight:900; text-transform:uppercase;">${w.status}</span>
                         `}
                         <div style="display:flex; align-items:center; gap:4px;">
-                            ${firstLegLogos.awayLogo}
-                            ${firstLegLogos.homeLogo}
+                            ${activeLogos.awayLogo}
+                            ${activeLogos.homeLogo}
                         </div>
                         <div style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
                             <div style="font-size:14px; font-weight:900; color:#f59e0b; font-family:var(--font-mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${activeTitle}</div>

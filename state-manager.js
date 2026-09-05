@@ -100,11 +100,11 @@
                         status: 'PENDING',
                         acceptedDate: '09/04/26 07:57 PM GMT-5',
                         timestamp: '2026-09-04T19:57:00.000Z',
-                        description: 'Football - NCAA - Miami Florida vs Stanford - Teaser | 153 Miami Florida -18½ -115 For Game | 09/04/2026 | 09:00:00 PM (EST) | Pending | Football - NCAA - Fresno State vs USC - Teaser | 152 USC -16½ -118 For Game | 09/04/2026 | 09:00:00 PM (EST) | Pending | Football - NCAA - Clemson vs LSU - Teaser | 220 LSU -4 -110 For Game | 09/05/2026 | 07:30:00 PM (EST) | Pending',
+                        description: 'Football - NCAA - Miami Florida vs Stanford - Teaser | 153 Miami Florida -18½ -115 For Game | 09/04/2026 | 09:00:00 PM (EST) | Settled WON | Football - NCAA - Fresno State vs USC - Teaser | 152 USC -16½ -118 For Game | 09/04/2026 | 09:00:00 PM (EST) | Settled WON | Football - NCAA - Clemson vs LSU - Teaser | 220 LSU -4 -110 For Game | 09/05/2026 | 07:30:00 PM (EST) | Pending',
                         history: ['+160', '+160', '+160'],
                         legs: [
-                            { matchup: 'MIAMI FLORIDA at STANFORD', event: 'MIAMI FLORIDA at STANFORD', awayTag: 'MIA', homeTag: 'STAN', selection: 'Miami Florida -18.5', odds: '-115', status: 'PENDING' },
-                            { matchup: 'FRESNO STATE at USC', event: 'FRESNO STATE at USC', awayTag: 'FRESNO ST', homeTag: 'USC', selection: 'USC -16.5', odds: '-118', status: 'PENDING' },
+                            { matchup: 'MIAMI FLORIDA at STANFORD', event: 'MIAMI FLORIDA at STANFORD', awayTag: 'MIA', homeTag: 'STAN', selection: 'Miami Florida -18.5', odds: '-115', status: 'WON' },
+                            { matchup: 'FRESNO STATE at USC', event: 'FRESNO STATE at USC', awayTag: 'FRESNO ST', homeTag: 'USC', selection: 'USC -16.5', odds: '-118', status: 'WON' },
                             { matchup: 'CLEMSON at LSU', event: 'CLEMSON at LSU', awayTag: 'CLEM', homeTag: 'LSU', selection: 'LSU -4', odds: '-110', status: 'PENDING' }
                         ]
                     },
