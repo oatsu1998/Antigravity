@@ -211,9 +211,7 @@
         .wager-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            max-height: 580px;
-            overflow-y: auto;
+            gap: 14px;
             padding-right: 4px;
         }
 
@@ -1315,9 +1313,9 @@
                 card.style.cssText = `
                     background: rgba(18, 24, 38, 0.85);
                     border: 1px solid var(--border);
-                    border-radius: 8px;
-                    padding: 8px 12px;
-                    margin-bottom: 6px;
+                    border-radius: 10px;
+                    padding: 14px 18px;
+                    margin-bottom: 12px;
                     cursor: pointer;
                     transition: all 0.15s ease;
                 `;
@@ -1378,62 +1376,57 @@
                 const firstLegLogos = legs && legs.length > 0 ? getTeamLogosForEvent(legs[0].event || legs[0].matchup, legs[0].matchup) : { awayLogo: '', homeLogo: '' };
 
                 card.innerHTML = `
-                    <!-- MAIN COMPACT ROW -->
-                    <div style="display:grid; grid-template-columns: 2.2fr 1fr 1fr 1fr 140px 90px; gap:8px; align-items:center;" onclick="toggleWagerExpand('${w.id}')">
+                    <!-- MAIN TILE ROW -->
+                    <div style="display:grid; grid-template-columns: 2.3fr 1.1fr 1.1fr 1fr 170px; gap:12px; align-items:center;" onclick="toggleWagerExpand('${w.id}')">
                         
-                        <!-- COL 1: SELECTION + LOGOS + BADGE -->
-                        <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
-                            <span class="badge ${w.status.toLowerCase()}" style="font-size:8px; padding:1px 4px; font-weight:900; text-transform:uppercase;">${w.status}</span>
-                            <div style="display:flex; align-items:center; gap:3px;">
+                        <!-- COL 1: FAR-LEFT LIVE BADGE + LOGOS + SELECTION -->
+                        <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
+                            ${!isSettled ? `
+                                <span style="font-family:var(--font-mono); font-size:9px; font-weight:900; color:#ef4444; background:rgba(239, 68, 68, 0.15); border:1px solid rgba(239, 68, 68, 0.35); padding:3px 8px; border-radius:4px; text-transform:uppercase; white-space:nowrap;">🔴 LIVE</span>
+                            ` : `
+                                <span class="badge ${w.status.toLowerCase()}" style="font-size:9px; padding:3px 8px; font-weight:900; text-transform:uppercase;">${w.status}</span>
+                            `}
+                            <div style="display:flex; align-items:center; gap:4px;">
                                 ${firstLegLogos.awayLogo}
                                 ${firstLegLogos.homeLogo}
                             </div>
                             <div style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
-                                <div style="font-size:12px; font-weight:900; color:#f59e0b; font-family:var(--font-mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${activeTitle}</div>
-                                <div style="font-size:8px; color:var(--muted); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${w.target} · ${w.sportsbook || 'BETONLINE'}</div>
+                                <div style="font-size:14px; font-weight:900; color:#f59e0b; font-family:var(--font-mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${activeTitle}</div>
+                                <div style="font-size:10px; color:var(--muted); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${w.target} · ${w.sportsbook || 'BETONLINE'}</div>
                             </div>
                         </div>
 
                         <!-- COL 2: PLACED → LIVE LINE -->
-                        <div style="font-family:var(--font-mono); font-size:10px;">
-                            <div style="font-size:8px; color:var(--muted); text-transform:uppercase;">Line Placed → Live</div>
-                            <div style="font-weight:900; color:#fff;">${w.placedOdds} <span style="color:var(--muted);">→</span> <span style="color:${clv < 0 ? '#ef4444' : '#06b6d4'};">${w.currentOdds}</span></div>
+                        <div style="font-family:var(--font-mono); font-size:11px;">
+                            <div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Line Placed → Live</div>
+                            <div style="font-weight:900; color:#fff; font-size:12px;">${w.placedOdds} <span style="color:var(--muted);">→</span> <span style="color:${clv < 0 ? '#ef4444' : '#06b6d4'};">${w.currentOdds}</span></div>
                         </div>
 
                         <!-- COL 3: STAKE / RETURN -->
-                        <div style="font-family:var(--font-mono); font-size:10px;">
-                            <div style="font-size:8px; color:var(--muted); text-transform:uppercase;">Stake / Return</div>
-                            <div style="font-weight:800; color:#fff;">$${w.stake.toFixed(0)} → <span style="color:var(--win); font-weight:900;">$${payoutReturn.toFixed(0)}</span></div>
+                        <div style="font-family:var(--font-mono); font-size:11px;">
+                            <div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Stake / Return</div>
+                            <div style="font-weight:800; color:#fff; font-size:12px;">$${w.stake.toFixed(0)} → <span style="color:var(--win); font-weight:900;">$${payoutReturn.toFixed(0)}</span></div>
                         </div>
 
                         <!-- COL 4: CLV EDGE -->
-                        <div style="font-family:var(--font-mono); font-size:10px;">
-                            <div style="font-size:8px; color:var(--muted); text-transform:uppercase;">CLV Edge</div>
-                            <div style="font-weight:900; color:${clv < 0 ? '#ef4444' : '#10b981'};">${clvSign}${clvPercent}%</div>
+                        <div style="font-family:var(--font-mono); font-size:11px;">
+                            <div style="font-size:9px; color:var(--muted); text-transform:uppercase;">CLV Edge</div>
+                            <div style="font-weight:900; color:${clv < 0 ? '#ef4444' : '#10b981'}; font-size:12px;">${clvSign}${clvPercent}%</div>
                         </div>
 
                         <!-- COL 5: MINI SPARKLINE GRAPH -->
-                        <div style="height:26px; width:135px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.05); border-radius:4px; padding:1px 2px;">
-                            <canvas id="${chartId}" style="height:24px; width:100%;"></canvas>
-                        </div>
-
-                        <!-- COL 6: STATUS BADGE -->
-                        <div style="display:flex; align-items:center; justify-content:flex-end;" onclick="event.stopPropagation();">
-                            ${!isSettled ? `
-                                <span style="font-family:var(--font-mono); font-size:8px; color:#10b981; font-weight:900; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); padding:2px 6px; border-radius:3px; text-transform:uppercase;">🔴 LIVE</span>
-                            ` : `
-                                <span style="font-family:var(--font-mono); font-size:8px; color:var(--muted); font-weight:800; background:rgba(255,255,255,0.05); padding:2px 4px; border-radius:3px; text-transform:uppercase;">SETTLED (${w.status})</span>
-                            `}
+                        <div style="height:36px; width:165px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:2px 3px;">
+                            <canvas id="${chartId}" style="height:32px; width:100%;"></canvas>
                         </div>
                     </div>
 
-                    <!-- LIVE SCORE & WIN/LOSS STATUS SUB-ROW -->
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:5px; padding-top:4px; border-top:1px solid rgba(255,255,255,0.04); font-family:var(--font-mono);">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="font-size:8px; color:var(--muted); font-weight:800; text-transform:uppercase;">LIVE STATUS:</span>
+                    <!-- LIVE GAME SCORE & WIN/LOSS STATUS SUB-ROW -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06); font-family:var(--font-mono);">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase;">LIVE STATUS:</span>
                             ${liveScoreStatus.badge}
                         </div>
-                        <div>
+                        <div style="font-size:11px; font-weight:700;">
                             ${liveScoreStatus.score}
                         </div>
                     </div>
