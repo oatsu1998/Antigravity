@@ -1406,10 +1406,6 @@
             color: var(--text);
         }
 
-        #panel-live .adv-betting-widget {
-            display: none !important;
-        }
-
         .bet-slip {
             position: fixed;
             right: -340px;
@@ -3634,48 +3630,6 @@
             return html;
         }
 
-        function renderLivePanel() {
-            let allLiveEvents = [];
-            let upcomingEvents = [];
-            LEAGUES.forEach(lg => {
-                if (leagueData[lg.id] && leagueData[lg.id].events) {
-                    leagueData[lg.id].events.forEach(e => {
-                        if (!isValidGameEvent(e, lg.id)) return;
-                        const st = gameStatus(e, lg.id);
-                        if (st.isLive) {
-                            allLiveEvents.push({ event: e, lg: lg });
-                        } else if (!st.isFinal) {
-                            upcomingEvents.push({ event: e, lg: lg });
-                        }
-                    });
-                }
-            });
-
-            if (allLiveEvents.length > 0) {
-                allLiveEvents.sort((a, b) => {
-                    const isPinA = espnPinned.has(a.event.id), isPinB = espnPinned.has(b.event.id);
-                    if (isPinA !== isPinB) return isPinA ? -1 : 1;
-                    return new Date(a.event.date || 0) - new Date(b.event.date || 0);
-                });
-                return `<div class="games-grid">${allLiveEvents.map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>`;
-            }
-
-            if (upcomingEvents.length > 0) {
-                upcomingEvents.sort((a, b) => new Date(a.event.date || 0) - new Date(b.event.date || 0));
-                return `
-                    <div style="margin-bottom:12px; font-size:11px; color:var(--muted); font-weight:700;">
-                        No games currently live in-progress &mdash; showing next upcoming games (next 3 days):
-                    </div>
-                    <div class="games-grid">${upcomingEvents.slice(0, 16).map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>
-                `;
-            }
-
-            const loading = LEAGUES.some(lg => !leagueData[lg.id]);
-            if (loading) {
-                return '<div class="loading">LOADING LIVE GAMES...</div>';
-            }
-            return `<div class="no-games"><div class="icon">◻</div>No live or upcoming games scheduled within the next 3 days</div>`;
-        }
 
         function renderDestinyLeaguePanel() {
             let allEvents = [];
@@ -4728,8 +4682,6 @@
             // Immediately update UI with ESPN scores
             const panel = document.getElementById('panel-' + lg.id);
             if (panel) panel.innerHTML = renderPanel(lg, result);
-            const livePanel = document.getElementById('panel-live');
-            if (livePanel) livePanel.innerHTML = renderLivePanel();
             renderEspnTicker();
             buildTabs();
 
@@ -4780,8 +4732,6 @@
                         paidOddsCache[lg.id] = oddsData;
                         const p = document.getElementById('panel-' + lg.id);
                         if (p) p.innerHTML = renderPanel(lg, result);
-                        const lp = document.getElementById('panel-live');
-                        if (lp) lp.innerHTML = renderLivePanel();
                     }
                     if (prevUsed !== null && globalMaxUsed !== null) {
                         lastRefreshCost = globalMaxUsed - prevUsed;
