@@ -603,7 +603,7 @@
 
         .recap-body {
             padding: 14px 20px 18px;
-            display: none;
+            display: flex;
             flex-direction: column;
             gap: 12px;
             border-top: 1px dashed var(--border);
@@ -1355,7 +1355,7 @@
                                         <!-- OVER TOTAL -->
                                         <td class="market-cell text-center">
                                             <div class="market-cell-content">
-                                                <span class="line-val">O ${ouLine || ''}</span>
+                                                <span class="line-val"><span style="color:#06b6d4; font-weight:900; background:rgba(6,182,212,0.15); padding:2px 6px; border-radius:4px; border:1px solid rgba(6,182,212,0.3); font-size:10px; margin-right:4px; letter-spacing:0.5px;">OVER</span>${ouLine || ''}</span>
                                                 <span class="odds-val">(${game.total?.over?.close_odds || '-110'})</span>
                                                 ${totPush ? `<span class="outcome-pill push">PUSH</span>` :
                                                   totOverHit ? `<span class="outcome-pill win">OVER HIT</span>` :
@@ -1365,7 +1365,7 @@
                                         <!-- AWAY TEAM TOTAL -->
                                         <td class="market-cell text-center">
                                             <div class="market-cell-content">
-                                                <span class="line-val">O ${awayTtLine || ''}</span>
+                                                <span class="line-val"><span style="color:#06b6d4; font-weight:900; background:rgba(6,182,212,0.15); padding:2px 6px; border-radius:4px; border:1px solid rgba(6,182,212,0.3); font-size:10px; margin-right:4px; letter-spacing:0.5px;">OVER</span>${awayTtLine || ''}</span>
                                                 <span class="odds-val">(${awayScore} pts)</span>
                                                 ${awayTtPush ? `<span class="outcome-pill push">PUSH</span>` :
                                                   awayTtOverHit ? `<span class="outcome-pill win">OVER HIT</span>` :
@@ -1408,7 +1408,7 @@
                                         <!-- UNDER TOTAL -->
                                         <td class="market-cell text-center">
                                             <div class="market-cell-content">
-                                                <span class="line-val">U ${ouLine || ''}</span>
+                                                <span class="line-val"><span style="color:#3b82f6; font-weight:900; background:rgba(59,130,246,0.15); padding:2px 6px; border-radius:4px; border:1px solid rgba(59,130,246,0.3); font-size:10px; margin-right:4px; letter-spacing:0.5px;">UNDER</span>${ouLine || ''}</span>
                                                 <span class="odds-val">(${game.total?.under?.close_odds || '-110'})</span>
                                                 ${totPush ? `<span class="outcome-pill push">PUSH</span>` :
                                                   totUnderHit ? `<span class="outcome-pill under">UNDER HIT</span>` :
@@ -1418,7 +1418,7 @@
                                         <!-- HOME TEAM TOTAL -->
                                         <td class="market-cell text-center">
                                             <div class="market-cell-content">
-                                                <span class="line-val">U ${homeTtLine || ''}</span>
+                                                <span class="line-val"><span style="color:#3b82f6; font-weight:900; background:rgba(59,130,246,0.15); padding:2px 6px; border-radius:4px; border:1px solid rgba(59,130,246,0.3); font-size:10px; margin-right:4px; letter-spacing:0.5px;">UNDER</span>${homeTtLine || ''}</span>
                                                 <span class="odds-val">(${homeScore} pts)</span>
                                                 ${homeTtPush ? `<span class="outcome-pill push">PUSH</span>` :
                                                   homeTtUnderHit ? `<span class="outcome-pill under">UNDER HIT</span>` :
@@ -1434,10 +1434,10 @@
                         <div class="recap-drawer">
                             <button class="recap-toggle-btn" onclick="toggleRecapDrawer('${game.id}')">
                                 <span>📋 GAME RECAP & PERIOD SCORES</span>
-                                <span id="recap-arrow-${game.id}">▼</span>
+                                <span id="recap-arrow-${game.id}">▲</span>
                             </button>
 
-                            <div id="recap-body-${game.id}" class="recap-body">
+                            <div id="recap-body-${game.id}" class="recap-body open">
                                 ${game.period_scores ? renderPeriodBoxscore(game) : ''}
                                 ${game.recap ? `<div class="recap-text"><strong>Game Summary:</strong> ${game.recap}</div>` : ''}
                             </div>
