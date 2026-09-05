@@ -3590,12 +3590,26 @@
             return html;
         }
 
+        function isOffseasonPlaceholder(e, lgId) {
+            const comp = e.competitions?.[0];
+            if (!comp) return true;
+            const homeScore = parseInt(comp.competitors?.find(c => c.homeAway === 'home')?.score || 0);
+            const awayScore = parseInt(comp.competitors?.find(c => c.homeAway === 'away')?.score || 0);
+            const st = gameStatus(e, lgId);
+            const hasOdds = comp.odds && comp.odds.length > 0 && (comp.odds[0].details || comp.odds[0].overUnder);
+            if ((lgId === 'nba' || lgId === 'nhl') && homeScore === 0 && awayScore === 0 && !st.isLive && !st.isFinal && !hasOdds) {
+                return true;
+            }
+            return false;
+        }
+
         function renderLivePanel() {
             let allLiveEvents = [];
             let allEvents = [];
             LEAGUES.forEach(lg => {
                 if (leagueData[lg.id] && leagueData[lg.id].events) {
                     leagueData[lg.id].events.forEach(e => {
+                        if (isOffseasonPlaceholder(e, lg.id)) return;
                         allEvents.push({ event: e, lg: lg });
                         if (gameStatus(e, lg.id).isLive) {
                             allLiveEvents.push({ event: e, lg: lg });
@@ -3635,6 +3649,7 @@
             LEAGUES.forEach(lg => {
                 if (leagueData[lg.id] && leagueData[lg.id].events) {
                     leagueData[lg.id].events.forEach(e => {
+                        if (isOffseasonPlaceholder(e, lg.id)) return;
                         allEvents.push({ event: e, lg: lg });
                     });
                 }
