@@ -1268,9 +1268,17 @@
                 const isSelected = w.id === selectedWagerId;
 
                 const card = document.createElement('div');
-                card.className = `wager-card ${isSelected ? 'selected' : ''}`;
+                card.className = `wager-card-tile ${isSelected ? 'selected' : ''}`;
                 card.id = `wager-card-${w.id}`;
-                card.onclick = () => selectWager(w.id);
+                card.style.cssText = `
+                    background: rgba(18, 24, 38, 0.85);
+                    border: 1px solid var(--border);
+                    border-radius: 8px;
+                    padding: 8px 12px;
+                    margin-bottom: 6px;
+                    cursor: pointer;
+                    transition: all 0.15s ease;
+                `;
 
                 let clvColor = 'var(--muted)';
                 let clvSign = '';
@@ -1283,23 +1291,22 @@
                 let legsHtml = '';
                 if (legs && legs.length > 0) {
                     legsHtml = `
-                        <div class="wager-legs-grid" style="display:flex; flex-direction:column; gap:6px; margin:8px 0;">
+                        <div class="wager-legs-grid" style="display:flex; flex-direction:column; gap:4px; margin:6px 0;">
                             ${legs.map((leg, legIdx) => {
                                 const logos = getTeamLogosForEvent(leg.event || leg.matchup, leg.matchup);
                                 return `
-                                    <div class="wager-leg-item" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:6px; padding:6px 8px; font-family:var(--font-mono);">
-                                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed var(--border); padding-bottom:3px; margin-bottom:3px;">
+                                    <div class="wager-leg-item" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:5px; padding:4px 8px; font-family:var(--font-mono);">
+                                        <div style="display:flex; justify-content:space-between; align-items:center;">
                                             <div style="display:flex; align-items:center; gap:5px;">
                                                 ${legs.length > 1 ? `<span style="font-size:8px; color:var(--accent); font-weight:800; background:rgba(245,158,11,0.15); padding:1px 4px; border-radius:3px;">LEG #${legIdx + 1}</span>` : ''}
                                                 ${logos.awayLogo}
                                                 <span style="font-size:10px; font-weight:800; color:#fff; text-transform:uppercase;">${leg.matchup || leg.event}</span>
                                                 ${logos.homeLogo}
                                             </div>
-                                            <span style="font-size:9px; color:var(--muted); font-weight:700;">${leg.odds || '-110'}</span>
-                                        </div>
-                                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                                            <span style="font-size:11px; font-weight:900; color:#f59e0b;">${leg.selection}</span>
-                                            <span class="badge ${leg.status.toLowerCase()}" style="font-size:8px; padding:1px 4px;">${leg.status}</span>
+                                            <div style="display:flex; align-items:center; gap:8px;">
+                                                <span style="font-size:10px; font-weight:900; color:#f59e0b;">${leg.selection}</span>
+                                                <span class="badge ${leg.status.toLowerCase()}" style="font-size:8px; padding:1px 4px;">${leg.status}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 `;
@@ -1311,13 +1318,12 @@
                 const chartId = `chart-canvas-${w.id}`;
                 const isSettled = w.status === 'WON' || w.status === 'LOST' || w.status === 'CASHED' || w.status === 'PUSH';
                 const cashoutVal = isSettled ? (w.status === 'WON' ? payoutReturn : (w.status === 'PUSH' ? w.stake : 0)) : calculateCashoutValue(w.stake, w.placedOdds, w.currentOdds, w.status);
-                const cashoutText = isSettled ? `${w.status} SETTLED` : 'FAIR VALUE CASHOUT OFFER';
 
-                let strategyNote = 'Position line value is holding stable. Synchronized with live market conditions.';
+                let strategyNote = 'Position line value is stable. Synchronized with live market conditions.';
                 if (clv > 0.05) {
-                    strategyNote = `Positive Closing Line Value (+${clvPercent}%). Placed line holds a clear math edge over current live market lines.`;
+                    strategyNote = `Positive Closing Line Value (+${clvPercent}%). Placed line holds a math edge.`;
                 } else if (clv < -0.05) {
-                    strategyNote = `Line depreciated by ${clvPercent}%. Live market line (${w.currentOdds}) shifted heavily against placed line (${w.placedOdds}). Cashing out or hedging is recommended.`;
+                    strategyNote = `Line depreciated by ${clvPercent}%. Live market line (${w.currentOdds}) shifted against placed line (${w.placedOdds}).`;
                 }
 
                 let activeTitle = w.selection || w.target || w.matchup;
@@ -1326,100 +1332,85 @@
                     if (activeLeg) activeTitle = activeLeg.selection;
                 }
 
+                const firstLegLogos = legs && legs.length > 0 ? getTeamLogosForEvent(legs[0].event || legs[0].matchup, legs[0].matchup) : { awayLogo: '', homeLogo: '' };
+
                 card.innerHTML = `
-                    <div class="wager-card-top" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                        <div>
-                            <div style="font-size:10px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px;">${w.target} · ${w.sportsbook || 'BETONLINE'}</div>
-                            <div style="font-size:16px; font-weight:900; color:#f59e0b; margin-top:2px; font-family:var(--font-mono); letter-spacing:0.2px;">${activeTitle}</div>
+                    <!-- MAIN COMPACT ROW -->
+                    <div style="display:grid; grid-template-columns: 2.2fr 1fr 1fr 1fr 140px 145px; gap:8px; align-items:center;" onclick="toggleWagerExpand('${w.id}')">
+                        
+                        <!-- COL 1: SELECTION + LOGOS + BADGE -->
+                        <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
+                            <span class="badge ${w.status.toLowerCase()}" style="font-size:8px; padding:1px 4px; font-weight:900; text-transform:uppercase;">${w.status}</span>
+                            <div style="display:flex; align-items:center; gap:3px;">
+                                ${firstLegLogos.awayLogo}
+                                ${firstLegLogos.homeLogo}
+                            </div>
+                            <div style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+                                <div style="font-size:12px; font-weight:900; color:#f59e0b; font-family:var(--font-mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${activeTitle}</div>
+                                <div style="font-size:8px; color:var(--muted); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${w.target} · ${w.sportsbook || 'BETONLINE'}</div>
+                            </div>
                         </div>
-                        <span class="badge ${w.status.toLowerCase()}">${w.status}</span>
+
+                        <!-- COL 2: PLACED → LIVE LINE -->
+                        <div style="font-family:var(--font-mono); font-size:10px;">
+                            <div style="font-size:8px; color:var(--muted); text-transform:uppercase;">Line Placed → Live</div>
+                            <div style="font-weight:900; color:#fff;">${w.placedOdds} <span style="color:var(--muted);">→</span> <span style="color:${clv < 0 ? '#ef4444' : '#06b6d4'};">${w.currentOdds}</span></div>
+                        </div>
+
+                        <!-- COL 3: STAKE / RETURN -->
+                        <div style="font-family:var(--font-mono); font-size:10px;">
+                            <div style="font-size:8px; color:var(--muted); text-transform:uppercase;">Stake / Return</div>
+                            <div style="font-weight:800; color:#fff;">$${w.stake.toFixed(0)} → <span style="color:var(--win); font-weight:900;">$${payoutReturn.toFixed(0)}</span></div>
+                        </div>
+
+                        <!-- COL 4: CLV EDGE -->
+                        <div style="font-family:var(--font-mono); font-size:10px;">
+                            <div style="font-size:8px; color:var(--muted); text-transform:uppercase;">CLV Edge</div>
+                            <div style="font-weight:900; color:${clv < 0 ? '#ef4444' : '#10b981'};">${clvSign}${clvPercent}%</div>
+                        </div>
+
+                        <!-- COL 5: MINI SPARKLINE GRAPH -->
+                        <div style="height:26px; width:135px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.05); border-radius:4px; padding:1px 2px;">
+                            <canvas id="${chartId}" style="height:24px; width:100%;"></canvas>
+                        </div>
+
+                        <!-- COL 6: QUICK SETTLE ACTIONS -->
+                        <div style="display:flex; align-items:center; justify-content:flex-end; gap:3px;" onclick="event.stopPropagation();">
+                            ${!isSettled ? `
+                                <button onclick="settleWagerDirect('${w.id}', 'WON')" style="background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.4); color:#10b981; font-family:var(--font-mono); font-size:8px; font-weight:900; padding:2px 4px; border-radius:3px; cursor:pointer;" title="Settle Win">
+                                    🟢 WIN
+                                </button>
+                                <button onclick="settleWagerDirect('${w.id}', 'LOST')" style="background:rgba(239, 68, 68, 0.15); border:1px solid rgba(239, 68, 68, 0.4); color:#ef4444; font-family:var(--font-mono); font-size:8px; font-weight:900; padding:2px 4px; border-radius:3px; cursor:pointer;" title="Settle Loss">
+                                    🔴 LOSS
+                                </button>
+                                <button onclick="settleWagerDirect('${w.id}', 'PUSH')" style="background:rgba(107, 114, 128, 0.15); border:1px solid rgba(107, 114, 128, 0.4); color:#9ca3af; font-family:var(--font-mono); font-size:8px; font-weight:900; padding:2px 4px; border-radius:3px; cursor:pointer;" title="Settle Push">
+                                    ⚪ PUSH
+                                </button>
+                            ` : `
+                                <span style="font-family:var(--font-mono); font-size:8px; color:var(--muted); font-weight:800; background:rgba(255,255,255,0.05); padding:2px 4px; border-radius:3px;">SETTLED (${w.status})</span>
+                            `}
+                        </div>
                     </div>
 
-                    ${legsHtml}
-
-                    <div class="wager-card-body" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; font-size:11px; border-top:1px solid rgba(255,255,255,0.06); padding-top:8px; margin-top:6px;">
-                        <div>
-                            <div class="body-label">Bookmaker</div>
-                            <div class="body-val" style="color:#06b6d4; font-weight:900; text-transform:uppercase; font-size:12px;">${w.sportsbook || 'BETONLINE'}</div>
-                        </div>
-                        <div>
-                            <div class="body-label">Placed Line / Odds</div>
-                            <div class="body-val" style="color:var(--accent); font-weight:900; font-size:12px;">${w.placedOdds}</div>
-                        </div>
-                        <div>
-                            <div class="body-label">Stake / Return</div>
-                            <div class="body-val" style="color:#fff; font-weight:800; font-size:12px;">$${w.stake.toFixed(2)} → <span style="color:var(--win); font-weight:900;">$${payoutReturn.toFixed(2)}</span></div>
-                        </div>
-                    </div>
-
-                    <!-- COMBINED GAME CARD CHART & INSPECTOR PANEL -->
-                    <div class="wager-inspector-block" style="background:rgba(15, 23, 42, 0.6); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px; margin-top:10px; font-family:var(--font-mono);" onclick="event.stopPropagation();">
-                        <div style="background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px; margin-bottom:10px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                <div>
-                                    <div style="font-size:11px; font-weight:900; color:#fff; text-transform:uppercase;">📈 LINE VALUE & PROBABILITY TRAJECTORY</div>
-                                    <div style="font-size:9px; color:var(--muted);">${activeTitle} · ${w.matchup || w.event}</div>
-                                </div>
-                                <span style="background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.3); color:#10b981; font-size:8px; font-weight:800; padding:2px 6px; border-radius:10px;">⚡ KALSHI SPORTS LIVE</span>
+                    <!-- EXPANDED TRAY (CLICK TO EXPAND DETAILS) -->
+                    <div id="wager-expand-${w.id}" class="wager-expand-tray" style="display:none; margin-top:8px; padding-top:8px; border-top:1px dashed rgba(255,255,255,0.1); font-family:var(--font-mono);" onclick="event.stopPropagation();">
+                        ${legsHtml}
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:6px;">
+                            <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 8px; font-size:9px;">
+                                <div style="color:var(--muted); font-weight:800; margin-bottom:2px;">POSITION METRICS</div>
+                                <div>Event: <strong style="color:#fff;">${w.matchup || w.event}</strong></div>
+                                <div>Bookmaker: <strong style="color:#06b6d4;">${w.sportsbook || 'BETONLINE'}</strong></div>
+                                <div>Strategy Note: <span style="color:#d1d5db;">${strategyNote}</span></div>
                             </div>
-                            <div style="height:110px; width:100%;">
-                                <canvas id="${chartId}"></canvas>
-                            </div>
-                        </div>
-
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                            <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px 10px;">
-                                <div style="font-size:8px; font-weight:800; color:var(--muted); text-transform:uppercase; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:3px; margin-bottom:4px;">VALUATION METRICS</div>
-                                <div style="display:flex; justify-content:space-between; font-size:9px; margin-bottom:3px;">
-                                    <span style="color:var(--muted);">Initial Line Placed:</span>
-                                    <strong style="color:#fff;">${w.placedOdds}</strong>
-                                </div>
-                                <div style="display:flex; justify-content:space-between; font-size:9px; margin-bottom:3px;">
-                                    <span style="color:var(--muted);">Current Live Line (Kalshi):</span>
-                                    <strong style="color:${clv < 0 ? '#ef4444' : '#06b6d4'};">${w.currentOdds}</strong>
-                                </div>
-                                <div style="display:flex; justify-content:space-between; font-size:9px; margin-bottom:3px;">
-                                    <span style="color:var(--muted);">Closing Line Value (CLV):</span>
-                                    <strong style="color:${clvColor};">${clvSign}${clvPercent}%</strong>
-                                </div>
-                                <div style="display:flex; justify-content:space-between; font-size:9px;">
-                                    <span style="color:var(--muted);">Position Margin Edge:</span>
-                                    <strong style="color:${clv < 0 ? '#ef4444' : '#10b981'};">${clv < 0 ? '' : '+'}${(Math.abs(parseFloat(clvPercent)) + 1.2).toFixed(1)}%</strong>
-                                </div>
-                            </div>
-
-                            <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px 10px; text-align:center; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                                <div style="font-size:8px; font-weight:800; color:var(--muted); text-transform:uppercase; margin-bottom:2px;">CASHOUT / POSITION SETTLE</div>
-                                <div style="font-size:8px; color:var(--muted); margin-bottom:2px;">${cashoutText}</div>
-                                <div style="font-size:18px; font-weight:900; color:#10b981; font-family:var(--font-mono); margin:1px 0;">$${cashoutVal.toFixed(2)}</div>
-                                <div style="font-size:8px; color:var(--muted); margin-bottom:4px;">Max Payout: <strong style="color:#fff;">$${payoutReturn.toFixed(2)}</strong></div>
+                            <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 8px; text-align:center; display:flex; flex-direction:column; justify-content:center; align-items:center;">
                                 ${!isSettled ? `
-                                    <div style="display:flex; flex-direction:column; gap:4px; width:100%; margin-top:2px;">
-                                        <button onclick="cashoutPosition('${w.id}')" style="background:rgba(245, 158, 11, 0.15); border:1px solid rgba(245, 158, 11, 0.4); color:#f59e0b; font-family:var(--font-mono); font-size:9px; font-weight:900; padding:4px 6px; border-radius:4px; cursor:pointer; width:100%;">
-                                            ⚡ CASH OUT POSITION ($${cashoutVal.toFixed(2)})
-                                        </button>
-                                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:3px;">
-                                            <button onclick="settleWagerDirect('${w.id}', 'WON')" style="background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.4); color:#10b981; font-family:var(--font-mono); font-size:8px; font-weight:900; padding:3px 0; border-radius:3px; cursor:pointer;">
-                                                🟢 WIN
-                                            </button>
-                                            <button onclick="settleWagerDirect('${w.id}', 'LOST')" style="background:rgba(239, 68, 68, 0.15); border:1px solid rgba(239, 68, 68, 0.4); color:#ef4444; font-family:var(--font-mono); font-size:8px; font-weight:900; padding:3px 0; border-radius:3px; cursor:pointer;">
-                                                🔴 LOSS
-                                            </button>
-                                            <button onclick="settleWagerDirect('${w.id}', 'PUSH')" style="background:rgba(107, 114, 128, 0.15); border:1px solid rgba(107, 114, 128, 0.4); color:#9ca3af; font-family:var(--font-mono); font-size:8px; font-weight:900; padding:3px 0; border-radius:3px; cursor:pointer;">
-                                                ⚪ PUSH
-                                            </button>
-                                        </div>
-                                    </div>
+                                    <button onclick="cashoutPosition('${w.id}')" style="background:rgba(245, 158, 11, 0.15); border:1px solid rgba(245, 158, 11, 0.4); color:#f59e0b; font-family:var(--font-mono); font-size:9px; font-weight:900; padding:4px 8px; border-radius:4px; cursor:pointer; width:100%;">
+                                        ⚡ CASH OUT POSITION FOR $${cashoutVal.toFixed(2)}
+                                    </button>
                                 ` : `
-                                    <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--muted); font-family:var(--font-mono); font-size:9px; font-weight:800; padding:4px 6px; border-radius:4px; width:100%;">
-                                        POSITION SETTLED (${w.status})
-                                    </div>
+                                    <span style="font-size:9px; color:var(--muted); font-weight:800;">POSITION SETTLED (${w.status})</span>
                                 `}
                             </div>
-                        </div>
-
-                        <div style="margin-top:8px; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.05); border-radius:6px; padding:6px 8px; font-size:9px; color:#d1d5db;">
-                            <span style="color:#f59e0b; font-weight:800;">💡 Strategy Note:</span> ${strategyNote}
                         </div>
                     </div>
                 `;
@@ -1513,7 +1504,12 @@
             }
         }
 
-        // Switch filtering tabs (ALL, ACTIVE, WON, LOST, SETTLED)
+        function toggleWagerExpand(id) {
+            const el = document.getElementById(`wager-expand-${id}`);
+            if (!el) return;
+            const isVisible = el.style.display === 'block';
+            el.style.display = isVisible ? 'none' : 'block';
+        }
         function switchFilter(type, btn) {
             activeFilter = type;
             document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
