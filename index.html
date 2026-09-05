@@ -2675,7 +2675,7 @@
         }
 
         async function fetchLeague(lg) {
-            const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard?dates=${todayAndTomorrowStr()}&limit=50`;
+            const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard?limit=50`;
             try {
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -2686,24 +2686,75 @@
             }
         }
 
-        function gameStatus(event) {
+        function ordinalSuffix(i) {
+            const j = i % 10, k = i % 100;
+            if (j === 1 && k !== 11) return i + "st";
+            if (j === 2 && k !== 12) return i + "nd";
+            if (j === 3 && k !== 13) return i + "rd";
+            return i + "th";
+        }
+
+        function gameStatus(event, leagueHint) {
             const s = event.status?.type;
             if (!s) return { label: 'SCHEDULED', cls: 'status-sched', isLive: false, isFinal: false };
-            if (s.completed) {
-                const finalLabel = s.shortDetail && s.shortDetail.toUpperCase().includes('OT') ? s.shortDetail.toUpperCase() : 'FINAL';
+
+            const lg = (leagueHint || event.sport || '').toLowerCase();
+
+            // Final / Completed Games
+            if (s.completed || s.state === 'post') {
+                let finalLabel = 'FINAL';
+                if (s.shortDetail && (s.shortDetail.toUpperCase().includes('OT') || s.shortDetail.toUpperCase().includes('F/'))) {
+                    finalLabel = s.shortDetail.toUpperCase();
+                } else if (s.shortDetail && s.shortDetail.toUpperCase().includes('FINAL')) {
+                    finalLabel = s.shortDetail.toUpperCase();
+                }
                 return { label: finalLabel, cls: 'status-final', isLive: false, isFinal: true };
             }
+
+            // Live / In Progress Games
             if (s.state === 'in' || s.description === 'In Progress' || s.description === 'Halftime' || s.description === 'End of Period' || (s.shortDetail && s.shortDetail.toLowerCase().includes('half'))) {
-                let label = 'LIVE';
-                if (s.description === 'Halftime' || (s.shortDetail && s.shortDetail.toLowerCase().includes('half'))) {
-                    label = 'HALFTIME';
-                } else if (s.description === 'End of Period') {
-                    label = `END Q${event.status.period || ''}`;
-                } else if (event.status?.displayClock) {
-                    label = `${event.status.displayClock} — ${event.status.period ? 'Q' + event.status.period : ''}`;
+                let label = s.shortDetail || 'LIVE';
+
+                if (lg.includes('mlb') || lg.includes('baseball')) {
+                    // Baseball: Show Inning (e.g. "Top 8th", "Bot 8th", "Mid 8th", "End 8th")
+                    label = s.shortDetail || (event.status?.period ? `${ordinalSuffix(event.status.period)} Inning` : 'LIVE');
+                } else if (lg.includes('nhl') || lg.includes('hockey')) {
+                    // Hockey: Show Period (e.g. "14:22 - 2nd P", "1st P", "2nd P", "3rd P", "OT")
+                    if (s.description === 'End of Period') {
+                        label = `END ${event.status?.period ? ordinalSuffix(event.status.period) + ' P' : 'PERIOD'}`;
+                    } else if (event.status?.displayClock && event.status?.period) {
+                        label = `${event.status.displayClock} - ${ordinalSuffix(event.status.period)} P`;
+                    } else {
+                        label = s.shortDetail || 'LIVE';
+                    }
+                } else if (lg.includes('nfl') || lg.includes('ncaaf') || lg.includes('football')) {
+                    // Football: Show Quarter & Clock
+                    if (s.description === 'Halftime' || (s.shortDetail && s.shortDetail.toLowerCase().includes('half'))) {
+                        label = 'HALFTIME';
+                    } else if (s.description === 'End of Period') {
+                        label = `END Q${event.status?.period || ''}`;
+                    } else if (event.status?.displayClock && event.status?.period) {
+                        label = `${event.status.displayClock} - Q${event.status.period}`;
+                    } else {
+                        label = s.shortDetail || 'LIVE';
+                    }
+                } else if (lg.includes('nba') || lg.includes('wnba') || lg.includes('basketball')) {
+                    // Basketball: Show Quarter & Clock
+                    if (s.description === 'Halftime' || (s.shortDetail && s.shortDetail.toLowerCase().includes('half'))) {
+                        label = 'HALFTIME';
+                    } else if (s.description === 'End of Period') {
+                        label = `END Q${event.status?.period || ''}`;
+                    } else if (event.status?.displayClock && event.status?.period) {
+                        label = `${event.status.displayClock} - Q${event.status.period}`;
+                    } else {
+                        label = s.shortDetail || 'LIVE';
+                    }
                 }
+
                 return { label: label, cls: 'status-live', isLive: true, isFinal: false };
             }
+
+            // Scheduled Games
             const d = event.date ? new Date(event.date) : null;
             const timeStr = d ? d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : s.description;
             return { label: timeStr, cls: 'status-sched', isLive: false, isFinal: false };
@@ -2990,27 +3041,27 @@
                 <!-- Batter vs Pitcher Header -->
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                     <!-- Batter -->
-                    <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
+                    <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0; overflow:hidden;">
                         <img src="${batImg}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid #06B6D4; background:#1A2430;" onerror="this.src='https://a.espncdn.com/i/headshots/placeholder.png'">
-                        <div style="display:flex; flex-direction:column; min-width:0;">
+                        <div style="display:flex; flex-direction:column; min-width:0; overflow:hidden;">
                             <span style="font-size:8px; color:#06B6D4; font-weight:700;">${batRole}</span>
-                            <span style="font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${batName}</span>
-                            ${batSummary ? `<span style="font-size:9px; color:var(--muted);">${batSummary}</span>` : ''}
+                            <span style="font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:110px;">${batName}</span>
+                            ${batSummary ? `<span style="font-size:9px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${batSummary}</span>` : ''}
                         </div>
                     </div>
 
                     <!-- Inning & Count Status -->
-                    <div style="text-align:center; padding:0 8px;">
-                        <div style="font-size:12px; font-weight:800; color:#FFFFFF;">${statusLabel}</div>
-                        <div style="font-size:11px; color:#06B6D4; font-weight:700; margin-top:2px;">${balls}-${strikes} · ${outs} ${outs === 1 ? 'Out' : 'Outs'}</div>
+                    <div style="text-align:center; padding:0 6px; flex-shrink:0; min-width:85px;">
+                        <div style="font-size:11px; font-weight:800; color:#FFFFFF; white-space:nowrap;">${statusLabel}</div>
+                        <div style="font-size:10px; color:#06B6D4; font-weight:700; margin-top:2px; white-space:nowrap;">${balls}-${strikes} · ${outs} ${outs === 1 ? 'Out' : 'Outs'}</div>
                     </div>
 
                     <!-- Pitcher -->
-                    <div style="display:flex; align-items:center; gap:8px; flex:1; justify-content:flex-end; text-align:right; min-width:0;">
-                        <div style="display:flex; flex-direction:column; align-items:flex-end; min-width:0;">
+                    <div style="display:flex; align-items:center; gap:8px; flex:1; justify-content:flex-end; text-align:right; min-width:0; overflow:hidden;">
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; min-width:0; overflow:hidden;">
                             <span style="font-size:8px; color:var(--muted); font-weight:700;">PITCHING</span>
-                            <span style="font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${pitName}</span>
-                            ${pitSummary ? `<span style="font-size:9px; color:var(--muted);">${pitSummary}</span>` : ''}
+                            <span style="font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:110px;">${pitName}</span>
+                            ${pitSummary ? `<span style="font-size:9px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${pitSummary}</span>` : ''}
                         </div>
                         <img src="${pitImg}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.2); background:#1A2430;" onerror="this.src='https://a.espncdn.com/i/headshots/placeholder.png'">
                     </div>
@@ -3314,7 +3365,10 @@
 
             const wagersList = getWagersForGame(awayAbbr, awayName, homeAbbr, homeName);
             const betsCount = wagersList.length;
-            const showScoreBlock = status.isLive || status.isFinal;
+            const weatherObj = comp.weather;
+            const weatherText = weatherObj?.displayValue || (weatherObj?.temperature ? `${weatherObj.temperature}°F` : '');
+            const weatherBadge = weatherText ? `🌡️ ${weatherText}` : (venueIndoor ? '🏟️ Dome' : '');
+            const showScoreBlock = true;
 
             return `
     <div class="game-card ${status.isLive ? 'live' : ''} ${espnPinned.has(event.id) ? 'pinned' : ''}" id="card-${panelType}-${event.id}" data-eid="${event.id}"
@@ -3327,9 +3381,10 @@
       <div class="card-top-bar" style="display:flex; align-items:center; gap:8px;">
         <img src="${getLeagueLogo(lg.league || lg.id, lg.sport)}" class="league-logo" style="width:18px; height:18px; object-fit:contain; flex-shrink:0; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));" alt="${lg.league || lg.id || lg.sport}" title="${(lg.league || lg.id || lg.sport || '').toUpperCase()}" onerror="this.src='https://a.espncdn.com/i/espn/misc_logos/500/ncaa.png'">
         <span class="drag-handle" onclick="event.stopPropagation()" title="Drag to reorder">⠿</span>
-        <div class="game-status" style="margin:0; display:flex; align-items:center; gap:6px; flex:1;">
+        <div class="game-status" style="margin:0; display:flex; align-items:center; gap:6px; flex:1; flex-wrap:wrap;">
           <span class="${status.cls}">${status.label}</span>
           ${status.isLive ? '<span class="live-dot"></span>' : ''}
+          ${weatherBadge ? `<span style="font-size:10px; font-weight:700; color:#f59e0b; background:rgba(245,158,11,0.1); padding:2px 6px; border-radius:4px; border:1px solid rgba(245,158,11,0.25); font-family:var(--font-mono);">${weatherBadge}</span>` : ''}
         </div>
         <button class="card-my-bets-btn" onclick="event.stopPropagation(); window.location.href='my-bets.html'">
           Live Bets ${betsCount > 0 ? `<span class="bets-count">${betsCount}</span>` : ''}
@@ -3537,35 +3592,42 @@
 
         function renderLivePanel() {
             let allLiveEvents = [];
+            let allEvents = [];
             LEAGUES.forEach(lg => {
                 if (leagueData[lg.id] && leagueData[lg.id].events) {
-                    const liveEvents = leagueData[lg.id].events.filter(e => gameStatus(e).isLive);
-                    liveEvents.forEach(e => {
-                        allLiveEvents.push({ event: e, lg: lg });
+                    leagueData[lg.id].events.forEach(e => {
+                        allEvents.push({ event: e, lg: lg });
+                        if (gameStatus(e, lg.id).isLive) {
+                            allLiveEvents.push({ event: e, lg: lg });
+                        }
                     });
                 }
             });
 
-            if (allLiveEvents.length === 0) {
-                const loading = LEAGUES.some(lg => !leagueData[lg.id]);
-                if (loading) {
-                    return '<div class="loading">LOADING LIVE GAMES...</div>';
-                }
-                return `
-      <div class="no-games">
-        <div class="icon">◻</div>
-        No live games at the moment
-      </div>
-    `;
+            if (allLiveEvents.length > 0) {
+                allLiveEvents.sort((a, b) => {
+                    const isPinA = espnPinned.has(a.event.id), isPinB = espnPinned.has(b.event.id);
+                    if (isPinA !== isPinB) return isPinA ? -1 : 1;
+                    return new Date(a.event.date || 0) - new Date(b.event.date || 0);
+                });
+                return `<div class="games-grid">${allLiveEvents.map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>`;
             }
 
-            allLiveEvents.sort((a, b) => {
-                const isPinA = espnPinned.has(a.event.id), isPinB = espnPinned.has(b.event.id);
-                if (isPinA !== isPinB) return isPinA ? -1 : 1;
-                return new Date(a.event.date || 0) - new Date(b.event.date || 0);
-            });
+            if (allEvents.length > 0) {
+                allEvents.sort((a, b) => new Date(b.event.date || 0) - new Date(a.event.date || 0));
+                return `
+                    <div style="margin-bottom:12px; font-size:11px; color:var(--muted); font-weight:700;">
+                        No games currently live in-progress &mdash; showing today's slate scoreboards:
+                    </div>
+                    <div class="games-grid">${allEvents.slice(0, 16).map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>
+                `;
+            }
 
-            return `<div class="games-grid">${allLiveEvents.map(item => renderCard(item.event, item.lg, 'live')).join('')}</div>`;
+            const loading = LEAGUES.some(lg => !leagueData[lg.id]);
+            if (loading) {
+                return '<div class="loading">LOADING LIVE GAMES...</div>';
+            }
+            return `<div class="no-games"><div class="icon">◻</div>No games available for current slate</div>`;
         }
 
         function renderDestinyLeaguePanel() {
@@ -4021,22 +4083,14 @@
 
         window.setTickerFilter = function(filterId) {
             currentTickerFilter = filterId;
-            const labels = {
-                top: 'Top Events',
-                live: 'LIVE',
-                nfl: 'NFL',
-                mlb: 'MLB',
-                nba: 'NBA',
-                nhl: 'NHL',
-                ncaaf: 'NCAAF'
-            };
-            const labelEl = document.getElementById('espn-filter-label');
-            if (labelEl) labelEl.innerText = labels[filterId] || 'LIVE';
-
             document.querySelectorAll('.espn-dropdown-item').forEach(item => {
-                item.classList.remove('active');
+                const attr = item.getAttribute('onclick') || '';
+                if (attr.includes(`'${filterId}'`)) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
             });
-            event?.currentTarget?.classList?.add('active');
 
             const dd = document.getElementById('espn-events-dropdown');
             if (dd) dd.classList.remove('open');
@@ -4116,23 +4170,47 @@
                 }
             });
 
-            // Update live games counter badge on filter button
-            const liveEventsCount = allEvents.filter(i => gameStatus(i.event).isLive).length;
+            // Update top scrolling scoreboard selector button label & badge
+            const labelEl = document.getElementById('espn-filter-label');
             const counterBadge = document.getElementById('espn-live-counter');
-            if (counterBadge) counterBadge.innerText = liveEventsCount;
+            const liveEventsCount = allEvents.filter(i => gameStatus(i.event, i.lg.id).isLive).length;
+
+            if (currentTickerFilter === 'live') {
+                if (labelEl) labelEl.innerText = 'LIVE';
+                if (counterBadge) {
+                    counterBadge.innerText = liveEventsCount;
+                    counterBadge.style.display = 'inline-block';
+                }
+            } else if (currentTickerFilter === 'top') {
+                if (labelEl) labelEl.innerText = 'Top Events';
+                if (counterBadge) {
+                    counterBadge.innerText = allEvents.length;
+                    counterBadge.style.display = 'inline-block';
+                }
+            } else {
+                const lgUpper = currentTickerFilter.toUpperCase();
+                if (labelEl) labelEl.innerText = lgUpper;
+                const lgEvents = allEvents.filter(i => i.lg.id.toLowerCase() === currentTickerFilter);
+                if (counterBadge) {
+                    counterBadge.innerText = lgEvents.length;
+                    counterBadge.style.display = 'inline-block';
+                }
+            }
 
             if (allEvents.length === 0) {
                 scrollContainer.innerHTML = '<div style="padding: 0 20px; font-family: var(--font-mono); font-size: 11px; color: var(--muted);">Loading live ticker scores...</div>';
                 return;
             }
 
-            // Filter logic
+            // Filter logic for top scrolling scoreboard
             let filtered = [];
             if (currentTickerFilter === 'top') {
                 filtered = allEvents;
             } else if (currentTickerFilter === 'live') {
-                filtered = allEvents.filter(i => gameStatus(i.event).isLive);
+                filtered = allEvents.filter(i => gameStatus(i.event, i.lg.id).isLive);
+                if (filtered.length === 0) filtered = allEvents;
             } else {
+                // Show ALL today's complete games for the selected sport (e.g. MLB: 15 games)
                 filtered = allEvents.filter(i => i.lg.id.toLowerCase() === currentTickerFilter);
             }
 
@@ -4141,12 +4219,29 @@
                 return;
             }
 
-            // Sort: Live games first, then by date
+            // Sort: Live games first, then by date/status
             filtered.sort((a, b) => {
-                const sa = gameStatus(a.event), sb = gameStatus(b.event);
+                const sa = gameStatus(a.event, a.lg.id), sb = gameStatus(b.event, b.lg.id);
                 if (sa.isLive !== sb.isLive) return sa.isLive ? -1 : 1;
                 return new Date(a.event.date || 0) - new Date(b.event.date || 0);
             });
+
+        function renderTickerBaseDiamond(sit) {
+            if (!sit) return '';
+            const on1 = !!(sit.onFirst || sit.firstBase);
+            const on2 = !!(sit.onSecond || sit.secondBase);
+            const on3 = !!(sit.onThird || sit.thirdBase);
+
+            return `
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display:inline-block; vertical-align:middle; flex-shrink:0;">
+                <!-- 2nd Base (Top) -->
+                <polygon points="10,2 14,6 10,10 6,6" fill="${on2 ? '#3b82f6' : '#334155'}" stroke="${on2 ? '#60a5fa' : 'rgba(255,255,255,0.2)'}" stroke-width="1"/>
+                <!-- 3rd Base (Left) -->
+                <polygon points="5,7 9,11 5,15 1,11" fill="${on3 ? '#3b82f6' : '#334155'}" stroke="${on3 ? '#60a5fa' : 'rgba(255,255,255,0.2)'}" stroke-width="1"/>
+                <!-- 1st Base (Right) -->
+                <polygon points="15,7 19,11 15,15 11,11" fill="${on1 ? '#3b82f6' : '#334155'}" stroke="${on1 ? '#60a5fa' : 'rgba(255,255,255,0.2)'}" stroke-width="1"/>
+            </svg>`;
+        }
 
             // Group by league for divider headers
             let currentLeague = '';
@@ -4163,7 +4258,7 @@
                 const away = competitors.find(c => c.homeAway === 'away') || competitors[1];
                 if (!home || !away) return;
 
-                const status = gameStatus(event);
+                const status = gameStatus(event, lg.id || lg.league);
                 const homeScore = parseInt(home.score || 0);
                 const awayScore = parseInt(away.score || 0);
                 const homeWin = status.isFinal && homeScore > awayScore;
@@ -4180,6 +4275,9 @@
                 }
 
                 const sit = comp.situation;
+                const isMlb = leagueName.includes('MLB') || (lg.sport || '').toLowerCase().includes('baseball');
+                const baseDiamondSvg = (isMlb && status.isLive && sit) ? renderTickerBaseDiamond(sit) : '';
+
                 const possessionId = String(sit?.possession || sit?.possessionText || sit?.lastPlay?.team?.id || '');
                 const isAwayPoss = status.isLive && (possessionId === String(away.team?.id || away.id || '') || (awayAbbr && possessionId.toUpperCase().includes(awayAbbr)));
                 const isHomePoss = status.isLive && (possessionId === String(home.team?.id || home.id || '') || (homeAbbr && possessionId.toUpperCase().includes(homeAbbr)));
@@ -4204,21 +4302,26 @@
                             <span class="${status.isLive ? 'status-live' : ''}">${status.label}</span>
                             <span style="color:#64748b; font-size:8px;">${broadcast ? '▶ ' + broadcast : ''}</span>
                         </div>
-                        <div class="espn-ticker-team" style="margin-bottom: 2px;">
-                            <div style="display:flex; align-items:center; gap:5px;">
-                                ${away.team?.logo ? `<img src="${away.team.logo}" style="width:12px; height:12px; object-fit:contain;">` : ''}
-                                <span class="${awayWin ? 'winner' : ''}">${awayAbbr}</span>
-                                ${isAwayPoss ? `<span class="possession-icon" title="${awayAbbr} Has Possession">${possIcon}</span>` : ''}
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <div style="flex:1; min-width:0;">
+                                <div class="espn-ticker-team" style="margin-bottom: 2px;">
+                                    <div style="display:flex; align-items:center; gap:5px;">
+                                        ${away.team?.logo ? `<img src="${away.team.logo}" style="width:12px; height:12px; object-fit:contain;">` : ''}
+                                        <span class="${awayWin ? 'winner' : ''}">${awayAbbr}</span>
+                                        ${isAwayPoss ? `<span class="possession-icon" title="${awayAbbr} Has Possession">${possIcon}</span>` : ''}
+                                    </div>
+                                    <span class="score ${awayWin ? 'winner' : ''}">${awayScore}</span>
+                                </div>
+                                <div class="espn-ticker-team">
+                                    <div style="display:flex; align-items:center; gap:5px;">
+                                        ${home.team?.logo ? `<img src="${home.team.logo}" style="width:12px; height:12px; object-fit:contain;">` : ''}
+                                        <span class="${homeWin ? 'winner' : ''}">${homeAbbr}</span>
+                                        ${isHomePoss ? `<span class="possession-icon" title="${homeAbbr} Has Possession">${possIcon}</span>` : ''}
+                                    </div>
+                                    <span class="score ${homeWin ? 'winner' : ''}">${homeScore}</span>
+                                </div>
                             </div>
-                            <span class="score ${awayWin ? 'winner' : ''}">${awayScore}</span>
-                        </div>
-                        <div class="espn-ticker-team">
-                            <div style="display:flex; align-items:center; gap:5px;">
-                                ${home.team?.logo ? `<img src="${home.team.logo}" style="width:12px; height:12px; object-fit:contain;">` : ''}
-                                <span class="${homeWin ? 'winner' : ''}">${homeAbbr}</span>
-                                ${isHomePoss ? `<span class="possession-icon" title="${homeAbbr} Has Possession">${possIcon}</span>` : ''}
-                            </div>
-                            <span class="score ${homeWin ? 'winner' : ''}">${homeScore}</span>
+                            ${baseDiamondSvg ? `<div style="margin-left:8px; display:flex; align-items:center; justify-content:center;">${baseDiamondSvg}</div>` : ''}
                         </div>
                         ${situationText ? `<div style="font-family:var(--font-mono); font-size:8px; color:#06b6d4; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${situationText}</div>` : ''}
                     </div>
@@ -4265,13 +4368,20 @@
             // 2. DRAGGABLE LEAGUE ITEMS (Custom reorderable list)
             const orderKeys = getSidebarOrder();
             
+            let totalSlateGames = 0;
+            LEAGUES.forEach(lg => {
+                if (leagueData[lg.id] && leagueData[lg.id].events) {
+                    totalSlateGames += leagueData[lg.id].events.length;
+                }
+            });
+
             const itemMap = {
                 'live': {
                     id: 'live',
-                    label: 'LIVE GAMES',
+                    label: 'LIVE & SLATE HQ',
                     iconHtml: '<span class="live-pulse-dot" style="width:7px; height:7px;"></span>',
                     getStats: () => {
-                        return { live: totalLiveGames, sched: 0, final: 0 };
+                        return { live: totalLiveGames, total: totalSlateGames };
                     }
                 }
             };
@@ -4283,9 +4393,9 @@
                     iconHtml: lg.logo ? `<img src="${lg.logo}" style="width: 18px; height: 18px; object-fit: contain;">` : '',
                     getStats: () => {
                         const events = leagueData[lg.id]?.events || [];
-                        const live = events.filter(e => gameStatus(e).isLive).length;
-                        const sched = events.filter(e => !gameStatus(e).isFinal && !gameStatus(e).isLive).length;
-                        const final = events.filter(e => gameStatus(e).isFinal).length;
+                        const live = events.filter(e => gameStatus(e, lg.id).isLive).length;
+                        const sched = events.filter(e => !gameStatus(e, lg.id).isFinal && !gameStatus(e, lg.id).isLive).length;
+                        const final = events.filter(e => gameStatus(e, lg.id).isFinal).length;
                         return { live, sched, final, total: events.length };
                     }
                 };
@@ -4299,7 +4409,9 @@
 
                 let statusBadgeHtml = '';
                 if (key === 'live') {
-                    statusBadgeHtml = `<span style="font-size:11px; font-weight:800; font-family:var(--font-mono); color:var(--live); background:rgba(239, 68, 68, 0.15); padding:2px 7px; border-radius:10px;">${stats.live} Live</span>`;
+                    statusBadgeHtml = stats.live > 0 
+                        ? `<span style="font-size:11px; font-weight:800; font-family:var(--font-mono); color:var(--live); background:rgba(239, 68, 68, 0.15); padding:2px 7px; border-radius:10px;">${stats.live} Live</span>`
+                        : `<span style="font-size:11px; font-weight:800; font-family:var(--font-mono); color:var(--cyan); background:rgba(6, 182, 212, 0.15); padding:2px 7px; border-radius:10px;">${stats.total || 0} Games</span>`;
                 } else {
                     statusBadgeHtml = `
                         <div style="font-size:10px; font-family:var(--font-mono); display:flex; gap:5px; align-items:center;">
@@ -4559,10 +4671,21 @@
 
         function switchTab(id) {
             activeTab = id;
+            if (id === 'live' || id === 'live-wagers' || id === 'destiny') {
+                currentTickerFilter = 'live';
+            } else if (LEAGUES.some(l => l.id === id)) {
+                currentTickerFilter = id;
+            }
+
+            const labels = { top: 'Top Events', live: 'LIVE', nfl: 'NFL', mlb: 'MLB', nba: 'NBA', nhl: 'NHL', ncaaf: 'NCAAF' };
+            const labelEl = document.getElementById('espn-filter-label');
+            if (labelEl) labelEl.innerText = labels[currentTickerFilter] || 'LIVE';
+
             buildTabs();
             document.querySelectorAll('.league-panel').forEach(p => p.classList.remove('active'));
             const panel = document.getElementById('panel-' + id);
             if (panel) panel.classList.add('active');
+            renderEspnTicker();
         }
 
         async function pollLeague(lg, manual = false) {
@@ -4573,6 +4696,14 @@
             if (result.leagues && result.leagues[0] && result.leagues[0].logos) {
                 lg.logo = result.leagues[0].logos[0].href;
             }
+
+            // Immediately update UI with ESPN scores
+            const panel = document.getElementById('panel-' + lg.id);
+            if (panel) panel.innerHTML = renderPanel(lg, result);
+            const livePanel = document.getElementById('panel-live');
+            if (livePanel) livePanel.innerHTML = renderLivePanel();
+            renderEspnTicker();
+            buildTabs();
 
             let shouldFetchOdds = manual || !paidOddsCache[lg.id];
             let hasActive = false;
@@ -4614,29 +4745,25 @@
             leaguePollingState[lg.id].interval = interval;
             leaguePollingState[lg.id].nextPoll = Date.now() + (interval * 1000);
 
-            // Fetch Odds API only if there was a score/status change, or manual override
             if (shouldFetchOdds) {
                 const prevUsed = globalMaxUsed;
-                const oddsData = await fetchPaidOdds(lg);
-                if (oddsData && oddsData.length > 0) {
-                    paidOddsCache[lg.id] = oddsData;
-                }
-
-                if (prevUsed !== null && globalMaxUsed !== null) {
-                    lastRefreshCost = globalMaxUsed - prevUsed;
-                    localStorage.setItem('espn_api_usage', globalMaxUsed);
-                }
+                fetchPaidOdds(lg).then(oddsData => {
+                    if (oddsData && oddsData.length > 0) {
+                        paidOddsCache[lg.id] = oddsData;
+                        const p = document.getElementById('panel-' + lg.id);
+                        if (p) p.innerHTML = renderPanel(lg, result);
+                        const lp = document.getElementById('panel-live');
+                        if (lp) lp.innerHTML = renderLivePanel();
+                    }
+                    if (prevUsed !== null && globalMaxUsed !== null) {
+                        lastRefreshCost = globalMaxUsed - prevUsed;
+                        localStorage.setItem('espn_api_usage', globalMaxUsed);
+                    }
+                }).catch(err => console.warn('Paid odds fetch skipped:', err.message));
             }
 
-            // Re-render
-            const panel = document.getElementById('panel-' + lg.id);
-            if (panel) panel.innerHTML = renderPanel(lg, result);
-            const livePanel = document.getElementById('panel-live');
-            if (livePanel) livePanel.innerHTML = renderLivePanel();
             const destinyPanel = document.getElementById('panel-destiny');
             if (destinyPanel) destinyPanel.innerHTML = renderDestinyLeaguePanel();
-            buildTabs();
-            renderEspnTicker();
             loadKalshiCharts();
             loadWeatherData();
 

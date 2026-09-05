@@ -42,12 +42,18 @@ Destiny is a real-time sports intelligence, live odds tracking, player props com
 6. **Strategy Sandbox (`sandbox.html`) & Portfolio (`portfolio.html`)**:
    - Interactive backtesting environment mirroring the Game Track modal engine, PnL trajectory graphs, AI strategy recommendations, and full bankroll ledger tracking.
 
-7. **About Network (`about.html`)**:
+7. **Daily Betting Results & Game Recaps (`results.html`)**:
+   - Completed game scoreboards, graded closing lines, Action Network / Sportsbook style outcome trackers (soft green win/cover pills, soft slate/blue Under hits, neutral Push tags).
+   - Daily Slate KPI summary header (O/U totals %, Spread ATS cover %, Moneyline fav/dog breakdown, Team Totals %).
+   - Date stepper & date picker controls, league filter pills (ALL, NFL, NCAAF, NBA, MLB), and custom JSON payload importer modal.
+
+8. **About Network (`about.html`)**:
    - Public product documentation, real-data policy statement, and system navigation map.
 
 ---
 
 ## Serverless API Infrastructure (`/api/`)
+- `/api/results.js`: Serves graded daily game results and closing lines matching the Destiny Results JSON schema.
 - `/api/kalshi-props.js`: Fetches open player prop markets across NBA, WNBA, and NFL series tickers.
 - `/api/kalshi-history.js`: Fetches 24-hour candlestick price history for individual Kalshi market tickers.
 - `/api/kalshi.js`: Fetches live sports prediction markets (Moneyline, Spread, Total) across 6 leagues.
