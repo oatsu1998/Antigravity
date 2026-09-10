@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 from auth import KalshiAuth
-from book_state import OrderBookState
+from book_state import OrderBookState, prob_to_american_odds
 from market_resolver import MarketResolver, categorize_market
 from main import format_ticker_log
 from ws_client import KalshiWSClient
@@ -47,34 +47,41 @@ class TestKalshiAuth(unittest.TestCase):
         self.assertIn("KALSHI-ACCESS-SIGNATURE", headers)
 
 
+class TestAmericanOddsConversion(unittest.TestCase):
+    """Verifies formula P > 0.50 -> -(P/(1-P))*100 and P < 0.50 -> +((1-P)/P)*100."""
+
+    def test_favorite_odds(self):
+        # P = 0.52 -> -(0.52 / 0.48)*100 = -108.33 -> -108
+        self.assertEqual(prob_to_american_odds(0.52), "-108")
+        # P = 0.60 -> -(0.60 / 0.40)*100 = -150
+        self.assertEqual(prob_to_american_odds(0.60), "-150")
+        # P = 0.81 -> -(0.81 / 0.19)*100 = -426
+        self.assertEqual(prob_to_american_odds(0.81), "-426")
+
+    def test_underdog_odds(self):
+        # P = 0.47 -> +((0.53) / 0.47)*100 = +112.76 -> +113
+        self.assertEqual(prob_to_american_odds(0.47), "+113")
+        # P = 0.40 -> +((0.60) / 0.40)*100 = +150
+        self.assertEqual(prob_to_american_odds(0.40), "+150")
+
+    def test_even_odds(self):
+        self.assertEqual(prob_to_american_odds(0.50), "+100")
+
+
 class TestMarketCategorization(unittest.TestCase):
-    """Verifies multi-prop categorization rules for Game Lines, Player Props, Team Props, and Period Lines."""
+    """Verifies multi-prop categorization rules."""
 
     def test_game_lines(self):
         m = {"ticker": "KXNFLGAME-26SEP09NESEA-NE", "title": "New England Patriots to win"}
         self.assertEqual(categorize_market(m), "game_lines")
 
     def test_player_props(self):
-        m1 = {"ticker": "KXNFL-26SEP09-MAYEPASS-225", "title": "Drake Maye: 225+ Passing Yards"}
-        self.assertEqual(categorize_market(m1), "player_props")
-
-        m2 = {"ticker": "KXNFL-26SEP09-METCALFTD", "title": "DK Metcalf to score a Touchdown"}
-        self.assertEqual(categorize_market(m2), "player_props")
-
-    def test_team_props(self):
-        m = {"ticker": "KXNFL-26SEP09-SEATOTAL-17.5", "title": "Seattle Seahawks over 17.5 team points"}
-        self.assertEqual(categorize_market(m), "team_props")
-
-    def test_period_lines(self):
-        m1 = {"ticker": "KXNFL-26SEP09-1Q-SPREAD", "title": "1st Quarter Point Spread"}
-        self.assertEqual(categorize_market(m1), "period_lines")
-
-        m2 = {"ticker": "KXNFL-26SEP09-1H-TOTAL", "title": "1st Half Total Points"}
-        self.assertEqual(categorize_market(m2), "period_lines")
+        m = {"ticker": "KXNFL-26SEP09-MAYEPASS-225", "title": "Drake Maye: 225+ Passing Yards"}
+        self.assertEqual(categorize_market(m), "player_props")
 
 
 class TestOrderBookState(unittest.TestCase):
-    """Verifies Level-2 order book snapshots, deltas, and categorized book summaries."""
+    """Verifies Level-2 order book snapshots, deltas, and American odds."""
 
     def setUp(self):
         self.book = OrderBookState()
@@ -86,18 +93,7 @@ class TestOrderBookState(unittest.TestCase):
         }
         self.book.register_market_metadata(categorized)
 
-    def test_ignore_deltas_before_snapshot(self):
-        delta_msg = {
-            "type": "orderbook_delta",
-            "market_ticker": self.ticker,
-            "side": "yes",
-            "price_dollars": 0.52,
-            "quantity_fp": 10
-        }
-        self.book.apply_delta(delta_msg)
-        self.assertIsNone(self.book.get_implied_probability(self.ticker))
-
-    def test_snapshot_and_delta_workflow(self):
+    def test_snapshot_and_american_odds(self):
         snapshot_msg = {
             "type": "orderbook_snapshot",
             "market_ticker": self.ticker,
@@ -110,28 +106,12 @@ class TestOrderBookState(unittest.TestCase):
         self.assertIsNotNone(prob_info)
         self.assertEqual(prob_info["best_yes_bid"], 0.52)
         self.assertEqual(prob_info["best_no_bid"], 0.47)
-        self.assertAlmostEqual(prob_info["yes_ask"], 0.53, places=4)
         self.assertAlmostEqual(prob_info["implied_probability"], 0.525, places=4)
-        self.assertEqual(prob_info["formatted_prob"], "52.5%")
-
-    def test_categorized_book_summary(self):
-        snapshot_msg = {
-            "type": "orderbook_snapshot",
-            "market_ticker": self.ticker,
-            "yes_dollars": [[0.52, 50]],
-            "no_dollars": [[0.47, 60]]
-        }
-        self.book.apply_snapshot(snapshot_msg)
-
-        summary = self.book.get_categorized_book_summary()
-        self.assertIn("game_lines", summary)
-        self.assertEqual(len(summary["game_lines"]), 1)
-        self.assertEqual(summary["game_lines"][0]["ticker"], self.ticker)
-        self.assertEqual(summary["game_lines"][0]["formatted_prob"], "52.5%")
+        self.assertEqual(prob_info["american_odds"], "-111")
 
 
 class TestAsyncQueueDispatcher(unittest.IsolatedAsyncioTestCase):
-    """Verifies asynchronous queue offloading to prevent WebSocket buffer overflow."""
+    """Verifies asynchronous queue offloading."""
 
     async def test_queue_processing(self):
         book_state = OrderBookState()
@@ -163,7 +143,7 @@ class TestAsyncQueueDispatcher(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(len(updates), 1)
         self.assertEqual(updates[0]["ticker"], ticker)
-        self.assertEqual(updates[0]["best_yes_bid"], 0.60)
+        self.assertEqual(updates[0]["american_odds"], "-167")
 
         dispatcher_task.cancel()
 

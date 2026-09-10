@@ -1,13 +1,32 @@
 """
 Module C: Order Book Manager (book_state.py)
 Maintains in-memory Level 2 order books (snapshots + deltas) and calculates implied probabilities,
-grouped by prop categories (game_lines, player_props, team_props, period_lines).
+converting probabilities to traditional American Odds format (-110, +145).
 """
 
 import logging
 from typing import Dict, Optional, Tuple, Any, List
 
 logger = logging.getLogger(__name__)
+
+
+def prob_to_american_odds(p: Optional[float]) -> str:
+    """
+    Converts implied probability P (0.0 to 1.0) into traditional American Odds format:
+      If P > 0.50: American Odds = - (P / (1 - P)) * 100
+      If P < 0.50: American Odds = + ((1 - P) / P) * 100
+      If P == 0.50: +100
+    """
+    if p is None or p <= 0.0 or p >= 1.0:
+        return "N/A"
+    if abs(p - 0.50) < 1e-9:
+        return "+100"
+    if p > 0.50:
+        odds = round(-(p / (1.0 - p)) * 100)
+        return str(odds)
+    else:
+        odds = round(+((1.0 - p) / p) * 100)
+        return f"+{odds}"
 
 
 class OrderBookState:
@@ -57,7 +76,6 @@ class OrderBookState:
 
         self.books[ticker] = {"yes": {}, "no": {}}
 
-        # Parse YES levels: list of [price, qty] or list of dicts
         yes_levels = msg.get("yes_dollars") or msg.get("yes") or []
         for level in yes_levels:
             if isinstance(level, list) and len(level) >= 2:
@@ -71,7 +89,6 @@ class OrderBookState:
                 if qty > 0:
                     self.books[ticker]["yes"][price] = qty
 
-        # Parse NO levels: list of [price, qty] or list of dicts
         no_levels = msg.get("no_dollars") or msg.get("no") or []
         for level in no_levels:
             if isinstance(level, list) and len(level) >= 2:
@@ -97,7 +114,6 @@ class OrderBookState:
         msg = data.get("msg", {}) if "msg" in data else data
         ticker = msg.get("market_ticker") or msg.get("ticker")
         if not ticker or not self.has_snapshot.get(ticker):
-            # Ignore deltas until snapshot is received
             return
 
         side = (msg.get("side") or "yes").lower()
@@ -127,7 +143,7 @@ class OrderBookState:
     def get_implied_probability(self, ticker: str) -> Optional[Dict[str, Any]]:
         """
         Calculates best YES bid, best NO bid, YES ask (1.00 - best_no_bid),
-        and mid-market implied probability for a ticker.
+        mid-market implied probability, and converts probability to American Odds.
         """
         if not self.has_snapshot.get(ticker) or ticker not in self.books:
             return None
@@ -150,6 +166,7 @@ class OrderBookState:
         elif yes_ask is not None:
             implied_prob = yes_ask
 
+        american_odds = prob_to_american_odds(implied_prob)
         meta = self.market_meta.get(ticker, {})
 
         return {
@@ -160,7 +177,8 @@ class OrderBookState:
             "best_no_bid": best_no_bid,
             "yes_ask": yes_ask,
             "implied_probability": implied_prob,
-            "formatted_prob": f"{implied_prob * 100:.1f}%" if implied_prob is not None else "N/A"
+            "formatted_prob": f"{implied_prob * 100:.1f}%" if implied_prob is not None else "N/A",
+            "american_odds": american_odds
         }
 
     def get_categorized_book_summary(self) -> Dict[str, List[Dict[str, Any]]]:

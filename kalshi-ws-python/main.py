@@ -31,7 +31,7 @@ load_dotenv()
 def format_ticker_log(prob_info: Dict) -> str:
     """
     Formats parsed order book update matching criteria:
-    [TICKER] (Category) Title | YES Bid: $0.52 | NO Bid: $0.47 | Implied Prob: 52.5%
+    [CATEGORY] TICKER (Title) | YES Bid: $0.52 | NO Bid: $0.47 | Implied Prob: 52.5% | American: -110
     """
     ticker = prob_info.get("ticker", "UNKNOWN")
     title = prob_info.get("title") or ticker
@@ -39,24 +39,23 @@ def format_ticker_log(prob_info: Dict) -> str:
     yes_bid = prob_info.get("best_yes_bid")
     no_bid = prob_info.get("best_no_bid")
     formatted_prob = prob_info.get("formatted_prob", "N/A")
+    american_odds = prob_info.get("american_odds", "N/A")
 
     yes_str = f"${yes_bid:.2f}" if yes_bid is not None else "N/A"
     no_str = f"${no_bid:.2f}" if no_bid is not None else "N/A"
 
-    return f"[{category}] {ticker} ({title}) | YES Bid: {yes_str} | NO Bid: {no_str} | Implied Prob: {formatted_prob}"
+    return f"[{category}] {ticker} ({title}) | YES Bid: {yes_str} | NO Bid: {no_str} | Implied Prob: {formatted_prob} | American: {american_odds}"
 
 
 async def main_async(series_list: List[str], event_tickers: List[str], team_pair: tuple, env: str):
     logger.info("Initializing Kalshi Multi-Prop Real-Time Ingestion Engine...")
 
-    # Step 1: Initialize Auth
     auth = KalshiAuth(env=env)
     if auth.is_configured():
         logger.info(f"Loaded Kalshi RSA Auth Key ID: {auth.key_id}")
     else:
         logger.warning("No RSA key loaded. Operating in public/unauthenticated discovery mode.")
 
-    # Step 2: Multi-Prop Market Discovery (Module A Update)
     resolver = MarketResolver(auth=auth, env=env)
     categorized_markets, ws_tickers = resolver.resolve_categorized_markets(
         event_tickers=event_tickers,
@@ -68,7 +67,6 @@ async def main_async(series_list: List[str], event_tickers: List[str], team_pair
         logger.warning("No active markets discovered for requested filters. Using default test tickers.")
         ws_tickers = ["KXNFLGAME-26SEP09NESEA", "KXNFLSPREAD-26SEP09NESEA", "KXNFLTOTAL-26SEP09NESEA"]
 
-    # Step 3: Initialize Order Book State & Register Metadata (Module C Update)
     book_state = OrderBookState()
     book_state.register_market_metadata(categorized_markets)
 
@@ -76,7 +74,6 @@ async def main_async(series_list: List[str], event_tickers: List[str], team_pair
         log_msg = format_ticker_log(prob_info)
         logger.info(log_msg)
 
-    # Step 4: Initialize WebSocket Client & Batch Subscription (Module B Update)
     ws_client = KalshiWSClient(
         auth=auth,
         book_state=book_state,
@@ -84,7 +81,6 @@ async def main_async(series_list: List[str], event_tickers: List[str], team_pair
         on_ticker_update=on_ticker_update
     )
 
-    # Step 5: Connection Manager (Module D)
     conn_manager = ConnectionManager(
         ws_client=ws_client,
         book_state=book_state
