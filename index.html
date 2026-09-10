@@ -3694,6 +3694,47 @@
 
         setInterval(updateAllCountdownClocks, 1000);
 
+        function getEventWagerCount(event) {
+            if (!event) return 0;
+            try {
+                const comp = event.competitions?.[0] || {};
+                const competitors = comp.competitors || [];
+                const home = competitors.find(c => c.homeAway === 'home') || competitors[0] || {};
+                const away = competitors.find(c => c.homeAway === 'away') || competitors[1] || {};
+
+                const awayAbbr = away.team?.abbreviation || '';
+                const homeAbbr = home.team?.abbreviation || '';
+                const awayName = away.team?.displayName || away.team?.name || awayAbbr;
+                const homeName = home.team?.displayName || home.team?.name || homeAbbr;
+
+                if (typeof window.getWagersForGame === 'function') {
+                    const list = window.getWagersForGame(event.id, awayAbbr, awayName, homeAbbr, homeName);
+                    return Array.isArray(list) ? list.length : 0;
+                } else {
+                    let saved = localStorage.getItem('destiny_game_wagers');
+                    if (!saved || saved === '[]') return 0;
+                    let parsed = JSON.parse(saved);
+                    if (!Array.isArray(parsed) || parsed.length === 0) return 0;
+                    const targetEid = String(event.id || '').trim();
+                    const filtered = parsed.filter(w => {
+                        if (w.status && w.status !== 'PENDING') return false;
+                        if (targetEid && targetEid !== 'undefined' && targetEid !== 'null') {
+                            if (w.eventId && String(w.eventId) === targetEid) return true;
+                            if (w.eventIds && Array.isArray(w.eventIds) && w.eventIds.map(String).includes(targetEid)) return true;
+                            if (w.legs && Array.isArray(w.legs) && w.legs.some(l => l.eventId && String(l.eventId) === targetEid)) return true;
+                        }
+                        if (typeof window.matchesTeamWager === 'function') {
+                            return window.matchesTeamWager(w, awayAbbr, awayName) || window.matchesTeamWager(w, homeAbbr, homeName);
+                        }
+                        return false;
+                    });
+                    return filtered.length;
+                }
+            } catch(err) {
+                return 0;
+            }
+        }
+
         function renderPanel(lg, result) {
             try {
                 let html = `
@@ -3719,8 +3760,12 @@
                     html += renderNextGameCountdown(lg, result);
                 } else {
                     const sortedEvents = [...validEvents].sort((a, b) => {
+                        const countA = getEventWagerCount(a);
+                        const countB = getEventWagerCount(b);
+                        if (countA !== countB) return countB - countA; // Games with active wagers first
+
                         const isPinA = espnPinned.has(a?.id), isPinB = espnPinned.has(b?.id);
-                        if (isPinA !== isPinB) return isPinA ? -1 : 1; // pinned first
+                        if (isPinA !== isPinB) return isPinA ? -1 : 1; // pinned next
                         const statusOrder = (e) => {
                             try {
                                 const s = gameStatus(e, lg?.id);
@@ -3781,6 +3826,10 @@
 
                 allEvents.sort((a, b) => {
                     try {
+                        const countA = getEventWagerCount(a.event);
+                        const countB = getEventWagerCount(b.event);
+                        if (countA !== countB) return countB - countA; // Games with active wagers first
+
                         const sa = gameStatus(a.event, a.lg?.id), sb = gameStatus(b.event, b.lg?.id);
                         if (sa.isLive !== sb.isLive) return sa.isLive ? -1 : 1;
                         return new Date(a.event?.date || 0) - new Date(b.event?.date || 0);
@@ -7171,6 +7220,32 @@
             });
         }
 
+        function refreshPanelsForWagerChange() {
+            const destinyPanel = document.getElementById('panel-destiny');
+            if (destinyPanel) {
+                try {
+                    destinyPanel.innerHTML = renderDestinyLeaguePanel();
+                } catch(err) { console.error("Error refreshing destiny panel:", err); }
+            }
+            if (Array.isArray(LEAGUES)) {
+                LEAGUES.forEach(lg => {
+                    const panel = document.getElementById('panel-' + lg.id);
+                    if (panel && leagueData && leagueData[lg.id]) {
+                        try {
+                            panel.innerHTML = renderPanel(lg, leagueData[lg.id]);
+                        } catch(err) { console.error("Error refreshing panel for " + lg.id, err); }
+                    }
+                });
+            }
+            updateAllCardBetsCounts();
+        }
+
+        window.addEventListener('destiny_state_updated', (e) => {
+            if (e.detail?.key === 'destiny_game_wagers' || e.detail?.key === 'wagers') {
+                refreshPanelsForWagerChange();
+            }
+        });
+
         let currentModalMarket = 'Total';
         let currentModalSide = 'Under';
 
@@ -8086,7 +8161,7 @@
             localStorage.setItem(KEY, JSON.stringify(wagers));
             
             renderWagersInModal();
-            updateAllCardBetsCounts();
+            refreshPanelsForWagerChange();
             updateActiveBetsCountGlobal();
             if (activeBsTab === 'active') {
                 renderActiveBetsInPanel();
@@ -8101,7 +8176,7 @@
             localStorage.setItem(KEY, JSON.stringify(wagers));
             
             renderWagersInModal();
-            updateAllCardBetsCounts();
+            refreshPanelsForWagerChange();
             updateActiveBetsCountGlobal();
             if (activeBsTab === 'active') {
                 renderActiveBetsInPanel();
