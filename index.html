@@ -3423,25 +3423,25 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Spread', '${spreadAway} (${spreadAwayOdds})', '${safeCardMatchup}')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Spread', '${spreadAway} (${spreadAwayOdds})', '${safeCardMatchup}', '${event.id}')">
                                         <span class="sb-line-val">${spreadAway}</span>
                                         <span class="sb-odds-val">${spreadAwayOdds}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Moneyline', '${mlAway}', '${safeCardMatchup}')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Moneyline', '${mlAway}', '${safeCardMatchup}', '${event.id}')">
                                         <span class="sb-line-val">ML</span>
                                         <span class="sb-odds-val">${mlAway}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Total', 'O ${totalLine} (${totalOverOdds})', '${safeCardMatchup}')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Total', 'O ${totalLine} (${totalOverOdds})', '${safeCardMatchup}', '${event.id}')">
                                         <span class="sb-line-val">${totalLine !== 'N/A' ? 'O ' + totalLine : 'O N/A'}</span>
                                         <span class="sb-odds-val">${totalOverOdds}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Team Total', 'O ${awayTeamTot} (${awayTeamTotOdds})', '${safeCardMatchup}')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Team Total', 'O ${awayTeamTot} (${awayTeamTotOdds})', '${safeCardMatchup}', '${event.id}')">
                                         <span class="sb-line-val">${awayTeamTot !== 'N/A' ? 'O ' + awayTeamTot : 'O N/A'}</span>
                                         <span class="sb-odds-val">${awayTeamTotOdds}</span>
                                     </div>
@@ -3455,25 +3455,25 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Spread', '${spreadHome} (${spreadHomeOdds})', '${safeCardMatchup}')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Spread', '${spreadHome} (${spreadHomeOdds})', '${safeCardMatchup}', '${event.id}')">
                                         <span class="sb-line-val">${spreadHome}</span>
                                         <span class="sb-odds-val">${spreadHomeOdds}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Moneyline', '${mlHome}', '${safeCardMatchup}')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Moneyline', '${mlHome}', '${safeCardMatchup}', '${event.id}')">
                                         <span class="sb-line-val">ML</span>
                                         <span class="sb-odds-val">${mlHome}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Total', 'U ${totalLine} (${totalUnderOdds})', '${safeCardMatchup}')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Total', 'U ${totalLine} (${totalUnderOdds})', '${safeCardMatchup}', '${event.id}')">
                                         <span class="sb-line-val">${totalLine !== 'N/A' ? 'U ' + totalLine : 'U N/A'}</span>
                                         <span class="sb-odds-val">${totalUnderOdds}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Team Total', 'U ${homeTeamTot} (${homeTeamTotOdds})', '${safeCardMatchup}')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Team Total', 'U ${homeTeamTot} (${homeTeamTotOdds})', '${safeCardMatchup}', '${event.id}')">
                                         <span class="sb-line-val">${homeTeamTot !== 'N/A' ? 'U ' + homeTeamTot : 'U N/A'}</span>
                                         <span class="sb-odds-val">${homeTeamTotOdds}</span>
                                     </div>
@@ -5700,7 +5700,7 @@
             if (activeCountEl) activeCountEl.innerText = pendingWagers.length;
         }
 
-        function gradeWagerWithScores(wagerId, awayScore, homeScore) {
+        function gradeWagerWithScores(wagerId, awayScore, homeScore, espnEventId = null, eventData = null) {
             const KEY = 'destiny_game_wagers';
             let wagers = [];
             try { wagers = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { wagers = []; }
@@ -5708,79 +5708,137 @@
             const w = wagers.find(item => item.id === wagerId || item.ticketNumber === wagerId || (item.id && item.id.includes(wagerId)));
             if (!w) return alert('Wager not found');
 
-            let allLegsWon = true;
+            let awayName = '';
+            let homeName = '';
+            let awayAbbr = '';
+            let homeAbbr = '';
+
+            if (eventData && eventData.competitions?.[0]) {
+                const comp = eventData.competitions[0];
+                const away = comp.competitors?.find(c => c.homeAway === 'away');
+                const home = comp.competitors?.find(c => c.homeAway === 'home');
+                awayName = (away?.team?.displayName || away?.team?.name || '').toUpperCase();
+                homeName = (home?.team?.displayName || home?.team?.name || '').toUpperCase();
+                awayAbbr = (away?.team?.abbreviation || '').toUpperCase();
+                homeAbbr = (home?.team?.abbreviation || '').toUpperCase();
+            }
+
+            let wonLegCount = 0;
+            let pushLegCount = 0;
             let anyLegLost = false;
 
+            function evalLeg(leg) {
+                const legText = (leg.selection || leg.target || leg.type || '').toUpperCase();
+
+                // 1. Spreads (e.g. "Ravens -3", "Patriots +3", "Over 44.5")
+                if (legText.includes('+') || legText.includes('-')) {
+                    const lineMatch = legText.match(/(\+|-)\d+(\.\d+)?/);
+                    if (lineMatch) {
+                        const line = parseFloat(lineMatch[0]);
+                        const isAwayPick = (awayAbbr && legText.includes(awayAbbr)) || (awayName && legText.includes(awayName)) || legText.includes('PATRIOTS') || legText.includes('NE') || legText.includes('RAVENS') || legText.includes('BAL');
+                        const isHomePick = (homeAbbr && legText.includes(homeAbbr)) || (homeName && legText.includes(homeName)) || legText.includes('SEAHAWKS') || legText.includes('SEA') || legText.includes('CHIEFS') || legText.includes('KC');
+
+                        if (isAwayPick) {
+                            const effective = awayScore + line;
+                            if (effective > homeScore) leg.status = 'WON';
+                            else if (effective < homeScore) leg.status = 'LOST';
+                            else leg.status = 'PUSH';
+                        } else if (isHomePick) {
+                            const effective = homeScore + line;
+                            if (effective > awayScore) leg.status = 'WON';
+                            else if (effective < awayScore) leg.status = 'LOST';
+                            else leg.status = 'PUSH';
+                        }
+                    }
+                }
+
+                // 2. Totals (Over / Under)
+                if (legText.includes('OVER') || legText.includes('UNDER') || legText.startsWith('O ') || legText.startsWith('U ')) {
+                    const lineMatch = legText.match(/\d+(\.\d+)?/);
+                    if (lineMatch) {
+                        const line = parseFloat(lineMatch[0]);
+                        const totalPts = awayScore + homeScore;
+                        if (legText.includes('OVER') || legText.startsWith('O ')) {
+                            if (totalPts > line) leg.status = 'WON';
+                            else if (totalPts < line) leg.status = 'LOST';
+                            else leg.status = 'PUSH';
+                        } else if (legText.includes('UNDER') || legText.startsWith('U ')) {
+                            if (totalPts < line) leg.status = 'WON';
+                            else if (totalPts > line) leg.status = 'LOST';
+                            else leg.status = 'PUSH';
+                        }
+                    }
+                }
+
+                // 3. Moneyline
+                if (legText.includes('ML') || legText.includes('MONEYLINE')) {
+                    const isAwayPick = (awayAbbr && legText.includes(awayAbbr)) || (awayName && legText.includes(awayName)) || legText.includes('PATRIOTS') || legText.includes('NE');
+                    if (isAwayPick) {
+                        if (awayScore > homeScore) leg.status = 'WON';
+                        else if (awayScore < homeScore) leg.status = 'LOST';
+                        else leg.status = 'PUSH';
+                    } else {
+                        if (homeScore > awayScore) leg.status = 'WON';
+                        else if (homeScore < awayScore) leg.status = 'LOST';
+                        else leg.status = 'PUSH';
+                    }
+                }
+
+                if (!leg.status || leg.status === 'PENDING') {
+                    leg.status = 'WON'; 
+                }
+
+                if (leg.status === 'LOST') anyLegLost = true;
+                if (leg.status === 'WON') wonLegCount++;
+                if (leg.status === 'PUSH') pushLegCount++;
+            }
+
             if (w.legs && Array.isArray(w.legs) && w.legs.length > 0) {
-                w.legs.forEach(leg => {
-                    const legText = (leg.selection || leg.target || '').toUpperCase();
-                    
-                    // Spread Evaluation (Patriots +3 / Seahawks)
-                    if (legText.includes('+') || legText.includes('-')) {
-                        if (legText.includes('PATRIOTS') || legText.includes('NE')) {
-                            const lineMatch = legText.match(/(\+|-)\d+(\.\d+)?/);
-                            const line = lineMatch ? parseFloat(lineMatch[0]) : 3.0;
-                            const patriotsTotal = awayScore + line;
-                            if (patriotsTotal > homeScore) leg.status = 'WON';
-                            else if (patriotsTotal < homeScore) leg.status = 'LOST';
-                            else leg.status = 'PUSH';
-                        } else if (legText.includes('SEAHAWKS') || legText.includes('SEA')) {
-                            const lineMatch = legText.match(/(\+|-)\d+(\.\d+)?/);
-                            const line = lineMatch ? parseFloat(lineMatch[0]) : -3.0;
-                            const seahawksTotal = homeScore + line;
-                            if (seahawksTotal > awayScore) leg.status = 'WON';
-                            else if (seahawksTotal < awayScore) leg.status = 'LOST';
-                            else leg.status = 'PUSH';
-                        }
-                    }
-
-                    // Total Evaluation (Over / Under 44.5)
-                    if (legText.includes('OVER') || legText.includes('UNDER')) {
-                        const totalLineMatch = legText.match(/\d+(\.\d+)?/);
-                        const line = totalLineMatch ? parseFloat(totalLineMatch[0]) : 44.5;
-                        const combined = awayScore + homeScore;
-
-                        if (legText.includes('OVER')) {
-                            if (combined > line) leg.status = 'WON';
-                            else if (combined < line) leg.status = 'LOST';
-                            else leg.status = 'PUSH';
-                        } else if (legText.includes('UNDER')) {
-                            if (combined < line) leg.status = 'WON';
-                            else if (combined > line) leg.status = 'LOST';
-                            else leg.status = 'PUSH';
-                        }
-                    }
-
-                    if (leg.status === 'LOST') anyLegLost = true;
-                    if (leg.status !== 'WON') allLegsWon = false;
-                });
+                w.legs.forEach(leg => evalLeg(leg));
             } else {
-                // Single Leg Wager Fallback
-                const wText = (w.selection || w.target || '').toUpperCase();
-                if (wText.includes('PATRIOTS') || wText.includes('NE')) {
-                    const lineMatch = wText.match(/(\+|-)\d+(\.\d+)?/);
-                    const line = lineMatch ? parseFloat(lineMatch[0]) : 3.0;
-                    if ((awayScore + line) > homeScore) allLegsWon = true;
-                    else anyLegLost = true;
+                evalLeg(w);
+            }
+
+            const totalLegs = (w.legs && w.legs.length) || 1;
+            let finalStatus = 'PENDING';
+            if (anyLegLost) {
+                finalStatus = 'LOST';
+            } else if (wonLegCount + pushLegCount >= totalLegs) {
+                if (wonLegCount > 0) {
+                    finalStatus = 'WON';
+                } else {
+                    finalStatus = 'PUSH';
                 }
             }
 
-            let finalStatus = 'PENDING';
-            if (anyLegLost) finalStatus = 'LOST';
-            else if (allLegsWon) finalStatus = 'WON';
-            else finalStatus = 'PUSH';
-
             w.status = finalStatus;
             w.settledDate = new Date().toISOString();
-            w.settledScores = `NE ${awayScore} - ${homeScore} SEA`;
+            w.settledScores = `${awayScore} - ${homeScore}`;
 
             let payout = 0;
+            const stake = parseFloat(w.stake || w.wager) || 0;
+            const toWin = parseFloat(w.toWin) || 0;
+
             if (finalStatus === 'WON') {
-                payout = (parseFloat(w.stake || w.wager) || 0) + (parseFloat(w.toWin) || 0);
+                if (pushLegCount > 0 && totalLegs > 1) {
+                    const wonRatio = wonLegCount / totalLegs;
+                    payout = stake + (toWin * wonRatio);
+                } else {
+                    payout = stake + toWin;
+                }
                 w.settledPayout = payout;
                 let b = parseFloat(localStorage.getItem('bankroll') || '1000000');
-                localStorage.setItem('bankroll', (b + payout).toFixed(2));
-                localStorage.setItem('destiny_bankroll', (b + payout).toFixed(2));
+                b += payout;
+                localStorage.setItem('bankroll', b.toFixed(2));
+                localStorage.setItem('destiny_bankroll', b.toFixed(2));
+                updateBankrollDisplay();
+            } else if (finalStatus === 'PUSH') {
+                payout = stake; // 100% refund on push
+                w.settledPayout = payout;
+                let b = parseFloat(localStorage.getItem('bankroll') || '1000000');
+                b += payout;
+                localStorage.setItem('bankroll', b.toFixed(2));
+                localStorage.setItem('destiny_bankroll', b.toFixed(2));
                 updateBankrollDisplay();
             }
 
@@ -5791,8 +5849,11 @@
             updateActiveBetsCountGlobal();
             renderActiveBetsInPanel();
 
-            const statusColor = finalStatus === 'WON' ? '#10b981' : '#ef4444';
-            alert(`🏆 MATCHUP COMPLETED!\n\nFinal Score: NE Patriots ${awayScore} — ${homeScore} SEA Seahawks\n\nWager #${w.ticketNumber || w.id} GRADED: ${finalStatus}\n` + (finalStatus === 'WON' ? `+$${payout.toFixed(2)} credited to bankroll!` : 'Better luck next time!'));
+            const statusMsg = finalStatus === 'WON' 
+                ? `+$${payout.toFixed(2)} credited to bankroll!` 
+                : (finalStatus === 'PUSH' ? `Wager PUSHED — Stake ($${payout.toFixed(2)}) refunded to bankroll!` : 'Better luck next time!');
+                
+            alert(`🏆 MATCHUP GRADED: ${finalStatus}\n\nFinal Score: ${awayScore} — ${homeScore}\nWager #${w.ticketNumber || w.id}\n\n${statusMsg}`);
         }
 
         function checkAndGradeWagersForEvent(eventData) {
@@ -5813,6 +5874,7 @@
             const awayScore = parseInt(away.score || 0);
             const homeScore = parseInt(home.score || 0);
 
+            const espnEventId = String(eventData.id || '');
             const awayAbbr = (away.team?.abbreviation || '').toUpperCase();
             const homeAbbr = (home.team?.abbreviation || '').toUpperCase();
             const awayName = (away.team?.displayName || away.team?.name || '').toUpperCase();
@@ -5824,14 +5886,26 @@
 
             wagers.forEach(w => {
                 if (w.status === 'PENDING') {
-                    const wText = (String(w.event || '') + ' ' + String(w.matchup || '') + ' ' + String(w.target || '') + ' ' + String(w.selection || '')).toUpperCase();
-                    const isMatch = (awayAbbr && wText.includes(awayAbbr)) ||
-                                    (homeAbbr && wText.includes(homeAbbr)) ||
-                                    (awayName && wText.includes(awayName)) ||
-                                    (homeName && wText.includes(homeName));
+                    let isMatch = false;
+                    
+                    // 1. Primary unique ESPN Event ID matching
+                    if (espnEventId && w.eventId && String(w.eventId) === espnEventId) {
+                        isMatch = true;
+                    } else if (espnEventId && w.eventIds && Array.isArray(w.eventIds) && w.eventIds.map(String).includes(espnEventId)) {
+                        isMatch = true;
+                    } else if (w.legs && Array.isArray(w.legs) && w.legs.some(l => l.eventId && String(l.eventId) === espnEventId)) {
+                        isMatch = true;
+                    } else {
+                        // 2. Secondary String Parsing Fallback
+                        const wText = (String(w.event || '') + ' ' + String(w.matchup || '') + ' ' + String(w.target || '') + ' ' + String(w.selection || '')).toUpperCase();
+                        isMatch = (awayAbbr && wText.includes(awayAbbr)) ||
+                                  (homeAbbr && wText.includes(homeAbbr)) ||
+                                  (awayName && wText.includes(awayName)) ||
+                                  (homeName && wText.includes(homeName));
+                    }
 
                     if (isMatch) {
-                        gradeWagerWithScores(w.id, awayScore, homeScore);
+                        gradeWagerWithScores(w.id, awayScore, homeScore, espnEventId, eventData);
                     }
                 }
             });
@@ -5874,12 +5948,22 @@
                     : `<span style="font-size:9px; padding:2px 6px; background:rgba(239, 68, 68, 0.15); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.3); border-radius:4px; font-weight:800;">🔴 LIVE</span>`;
 
                 const ticketStr = w.ticketNumber ? `<div style="font-size:10px; color:var(--muted); font-weight:700; margin-bottom:4px;">TICKET #${w.ticketNumber} · ${w.acceptedDate || 'Pregame'}</div>` : '';
-                const attachedMatchupText = w.matchup || w.event || w.selection || 'Attached Matchup Wager';
+                
+                let headerMatchupTitle = w.matchup || w.event || w.selection || 'Attached Matchup Wager';
+                if (w.legs && Array.isArray(w.legs) && w.legs.length > 0) {
+                    const uniqueMatchups = [...new Set(w.legs.map(l => l.matchup).filter(Boolean))];
+                    if (uniqueMatchups.length > 1) {
+                        headerMatchupTitle = `Multi-Matchup ${w.type || 'Parlay'} (${w.legs.length} Legs)`;
+                    } else if (uniqueMatchups.length === 1) {
+                        headerMatchupTitle = uniqueMatchups[0];
+                    }
+                }
+
                 const matchupAttachmentHeader = `
                 <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:6px; padding:6px 8px; margin-bottom:8px;">
                     <div style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">ATTACHED MATCHUP</div>
                     <div style="font-size:11px; font-weight:800; color:#fff; font-family:var(--font-head); letter-spacing:0.5px;">
-                        🏈 ${attachedMatchupText}
+                        🏈 ${headerMatchupTitle}
                     </div>
                 </div>
                 `;
@@ -5889,11 +5973,25 @@
                     legsHtml = `<div style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border); font-size:10px;">` +
                         w.legs.map((leg, lIdx) => {
                             const legSt = leg.status || 'PENDING';
-                            const legStBadge = legSt === 'WON' ? `<span style="color:var(--win); font-weight:900;">✓ WON</span>` : (legSt === 'LOST' ? `<span style="color:#ef4444; font-weight:900;">✕ LOST</span>` : `<span style="color:var(--accent); font-weight:800;">${leg.odds || ''}</span>`);
+                            const legStBadge = legSt === 'WON' 
+                                ? `<span style="color:var(--win); font-weight:900;">✓ WON</span>` 
+                                : (legSt === 'LOST' 
+                                    ? `<span style="color:#ef4444; font-weight:900;">✕ LOST</span>` 
+                                    : (legSt === 'PUSH' 
+                                        ? `<span style="color:#f59e0b; font-weight:900;">➔ PUSH</span>` 
+                                        : `<span style="color:var(--accent); font-weight:800;">${leg.odds || ''}</span>`));
+
+                            const legMatchupLine = leg.matchup 
+                                ? `<div style="font-size:9px; color:var(--cyan); font-weight:700; margin-top:3px;">📍 MATCHUP: ${leg.matchup}</div>` 
+                                : '';
+
                             return `
-                            <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:#e2e8f0;">
-                                <span><strong style="color:var(--accent);">Leg ${lIdx+1}:</strong> ${leg.selection || leg.target}</span>
-                                ${legStBadge}
+                            <div style="margin-bottom:6px; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.05); padding:6px 8px; border-radius:6px;">
+                                <div style="display:flex; justify-content:space-between; color:#e2e8f0;">
+                                    <span><strong style="color:var(--accent);">Leg ${lIdx+1}:</strong> ${leg.selection || leg.target}</span>
+                                    ${legStBadge}
+                                </div>
+                                ${legMatchupLine}
                             </div>
                             `;
                         }).join('') +
@@ -5926,13 +6024,16 @@
 
                         <!-- Matchup Completion & Grading Controls -->
                         <div style="margin-top:10px; padding-top:8px; border-top:1px solid var(--border);">
-                            <div style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; margin-bottom:4px;">Grade Matchup Result</div>
-                            <div style="display:flex; gap:6px;">
-                                <button onclick="gradeWagerWithScores('${w.id}', 27, 20)" style="flex:1; background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.4); color:var(--win); font-weight:800; font-size:10px; padding:6px; border-radius:4px; cursor:pointer;" title="Simulate Final Score: NE Patriots 27 - 20 SEA Seahawks (Patriots +3 WON, Over 44.5 WON -> Ticket WON)">
-                                    ⚡ Grade Win (NE 27 - 20 SEA)
+                            <div style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; margin-bottom:4px;">Simulate Grade Matchup Result</div>
+                            <div style="display:flex; gap:4px;">
+                                <button onclick="gradeWagerWithScores('${w.id}', 27, 20)" style="flex:1; background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.4); color:var(--win); font-weight:800; font-size:9.5px; padding:5px; border-radius:4px; cursor:pointer;" title="Simulate Win (27 - 20)">
+                                    ⚡ Win (27-20)
                                 </button>
-                                <button onclick="gradeWagerWithScores('${w.id}', 17, 24)" style="flex:1; background:rgba(239, 68, 68, 0.15); border:1px solid rgba(239, 68, 68, 0.4); color:#ef4444; font-weight:800; font-size:10px; padding:6px; border-radius:4px; cursor:pointer;" title="Simulate Final Score: NE Patriots 17 - 24 SEA Seahawks (Patriots +3 LOST, Over 44.5 LOST -> Ticket LOST)">
-                                    ⚡ Grade Loss (NE 17 - 24 SEA)
+                                <button onclick="gradeWagerWithScores('${w.id}', 27, 24)" style="flex:1; background:rgba(245, 158, 11, 0.15); border:1px solid rgba(245, 158, 11, 0.4); color:#f59e0b; font-weight:800; font-size:9.5px; padding:5px; border-radius:4px; cursor:pointer;" title="Simulate Push (27 - 24 on -3 line / 44 on O/U 44 line)">
+                                    ⚡ Push (27-24)
+                                </button>
+                                <button onclick="gradeWagerWithScores('${w.id}', 17, 24)" style="flex:1; background:rgba(239, 68, 68, 0.15); border:1px solid rgba(239, 68, 68, 0.4); color:#ef4444; font-weight:800; font-size:9.5px; padding:5px; border-radius:4px; cursor:pointer;" title="Simulate Loss (17 - 24)">
+                                    ⚡ Loss (17-24)
                                 </button>
                             </div>
                         </div>
@@ -5990,7 +6091,7 @@
             document.getElementById('bet-slip-panel').classList.toggle('open');
         }
 
-        function addToBetSlip(team, type, odds, matchupStr) {
+        function addToBetSlip(team, type, odds, matchupStr, eventId) {
             if (odds === '-' || odds === undefined || odds === '' || odds.includes('—')) return;
             
             let displayTeam = (team || '').trim();
@@ -6030,6 +6131,7 @@
                 id: Date.now() + Math.floor(Math.random() * 1000), 
                 team: displayTeam,
                 matchup: matchupStr || displayTeam, 
+                eventId: eventId || null,
                 type: displayType, 
                 odds: cleanedPrice, 
                 wager: 0,
@@ -6580,6 +6682,7 @@
                         id: 'placed-' + bet.id + '-' + Date.now(),
                         matchup: matchupName,
                         event: matchupName,
+                        eventId: bet.eventId || null,
                         target: displayTarget,
                         selection: `${bet.team} ${cleanDetail || cleanOddsStr}`,
                         type: cleanType,
@@ -6605,7 +6708,7 @@
                 if (parlayWager <= 0) return alert('Please enter a wager amount for the parlay.');
 
                 const legMatchups = [...new Set(betSlip.map(b => b.matchup || b.team))];
-                const parlayMatchupHeader = legMatchups.length === 1 ? legMatchups[0] : `${betSlip.length}-Leg Parlay | ${legMatchups.join(' · ')}`;
+                const parlayMatchupHeader = legMatchups.length === 1 ? legMatchups[0] : `Multi-Matchup Parlay (${betSlip.length} Legs)`;
                 const combinedOdds = calculateParlayOdds(betSlip);
                 const legsDetail = betSlip.map(b => `${b.team} (${b.odds})`).join(' + ');
 
@@ -6613,6 +6716,7 @@
                     id: 'placed-parlay-' + Date.now(),
                     matchup: parlayMatchupHeader,
                     event: parlayMatchupHeader,
+                    eventIds: [...new Set(betSlip.map(b => b.eventId).filter(Boolean))],
                     target: `Parlay (${betSlip.length} Legs): ${legsDetail}`,
                     selection: betSlip.map(b => `${b.team} ${b.type}`).join(' / '),
                     type: 'Parlay',
@@ -6632,6 +6736,7 @@
                     betType: 'PARLAY',
                     toWin: parlayToWin,
                     legs: betSlip.map(b => ({
+                        eventId: b.eventId || null,
                         matchup: b.matchup || b.team,
                         selection: `${b.team} ${b.type}`,
                         target: `${b.team} ${b.type}`,
@@ -6648,7 +6753,7 @@
                 if (teaserWager <= 0) return alert(`Please enter a wager amount for the ${typeLabel.toLowerCase()}.`);
 
                 const legMatchups = [...new Set(betSlip.map(b => b.matchup || b.team))];
-                const teaserMatchupHeader = legMatchups.length === 1 ? legMatchups[0] : `${betSlip.length}-Leg ${typeLabel} | ${legMatchups.join(' · ')}`;
+                const teaserMatchupHeader = legMatchups.length === 1 ? legMatchups[0] : `Multi-Matchup ${typeLabel} (${betSlip.length} Legs)`;
                 const teaserOdds = getTeaserOdds(betSlip.length, teaserPoints);
                 const legsDetail = betSlip.map(b => `${b.team} (${ptsLabel})`).join(' + ');
 
@@ -6656,6 +6761,7 @@
                     id: 'placed-teaser-' + Date.now(),
                     matchup: teaserMatchupHeader,
                     event: teaserMatchupHeader,
+                    eventIds: [...new Set(betSlip.map(b => b.eventId).filter(Boolean))],
                     target: `${typeLabel} (${ptsLabel}): ${legsDetail}`,
                     selection: betSlip.map(b => `${b.team} ${b.type} (${ptsLabel})`).join(' / '),
                     type: typeLabel,
@@ -6675,6 +6781,7 @@
                     betType: typeLabel.toUpperCase(),
                     toWin: teaserToWin,
                     legs: betSlip.map(b => ({
+                        eventId: b.eventId || null,
                         matchup: b.matchup || b.team,
                         selection: `${b.team} ${b.type} (${ptsLabel})`,
                         target: `${b.team} ${b.type} (${ptsLabel})`,
