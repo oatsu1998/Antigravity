@@ -2904,9 +2904,12 @@
             const awayLogo = away.team?.logo || away.team?.logos?.[0]?.href || '';
             const homeLogo = home.team?.logo || home.team?.logos?.[0]?.href || '';
 
-            const possessionId = String(sit.possession || sit.possessionText || sit.lastPlay?.team?.id || '');
-            const isAwayPossession = possessionId === String(away.team?.id || away.id || '') || possessionId.toUpperCase().includes(awayAbbr);
-            const isHomePossession = possessionId === String(home.team?.id || home.id || '') || possessionId.toUpperCase().includes(homeAbbr);
+            const possessionId = String(sit.possession || sit.possessionText || sit.lastPlay?.team?.id || '').toUpperCase();
+            const awayId = String(away.team?.id || away.id || '').toUpperCase();
+            const homeId = String(home.team?.id || home.id || '').toUpperCase();
+
+            let isAwayPossession = (possessionId && awayId && possessionId === awayId) || possessionId.includes(awayAbbr.toUpperCase());
+            let isHomePossession = (possessionId && homeId && possessionId === homeId) || possessionId.includes(homeAbbr.toUpperCase());
 
             const down = parseInt(sit.down);
             const dist = parseInt(sit.distance || 0);
@@ -2915,30 +2918,44 @@
             let rawYardLine = parseInt(sit.yardLine || 50);
             if (isNaN(rawYardLine) || rawYardLine < 1) rawYardLine = 50;
 
-            const posText = String(sit.possessionText || '');
+            const fullText = (String(sit.possessionText || '') + ' ' + String(sit.downDistanceText || '') + ' ' + String(sit.lastPlay?.text || '')).toUpperCase();
+            
+            if (!isAwayPossession && !isHomePossession) {
+                if (fullText.includes(awayAbbr.toUpperCase())) isAwayPossession = true;
+                else if (fullText.includes(homeAbbr.toUpperCase())) isHomePossession = true;
+                else isAwayPossession = true; // Default to Away
+            }
+
+            const awayRegex = new RegExp('\\b' + awayAbbr.replace(/[^A-Z0-9]/g, '') + '\\s*(\\d+)', 'i');
+            const homeRegex = new RegExp('\\b' + homeAbbr.replace(/[^A-Z0-9]/g, '') + '\\s*(\\d+)', 'i');
+
+            const awayMatch = fullText.match(awayRegex);
+            const homeMatch = fullText.match(homeRegex);
+
             let ballPosPct = 50;
 
-            if (isAwayPossession) {
-                // Away team (PHI) drives RIGHT towards Home (BAL)
-                if (posText.includes(awayAbbr)) {
-                    ballPosPct = rawYardLine; // e.g. PHI 34 = 34% (own territory)
-                } else if (posText.includes(homeAbbr)) {
-                    ballPosPct = 100 - rawYardLine; // e.g. BAL 34 = 66% (opponent territory)
+            if (awayMatch) {
+                // Ball is on Away team's side of the field (e.g. NE 35 = 35% from left endzone)
+                const yard = parseInt(awayMatch[1]);
+                ballPosPct = !isNaN(yard) ? Math.max(1, Math.min(49, yard)) : rawYardLine;
+            } else if (homeMatch) {
+                // Ball is on Home team's side of the field (e.g. SEA 35 = 65% from left endzone)
+                const yard = parseInt(homeMatch[1]);
+                ballPosPct = !isNaN(yard) ? (100 - Math.max(1, Math.min(49, yard))) : (100 - rawYardLine);
+            } else if (fullText.includes(' 50') || fullText.includes('AT 50') || rawYardLine === 50) {
+                ballPosPct = 50;
+            } else {
+                if (isAwayPossession) {
+                    if (fullText.includes(homeAbbr.toUpperCase())) ballPosPct = 100 - rawYardLine;
+                    else ballPosPct = rawYardLine;
+                } else if (isHomePossession) {
+                    if (fullText.includes(awayAbbr.toUpperCase())) ballPosPct = rawYardLine;
+                    else ballPosPct = 100 - rawYardLine;
                 } else {
                     ballPosPct = rawYardLine;
                 }
-            } else if (isHomePossession) {
-                // Home team (BAL) drives LEFT towards Away (PHI)
-                if (posText.includes(homeAbbr)) {
-                    ballPosPct = 100 - rawYardLine; // e.g. BAL 34 = 66% (own territory)
-                } else if (posText.includes(awayAbbr)) {
-                    ballPosPct = rawYardLine; // e.g. PHI 34 = 34% (opponent territory)
-                } else {
-                    ballPosPct = 100 - rawYardLine;
-                }
-            } else {
-                ballPosPct = rawYardLine;
             }
+
             ballPosPct = Math.max(3, Math.min(97, ballPosPct));
 
             let firstDownPct = isAwayPossession ? (ballPosPct + dist) : (ballPosPct - dist);
@@ -2949,7 +2966,7 @@
                 if (!isInvalidDown) {
                     const ord = down === 1 ? '1st' : down === 2 ? '2nd' : down === 3 ? '3rd' : '4th';
                     const distStr = dist === 0 ? 'Goal' : dist;
-                    const posStr = posText || (isAwayPossession ? `${awayAbbr} ${rawYardLine}` : `${homeAbbr} ${rawYardLine}`);
+                    const posStr = sit.possessionText || (isAwayPossession ? `${awayAbbr} ${rawYardLine}` : `${homeAbbr} ${rawYardLine}`);
                     downText = `${ord} & ${distStr}, ${posStr}`;
                 } else {
                     downText = sit.lastPlay?.text || sit.lastPlay?.type?.text || 'Timeout / Game Break';
