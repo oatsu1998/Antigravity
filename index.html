@@ -5695,6 +5695,133 @@
             if (activeCountEl) activeCountEl.innerText = pendingWagers.length;
         }
 
+        function gradeWagerWithScores(wagerId, awayScore, homeScore) {
+            const KEY = 'destiny_game_wagers';
+            let wagers = [];
+            try { wagers = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { wagers = []; }
+            
+            const w = wagers.find(item => item.id === wagerId || item.ticketNumber === wagerId || (item.id && item.id.includes(wagerId)));
+            if (!w) return alert('Wager not found');
+
+            let allLegsWon = true;
+            let anyLegLost = false;
+
+            if (w.legs && Array.isArray(w.legs) && w.legs.length > 0) {
+                w.legs.forEach(leg => {
+                    const legText = (leg.selection || leg.target || '').toUpperCase();
+                    
+                    // Spread Evaluation (Patriots +3 / Seahawks)
+                    if (legText.includes('+') || legText.includes('-')) {
+                        if (legText.includes('PATRIOTS') || legText.includes('NE')) {
+                            const lineMatch = legText.match(/(\+|-)\d+(\.\d+)?/);
+                            const line = lineMatch ? parseFloat(lineMatch[0]) : 3.0;
+                            const patriotsTotal = awayScore + line;
+                            if (patriotsTotal > homeScore) leg.status = 'WON';
+                            else if (patriotsTotal < homeScore) leg.status = 'LOST';
+                            else leg.status = 'PUSH';
+                        } else if (legText.includes('SEAHAWKS') || legText.includes('SEA')) {
+                            const lineMatch = legText.match(/(\+|-)\d+(\.\d+)?/);
+                            const line = lineMatch ? parseFloat(lineMatch[0]) : -3.0;
+                            const seahawksTotal = homeScore + line;
+                            if (seahawksTotal > awayScore) leg.status = 'WON';
+                            else if (seahawksTotal < awayScore) leg.status = 'LOST';
+                            else leg.status = 'PUSH';
+                        }
+                    }
+
+                    // Total Evaluation (Over / Under 44.5)
+                    if (legText.includes('OVER') || legText.includes('UNDER')) {
+                        const totalLineMatch = legText.match(/\d+(\.\d+)?/);
+                        const line = totalLineMatch ? parseFloat(totalLineMatch[0]) : 44.5;
+                        const combined = awayScore + homeScore;
+
+                        if (legText.includes('OVER')) {
+                            if (combined > line) leg.status = 'WON';
+                            else if (combined < line) leg.status = 'LOST';
+                            else leg.status = 'PUSH';
+                        } else if (legText.includes('UNDER')) {
+                            if (combined < line) leg.status = 'WON';
+                            else if (combined > line) leg.status = 'LOST';
+                            else leg.status = 'PUSH';
+                        }
+                    }
+
+                    if (leg.status === 'LOST') anyLegLost = true;
+                    if (leg.status !== 'WON') allLegsWon = false;
+                });
+            } else {
+                // Single Leg Wager Fallback
+                const wText = (w.selection || w.target || '').toUpperCase();
+                if (wText.includes('PATRIOTS') || wText.includes('NE')) {
+                    const lineMatch = wText.match(/(\+|-)\d+(\.\d+)?/);
+                    const line = lineMatch ? parseFloat(lineMatch[0]) : 3.0;
+                    if ((awayScore + line) > homeScore) allLegsWon = true;
+                    else anyLegLost = true;
+                }
+            }
+
+            let finalStatus = 'PENDING';
+            if (anyLegLost) finalStatus = 'LOST';
+            else if (allLegsWon) finalStatus = 'WON';
+            else finalStatus = 'PUSH';
+
+            w.status = finalStatus;
+            w.settledDate = new Date().toISOString();
+            w.settledScores = `NE ${awayScore} - ${homeScore} SEA`;
+
+            let payout = 0;
+            if (finalStatus === 'WON') {
+                payout = (parseFloat(w.stake || w.wager) || 0) + (parseFloat(w.toWin) || 0);
+                w.settledPayout = payout;
+                let b = parseFloat(localStorage.getItem('bankroll') || '1000000');
+                localStorage.setItem('bankroll', (b + payout).toFixed(2));
+                localStorage.setItem('destiny_bankroll', (b + payout).toFixed(2));
+                updateBankrollDisplay();
+            }
+
+            localStorage.setItem(KEY, JSON.stringify(wagers));
+            if (window.DestinyState && window.DestinyState.saveWagers) {
+                window.DestinyState.saveWagers(wagers);
+            }
+            updateActiveBetsCountGlobal();
+            renderActiveBetsInPanel();
+
+            const statusColor = finalStatus === 'WON' ? '#10b981' : '#ef4444';
+            alert(`🏆 MATCHUP COMPLETED!\n\nFinal Score: NE Patriots ${awayScore} — ${homeScore} SEA Seahawks\n\nWager #${w.ticketNumber || w.id} GRADED: ${finalStatus}\n` + (finalStatus === 'WON' ? `+$${payout.toFixed(2)} credited to bankroll!` : 'Better luck next time!'));
+        }
+
+        function checkAndGradeWagersForEvent(eventData) {
+            if (!eventData) return;
+            const statusType = eventData.status?.type?.name || eventData.status?.type || '';
+            const statusState = eventData.status?.type?.state || '';
+            const isCompleted = statusType === 'STATUS_FULL_TIME' || statusType === 'STATUS_FINAL' || statusType === 'STATUS_FINAL_OVERTIME' || statusState === 'post';
+
+            if (!isCompleted) return;
+
+            const comp = eventData.competitions?.[0];
+            if (!comp) return;
+
+            const away = comp.competitors?.find(c => c.homeAway === 'away');
+            const home = comp.competitors?.find(c => c.homeAway === 'home');
+            if (!away || !home) return;
+
+            const awayScore = parseInt(away.score || 0);
+            const homeScore = parseInt(home.score || 0);
+
+            const KEY = 'destiny_game_wagers';
+            let wagers = [];
+            try { wagers = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { wagers = []; }
+
+            wagers.forEach(w => {
+                if (w.status === 'PENDING') {
+                    const wText = (String(w.event || '') + ' ' + String(w.matchup || '') + ' ' + String(w.target || '')).toUpperCase();
+                    if (wText.includes('PATRIOTS') || wText.includes('SEAHAWKS') || wText.includes('NE @ SEA')) {
+                        gradeWagerWithScores(w.id, awayScore, homeScore);
+                    }
+                }
+            });
+        }
+
         function renderActiveBetsInPanel() {
             ensureDefaultTicketsLoaded();
             const container = document.getElementById('bs-active-bets');
@@ -5732,21 +5859,34 @@
                     : `<span style="font-size:9px; padding:2px 6px; background:rgba(239, 68, 68, 0.15); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.3); border-radius:4px; font-weight:800;">🔴 LIVE</span>`;
 
                 const ticketStr = w.ticketNumber ? `<div style="font-size:10px; color:var(--muted); font-weight:700; margin-bottom:4px;">TICKET #${w.ticketNumber} · ${w.acceptedDate || 'Pregame'}</div>` : '';
+                const matchupAttachmentHeader = `
+                <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:6px; padding:6px 8px; margin-bottom:8px;">
+                    <div style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">ATTACHED MATCHUP</div>
+                    <div style="font-size:11px; font-weight:800; color:#fff; font-family:var(--font-head); letter-spacing:0.5px;">
+                        🏈 Football - NFL - ${w.event || w.matchup || 'New England Patriots vs Seattle Seahawks'}
+                    </div>
+                </div>
+                `;
 
                 let legsHtml = '';
                 if (w.legs && Array.isArray(w.legs) && w.legs.length > 0) {
                     legsHtml = `<div style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border); font-size:10px;">` +
-                        w.legs.map((leg, lIdx) => `
+                        w.legs.map((leg, lIdx) => {
+                            const legSt = leg.status || 'PENDING';
+                            const legStBadge = legSt === 'WON' ? `<span style="color:var(--win); font-weight:900;">✓ WON</span>` : (legSt === 'LOST' ? `<span style="color:#ef4444; font-weight:900;">✕ LOST</span>` : `<span style="color:var(--accent); font-weight:800;">${leg.odds || ''}</span>`);
+                            return `
                             <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:#e2e8f0;">
                                 <span><strong style="color:var(--accent);">Leg ${lIdx+1}:</strong> ${leg.selection || leg.target}</span>
-                                <span style="color:var(--accent); font-weight:800;">${leg.odds || ''}</span>
+                                ${legStBadge}
                             </div>
-                        `).join('') +
+                            `;
+                        }).join('') +
                         `</div>`;
                 }
 
                 return `
                     <div class="bs-active-wager-card" style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px; font-family:var(--font-mono); margin-bottom:10px; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+                        ${matchupAttachmentHeader}
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:8px;">
                             <div style="display:flex; align-items:center; gap:8px;">
                                 ${teamLogos.awayLogo}
@@ -5755,7 +5895,7 @@
                             </div>
                             <div style="display:flex; align-items:center; gap:4px;">
                                 ${timingBadge}
-                                <span class="badge pending" style="font-size:9px; padding:2px 6px; background:rgba(234, 179, 8, 0.15); color:#eab308; border:1px solid rgba(234, 179, 8, 0.3); border-radius:4px; font-weight:800;">PENDING</span>
+                                <span class="badge pending" style="font-size:9px; padding:2px 6px; background:rgba(234, 179, 8, 0.15); color:#eab308; border:1px solid rgba(234, 179, 8, 0.3); border-radius:4px; font-weight:800;">${w.status || 'PENDING'}</span>
                             </div>
                         </div>
                         ${ticketStr}
@@ -5766,6 +5906,19 @@
                             <div>Odds: <span style="color:var(--accent); font-weight:700;">${w.placedOdds || w.odds || '-110'}</span></div>
                             <div>Stake: <span style="color:#fff; font-weight:700;">$${parseFloat(w.stake || w.wager || 0).toFixed(2)}</span></div>
                             <div>To Win: <span style="color:var(--win); font-weight:700;">$${parseFloat(w.toWin || 0).toFixed(2)}</span></div>
+                        </div>
+
+                        <!-- Matchup Completion & Grading Controls -->
+                        <div style="margin-top:10px; padding-top:8px; border-top:1px solid var(--border);">
+                            <div style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; margin-bottom:4px;">Grade Matchup Result</div>
+                            <div style="display:flex; gap:6px;">
+                                <button onclick="gradeWagerWithScores('${w.id}', 27, 20)" style="flex:1; background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.4); color:var(--win); font-weight:800; font-size:10px; padding:6px; border-radius:4px; cursor:pointer;" title="Simulate Final Score: NE Patriots 27 - 20 SEA Seahawks (Patriots +3 WON, Over 44.5 WON -> Ticket WON)">
+                                    ⚡ Grade Win (NE 27 - 20 SEA)
+                                </button>
+                                <button onclick="gradeWagerWithScores('${w.id}', 17, 24)" style="flex:1; background:rgba(239, 68, 68, 0.15); border:1px solid rgba(239, 68, 68, 0.4); color:#ef4444; font-weight:800; font-size:10px; padding:6px; border-radius:4px; cursor:pointer;" title="Simulate Final Score: NE Patriots 17 - 24 SEA Seahawks (Patriots +3 LOST, Over 44.5 LOST -> Ticket LOST)">
+                                    ⚡ Grade Loss (NE 17 - 24 SEA)
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
