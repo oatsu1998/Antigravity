@@ -6947,8 +6947,8 @@
             if (currentBetType === 'straight') {
                 html += betSlip.map((bet, idx) => {
                     const { marketType, lineVal, matchupDescription } = getBetMarketAndLine(bet);
-                    const oddsId = idx === 0 ? 'betslip-active-odds' : `betslip-active-odds-${bet.id}`;
-                    const lineId = idx === 0 ? 'betslip-active-line' : `betslip-active-line-${bet.id}`;
+                    const oddsId = idx === 0 ? 'manual-betslip-odds' : `manual-betslip-odds-${bet.id}`;
+                    const lineId = idx === 0 ? 'manual-betslip-line' : `manual-betslip-line-${bet.id}`;
                     return `
                     <div class="bs-item" style="background:#ffffff; color:#0f172a; border-radius:8px; padding:12px 14px; margin-bottom:12px; font-family:var(--font-mono); box-shadow:0 4px 12px rgba(0,0,0,0.3);">
                         <!-- Header: Close, Title, Editable American Odds -->
@@ -6957,38 +6957,42 @@
                                 <button onclick="removeFromBetSlip('${bet.id}')" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;" title="Remove Selection">✕</button>
                                 <span style="font-size:14px; font-weight:900; color:#0f172a; text-transform:uppercase; letter-spacing:0.5px;">${bet.team}</span>
                             </div>
-                            <div style="display: inline-flex; align-items: center; gap: 2px;">
-                              <span>(</span>
+                            <!-- ODDS CONTAINER -->
+                            <div style="display: flex; align-items: center; gap: 2px;">
+                              <span style="color: #64748b; font-weight: 700;">(</span>
                               <input 
                                 type="text" 
                                 id="${oddsId}" 
+                                name="betslipOdds"
                                 class="betslip-odds-field" 
                                 value="${bet.odds || '+100'}" 
-                                style="width: 65px; height: 26px; border: 1.5px solid #0284c7; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 14px; text-align: center; border-radius: 4px; outline: none; cursor: text;" 
-                                oninput="handleLiveOddsChange(this.value, '${bet.id}')"
-                                onchange="handleLiveOddsChange(this.value, '${bet.id}')"
+                                style="width: 70px; height: 28px; border: 2px solid #0284c7; background: #ffffff; color: #0284c7; font-weight: 800; font-size: 15px; text-align: center; border-radius: 6px; outline: none; cursor: text; display: inline-block !important;" 
+                                oninput="if(typeof handleLiveOddsChange==='function') handleLiveOddsChange(this.value, '${bet.id}'); if(window.onManualOddsChange) window.onManualOddsChange(this.value);"
+                                onchange="if(typeof handleLiveOddsChange==='function') handleLiveOddsChange(this.value, '${bet.id}'); if(window.onManualOddsChange) window.onManualOddsChange(this.value);"
                               />
-                              <span>)</span>
+                              <span style="color: #64748b; font-weight: 700;">)</span>
                             </div>
                         </div>
 
                         <!-- Subheader with Editable Line / Selection Type -->
                         <div style="font-size:11px; color:#64748b; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
-                            <div style="display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap;">
-                              <span class="betslip-market-label" style="font-weight:800; color:#334155; text-transform:uppercase;">${marketType || 'Spread'}</span>
-                              <span>(</span>
+                            <!-- LINE / SPREAD CONTAINER -->
+                            <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px; flex-wrap: wrap;">
+                              <span style="font-weight: 600; color: #334155;">${marketType || 'Spread'}</span>
+                              <span style="color: #64748b;">(</span>
                               <input 
                                 type="text" 
                                 id="${lineId}" 
+                                name="betslipLine"
                                 class="betslip-line-field" 
                                 value="${lineVal || '-2.5'}" 
-                                style="width: 55px; height: 24px; border: 1.5px solid #0284c7; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 13px; text-align: center; border-radius: 4px; outline: none; cursor: text;" 
-                                oninput="handleLiveLineChange(this.value, '${bet.id}')"
-                                onchange="handleLiveLineChange(this.value, '${bet.id}')"
+                                style="width: 60px; height: 26px; border: 2px solid #0284c7; background: #ffffff; color: #0284c7; font-weight: 800; font-size: 14px; text-align: center; border-radius: 4px; outline: none; cursor: text; display: inline-block !important;" 
+                                oninput="if(typeof handleLiveLineChange==='function') handleLiveLineChange(this.value, '${bet.id}'); if(window.onManualLineChange) window.onManualLineChange(this.value);"
+                                onchange="if(typeof handleLiveLineChange==='function') handleLiveLineChange(this.value, '${bet.id}'); if(window.onManualLineChange) window.onManualLineChange(this.value);"
                               />
-                              <span>)</span>
-                              <span>·</span>
-                              <span class="betslip-matchup-sub" style="color:#64748b; font-weight:600;">${matchupDescription}</span>
+                              <span style="color: #64748b;">)</span>
+                              <span style="color: #94a3b8;">·</span>
+                              <span style="color: #64748b; font-size: 13px;">${matchupDescription || bet.matchup || 'Football - NFL'}</span>
                             </div>
                             <span style="color:#ef4444; font-size:9px; font-weight:800; display:inline-flex; align-items:center; gap:3px;">🔴 LIVE</span>
                         </div>
@@ -7022,8 +7026,8 @@
             } else if (currentBetType === 'parlay') {
                 html += betSlip.map((bet, idx) => {
                     const { marketType, lineVal, matchupDescription } = getBetMarketAndLine(bet);
-                    const oddsId = idx === 0 ? 'betslip-active-odds' : `betslip-active-odds-${bet.id}`;
-                    const lineId = idx === 0 ? 'betslip-active-line' : `betslip-active-line-${bet.id}`;
+                    const oddsId = idx === 0 ? 'manual-betslip-odds' : `manual-betslip-odds-${bet.id}`;
+                    const lineId = idx === 0 ? 'manual-betslip-line' : `manual-betslip-line-${bet.id}`;
                     return `
                     <div style="background:#ffffff; color:#0f172a; border-radius:8px; padding:10px 14px; margin-bottom:8px; font-family:var(--font-mono); box-shadow:0 4px 12px rgba(0,0,0,0.2);">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
@@ -7031,36 +7035,38 @@
                                 <button onclick="removeFromBetSlip('${bet.id}')" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;">✕</button>
                                 <input type="text" value="${bet.team}" onchange="updateBetTeam('${bet.id}', this.value)" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; font-weight:900; font-size:13px; color:#0f172a; width:140px; font-family:var(--font-mono); padding:2px 6px; outline:none;">
                             </div>
-                            <div style="display: inline-flex; align-items: center; gap: 2px;">
-                              <span>(</span>
+                            <div style="display: flex; align-items: center; gap: 2px;">
+                              <span style="color: #64748b; font-weight: 700;">(</span>
                               <input 
                                 type="text" 
                                 id="${oddsId}" 
+                                name="betslipOdds"
                                 class="betslip-odds-field" 
                                 value="${bet.odds || '+100'}" 
-                                style="width: 65px; height: 26px; border: 1.5px solid #0284c7; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 14px; text-align: center; border-radius: 4px; outline: none; cursor: text;" 
-                                oninput="handleLiveOddsChange(this.value, '${bet.id}')"
-                                onchange="handleLiveOddsChange(this.value, '${bet.id}')"
+                                style="width: 70px; height: 28px; border: 2px solid #0284c7; background: #ffffff; color: #0284c7; font-weight: 800; font-size: 15px; text-align: center; border-radius: 6px; outline: none; cursor: text; display: inline-block !important;" 
+                                oninput="if(typeof handleLiveOddsChange==='function') handleLiveOddsChange(this.value, '${bet.id}'); if(window.onManualOddsChange) window.onManualOddsChange(this.value);"
+                                onchange="if(typeof handleLiveOddsChange==='function') handleLiveOddsChange(this.value, '${bet.id}'); if(window.onManualOddsChange) window.onManualOddsChange(this.value);"
                               />
-                              <span>)</span>
+                              <span style="color: #64748b; font-weight: 700;">)</span>
                             </div>
                         </div>
                         <div style="font-size:11px; color:#64748b; margin-top:4px; display:flex; align-items:center; gap:4px;">
-                            <div style="display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap;">
-                              <span class="betslip-market-label" style="font-weight:800; color:#334155; text-transform:uppercase;">${marketType || 'Spread'}</span>
-                              <span>(</span>
+                            <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px; flex-wrap: wrap;">
+                              <span style="font-weight: 600; color: #334155;">${marketType || 'Spread'}</span>
+                              <span style="color: #64748b;">(</span>
                               <input 
                                 type="text" 
                                 id="${lineId}" 
+                                name="betslipLine"
                                 class="betslip-line-field" 
                                 value="${lineVal || '-2.5'}" 
-                                style="width: 55px; height: 24px; border: 1.5px solid #0284c7; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 13px; text-align: center; border-radius: 4px; outline: none; cursor: text;" 
-                                oninput="handleLiveLineChange(this.value, '${bet.id}')"
-                                onchange="handleLiveLineChange(this.value, '${bet.id}')"
+                                style="width: 60px; height: 26px; border: 2px solid #0284c7; background: #ffffff; color: #0284c7; font-weight: 800; font-size: 14px; text-align: center; border-radius: 4px; outline: none; cursor: text; display: inline-block !important;" 
+                                oninput="if(typeof handleLiveLineChange==='function') handleLiveLineChange(this.value, '${bet.id}'); if(window.onManualLineChange) window.onManualLineChange(this.value);"
+                                onchange="if(typeof handleLiveLineChange==='function') handleLiveLineChange(this.value, '${bet.id}'); if(window.onManualLineChange) window.onManualLineChange(this.value);"
                               />
-                              <span>)</span>
-                              <span>·</span>
-                              <span class="betslip-matchup-sub" style="color:#64748b; font-weight:600;">${matchupDescription}</span>
+                              <span style="color: #64748b;">)</span>
+                              <span style="color: #94a3b8;">·</span>
+                              <span style="color: #64748b; font-size: 13px;">${matchupDescription || bet.matchup || 'Football - NFL'}</span>
                             </div>
                         </div>
                     </div>
@@ -7102,8 +7108,8 @@
                 `;
                 html += betSlip.map((bet, idx) => {
                     const { marketType, lineVal, matchupDescription } = getBetMarketAndLine(bet);
-                    const oddsId = idx === 0 ? 'betslip-active-odds' : `betslip-active-odds-${bet.id}`;
-                    const lineId = idx === 0 ? 'betslip-active-line' : `betslip-active-line-${bet.id}`;
+                    const oddsId = idx === 0 ? 'manual-betslip-odds' : `manual-betslip-odds-${bet.id}`;
+                    const lineId = idx === 0 ? 'manual-betslip-line' : `manual-betslip-line-${bet.id}`;
                     return `
                     <div style="background:#ffffff; color:#0f172a; border-radius:8px; padding:10px 14px; margin-bottom:8px; font-family:var(--font-mono);">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -7113,21 +7119,22 @@
                             </div>
                         </div>
                         <div style="font-size:10px; color:#64748b; margin-top:4px; display:flex; align-items:center; gap:4px;">
-                            <div style="display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap;">
-                              <span class="betslip-market-label" style="font-weight:800; color:#334155; text-transform:uppercase;">${marketType || 'Spread'}</span>
-                              <span>(</span>
+                            <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px; flex-wrap: wrap;">
+                              <span style="font-weight: 600; color: #334155;">${marketType || 'Spread'}</span>
+                              <span style="color: #64748b;">(</span>
                               <input 
                                 type="text" 
                                 id="${lineId}" 
+                                name="betslipLine"
                                 class="betslip-line-field" 
                                 value="${lineVal || '-2.5'}" 
-                                style="width: 55px; height: 24px; border: 1.5px solid #0284c7; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 13px; text-align: center; border-radius: 4px; outline: none; cursor: text;" 
-                                oninput="handleLiveLineChange(this.value, '${bet.id}')"
-                                onchange="handleLiveLineChange(this.value, '${bet.id}')"
+                                style="width: 60px; height: 26px; border: 2px solid #0284c7; background: #ffffff; color: #0284c7; font-weight: 800; font-size: 14px; text-align: center; border-radius: 4px; outline: none; cursor: text; display: inline-block !important;" 
+                                oninput="if(typeof handleLiveLineChange==='function') handleLiveLineChange(this.value, '${bet.id}'); if(window.onManualLineChange) window.onManualLineChange(this.value);"
+                                onchange="if(typeof handleLiveLineChange==='function') handleLiveLineChange(this.value, '${bet.id}'); if(window.onManualLineChange) window.onManualLineChange(this.value);"
                               />
-                              <span>)</span>
-                              <span>·</span>
-                              <span class="betslip-matchup-sub" style="color:#64748b; font-weight:600;">${matchupDescription}</span>
+                              <span style="color: #64748b;">)</span>
+                              <span style="color: #94a3b8;">·</span>
+                              <span style="color: #64748b; font-size: 13px;">${matchupDescription || bet.matchup || 'Football - NFL'}</span>
                             </div>
                         </div>
                     </div>
@@ -7155,8 +7162,8 @@
             } else if (currentBetType === 'if_bet') {
                 html += betSlip.map((bet, idx) => {
                     const { marketType, lineVal, matchupDescription } = getBetMarketAndLine(bet);
-                    const oddsId = idx === 0 ? 'betslip-active-odds' : `betslip-active-odds-${bet.id}`;
-                    const lineId = idx === 0 ? 'betslip-active-line' : `betslip-active-line-${bet.id}`;
+                    const oddsId = idx === 0 ? 'manual-betslip-odds' : `manual-betslip-odds-${bet.id}`;
+                    const lineId = idx === 0 ? 'manual-betslip-line' : `manual-betslip-line-${bet.id}`;
                     return `
                     <div style="background:#ffffff; color:#0f172a; border-radius:8px; padding:10px 14px; margin-bottom:8px; font-family:var(--font-mono);">
                         <div style="font-size:9px; font-weight:900; color:#3b82f6; margin-bottom:4px; text-transform:uppercase;">${idx === 0 ? 'LEG 1 (PRIMARY SELECTION)' : `LEG ${idx + 1} (IF LEG ${idx} WINS)`}</div>
@@ -7165,36 +7172,38 @@
                                 <button onclick="removeFromBetSlip('${bet.id}')" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;">✕</button>
                                 <input type="text" value="${bet.team}" onchange="updateBetTeam('${bet.id}', this.value)" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; font-weight:900; font-size:13px; color:#0f172a; width:130px; font-family:var(--font-mono); padding:1px 4px;">
                             </div>
-                            <div style="display: inline-flex; align-items: center; gap: 2px;">
-                              <span>(</span>
+                            <div style="display: flex; align-items: center; gap: 2px;">
+                              <span style="color: #64748b; font-weight: 700;">(</span>
                               <input 
                                 type="text" 
                                 id="${oddsId}" 
+                                name="betslipOdds"
                                 class="betslip-odds-field" 
                                 value="${bet.odds || '+100'}" 
-                                style="width: 65px; height: 26px; border: 1.5px solid #0284c7; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 14px; text-align: center; border-radius: 4px; outline: none; cursor: text;" 
-                                oninput="handleLiveOddsChange(this.value, '${bet.id}')"
-                                onchange="handleLiveOddsChange(this.value, '${bet.id}')"
+                                style="width: 70px; height: 28px; border: 2px solid #0284c7; background: #ffffff; color: #0284c7; font-weight: 800; font-size: 15px; text-align: center; border-radius: 6px; outline: none; cursor: text; display: inline-block !important;" 
+                                oninput="if(typeof handleLiveOddsChange==='function') handleLiveOddsChange(this.value, '${bet.id}'); if(window.onManualOddsChange) window.onManualOddsChange(this.value);"
+                                onchange="if(typeof handleLiveOddsChange==='function') handleLiveOddsChange(this.value, '${bet.id}'); if(window.onManualOddsChange) window.onManualOddsChange(this.value);"
                               />
-                              <span>)</span>
+                              <span style="color: #64748b; font-weight: 700;">)</span>
                             </div>
                         </div>
                         <div style="font-size:10px; color:#64748b; margin-top:4px; display:flex; align-items:center; gap:4px;">
-                            <div style="display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap;">
-                              <span class="betslip-market-label" style="font-weight:800; color:#334155; text-transform:uppercase;">${marketType || 'Spread'}</span>
-                              <span>(</span>
+                            <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px; flex-wrap: wrap;">
+                              <span style="font-weight: 600; color: #334155;">${marketType || 'Spread'}</span>
+                              <span style="color: #64748b;">(</span>
                               <input 
                                 type="text" 
                                 id="${lineId}" 
+                                name="betslipLine"
                                 class="betslip-line-field" 
                                 value="${lineVal || '-2.5'}" 
-                                style="width: 55px; height: 24px; border: 1.5px solid #0284c7; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 13px; text-align: center; border-radius: 4px; outline: none; cursor: text;" 
-                                oninput="handleLiveLineChange(this.value, '${bet.id}')"
-                                onchange="handleLiveLineChange(this.value, '${bet.id}')"
+                                style="width: 60px; height: 26px; border: 2px solid #0284c7; background: #ffffff; color: #0284c7; font-weight: 800; font-size: 14px; text-align: center; border-radius: 4px; outline: none; cursor: text; display: inline-block !important;" 
+                                oninput="if(typeof handleLiveLineChange==='function') handleLiveLineChange(this.value, '${bet.id}'); if(window.onManualLineChange) window.onManualLineChange(this.value);"
+                                onchange="if(typeof handleLiveLineChange==='function') handleLiveLineChange(this.value, '${bet.id}'); if(window.onManualLineChange) window.onManualLineChange(this.value);"
                               />
-                              <span>)</span>
-                              <span>·</span>
-                              <span class="betslip-matchup-sub" style="color:#64748b; font-weight:600;">${matchupDescription}</span>
+                              <span style="color: #64748b;">)</span>
+                              <span style="color: #94a3b8;">·</span>
+                              <span style="color: #64748b; font-size: 13px;">${matchupDescription || bet.matchup || 'Football - NFL'}</span>
                             </div>
                         </div>
                     </div>
@@ -7417,6 +7426,8 @@
         window.placeBets = placeBets;
         window.handleLiveOddsChange = handleLiveOddsChange;
         window.handleLiveLineChange = handleLiveLineChange;
+        window.onManualOddsChange = window.onManualOddsChange || function(val, betId) { if(typeof handleLiveOddsChange==='function') handleLiveOddsChange(val, betId); };
+        window.onManualLineChange = window.onManualLineChange || function(val, betId) { if(typeof handleLiveLineChange==='function') handleLiveLineChange(val, betId); };
         window.toggleTicketEntryForm = toggleTicketEntryForm;
         window.autoFillTicket994662668 = autoFillTicket994662668;
         window.handleManualTicketSubmit = handleManualTicketSubmit;
