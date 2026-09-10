@@ -471,16 +471,17 @@
             let changed = false;
 
             wagers.forEach(w => {
-                if (w.status !== 'PENDING') return;
+                if (!w || w.status !== 'PENDING') return;
                 const text = (String(w.event || '') + ' ' + String(w.matchup || '') + ' ' + String(w.selection || '') + ' ' + String(w.description || '')).toUpperCase();
                 
                 completedGamesArr.forEach(game => {
-                    const awayStr = (game.away_team || game.away_abbr || '').toUpperCase();
-                    const homeStr = (game.home_team || game.home_abbr || '').toUpperCase();
+                    if (!game) return;
+                    const awayStr = String(game.away_team || game.away_abbr || game.away || '').toUpperCase();
+                    const homeStr = String(game.home_team || game.home_abbr || game.home || '').toUpperCase();
 
                     if (awayStr && homeStr && text.includes(awayStr) && text.includes(homeStr)) {
-                        const awayScore = parseInt(game.away_score || 0);
-                        const homeScore = parseInt(game.home_score || 0);
+                        const awayScore = parseInt(game.away_score || game.awayScore || 0);
+                        const homeScore = parseInt(game.home_score || game.homeScore || 0);
                         const totalScore = awayScore + homeScore;
 
                         if (text.includes('UNDER') || text.includes('OVER')) {
@@ -491,7 +492,7 @@
                                 if (!isNaN(lineVal)) {
                                     w.status = (side === 'UNDER' ? totalScore < lineVal : totalScore > lineVal) ? 'WON' : (totalScore === lineVal ? 'PUSH' : 'LOST');
                                     w.settledDate = new Date().toISOString();
-                                    w.settledPayout = w.status === 'WON' ? (parseFloat(w.stake) + parseFloat(w.toWin)) : (w.status === 'PUSH' ? parseFloat(w.stake) : 0);
+                                    w.settledPayout = w.status === 'WON' ? (parseFloat(w.stake || 0) + parseFloat(w.toWin || 0)) : (w.status === 'PUSH' ? parseFloat(w.stake || 0) : 0);
                                     changed = true;
                                 }
                             }

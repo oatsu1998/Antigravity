@@ -3289,7 +3289,9 @@
             // Real-Time Sync: If Game Track modal is active for this game, update it live
             if (window.activeWagerGame && String(window.activeWagerGame.gameId) === String(event.id)) {
                 try {
-                    renderGameScoreTileInModal(window.espnEventsMap[event.id], awayAbbr, awayName, homeAbbr, homeName);
+                    if (typeof renderGameScoreTileInModal === 'function') {
+                        renderGameScoreTileInModal(window.espnEventsMap[event.id], awayAbbr, awayName, homeAbbr, homeName);
+                    }
                     if (typeof renderWagersInModal === 'function') renderWagersInModal();
                 } catch(err) {
                     console.error("Error live updating Game Track modal:", err);
@@ -3693,74 +3695,121 @@
         setInterval(updateAllCountdownClocks, 1000);
 
         function renderPanel(lg, result) {
-            let html = '';
+            try {
+                let html = `
+                    <div class="league-header">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <img src="${getLeagueLogo(lg.league || lg.id, lg.sport)}" class="league-logo-hdr" alt="${lg.name}" onerror="this.src='https://a.espncdn.com/i/espn/misc_logos/500/ncaa.png'">
+                            <div class="league-title">${lg.name}</div>
+                        </div>
+                        <div style="font-family:var(--font-mono); font-size:11px; color:var(--muted);">${result?.events ? result.events.length : 0} MATCHES TOTAL</div>
+                    </div>
+                `;
 
-            if (!result.ok) {
-                html += `<div class="error-msg">ESPN API error — ${result.error}. Try refreshing.</div>`;
-            }
+                if (!result || !result.events || result.events.length === 0) {
+                    html += `<div class="no-games"><div class="icon">🏆</div>No active ${lg?.name || 'league'} games</div>`;
+                    return html;
+                }
 
-            const validEvents = (result.events || []).filter(e => isValidGameEvent(e, lg.id));
-
-            if (validEvents.length === 0) {
-                html += renderNextGameCountdown(lg, result);
-            } else {
-                const sortedEvents = [...validEvents].sort((a, b) => {
-                    const isPinA = espnPinned.has(a.id), isPinB = espnPinned.has(b.id);
-                    if (isPinA !== isPinB) return isPinA ? -1 : 1; // pinned first
-                    const statusOrder = (e) => {
-                        const s = gameStatus(e);
-                        if (s.isLive) return 0;
-                        if (s.isFinal) return 2;
-                        return 1;
-                    };
-                    const oa = statusOrder(a), ob = statusOrder(b);
-                    if (oa !== ob) return oa - ob;
-                    // Respect saved drag order within same group
-                    const savedOrder = espnDragOrder[lg.id] || [];
-                    const ia = savedOrder.indexOf(a.id), ib = savedOrder.indexOf(b.id);
-                    if (ia >= 0 && ib >= 0) return ia - ib;
-                    return new Date(a.date || 0) - new Date(b.date || 0);
+                const validEvents = (result.events || []).filter(e => {
+                    try { return isValidGameEvent(e, lg.id); } catch(err) { return false; }
                 });
-                html += `<div class="games-grid">${sortedEvents.map(e => renderCard(e, lg, lg.id)).join('')}</div>`;
-            }
 
-            return html;
+                if (validEvents.length === 0) {
+                    html += renderNextGameCountdown(lg, result);
+                } else {
+                    const sortedEvents = [...validEvents].sort((a, b) => {
+                        const isPinA = espnPinned.has(a?.id), isPinB = espnPinned.has(b?.id);
+                        if (isPinA !== isPinB) return isPinA ? -1 : 1; // pinned first
+                        const statusOrder = (e) => {
+                            try {
+                                const s = gameStatus(e, lg?.id);
+                                if (s.isLive) return 0;
+                                if (s.isFinal) return 2;
+                                return 1;
+                            } catch(err) { return 1; }
+                        };
+                        const oa = statusOrder(a), ob = statusOrder(b);
+                        if (oa !== ob) return oa - ob;
+                        // Respect saved drag order within same group
+                        const savedOrder = espnDragOrder[lg.id] || [];
+                        const ia = savedOrder.indexOf(a?.id), ib = savedOrder.indexOf(b?.id);
+                        if (ia >= 0 && ib >= 0) return ia - ib;
+                        return new Date(a?.date || 0) - new Date(b?.date || 0);
+                    });
+                    const cardsHtml = sortedEvents.map(e => {
+                        try {
+                            return renderCard(e, lg, lg.id);
+                        } catch (err) {
+                            console.error("Error rendering card:", e?.id, err);
+                            return '';
+                        }
+                    }).join('');
+                    html += `<div class="games-grid">${cardsHtml || `<div class="no-games"><div class="icon">🏆</div>No active ${lg?.name || 'league'} games</div>`}</div>`;
+                }
+
+                return html;
+            } catch (err) {
+                console.error("Error in renderPanel:", err);
+                return `<div class="no-games"><div class="icon">🏆</div>No active ${lg?.name || 'league'} games</div>`;
+            }
         }
 
-
         function renderDestinyLeaguePanel() {
-            let allEvents = [];
-            LEAGUES.forEach(lg => {
-                if (leagueData[lg.id] && leagueData[lg.id].events) {
-                    leagueData[lg.id].events.forEach(e => {
-                        if (!isValidGameEvent(e, lg.id)) return;
-                        allEvents.push({ event: e, lg: lg });
-                    });
-                }
-            });
+            try {
+                let allEvents = [];
+                LEAGUES.forEach(lg => {
+                    if (leagueData[lg.id] && Array.isArray(leagueData[lg.id].events)) {
+                        leagueData[lg.id].events.forEach(e => {
+                            try {
+                                if (!isValidGameEvent(e, lg.id)) return;
+                                allEvents.push({ event: e, lg: lg });
+                            } catch(err) {
+                                console.error("isValidGameEvent error in renderDestinyLeaguePanel:", err);
+                            }
+                        });
+                    }
+                });
 
-            if (allEvents.length === 0) {
-                const loading = LEAGUES.some(lg => !leagueData[lg.id]);
-                if (loading) return '<div class="loading">LOADING DESTINY LEAGUE MATCHES...</div>';
+                if (allEvents.length === 0) {
+                    const noLeaguesLoadedYet = LEAGUES.every(lg => !leagueData[lg.id]);
+                    if (noLeaguesLoadedYet) {
+                        return '<div class="loading" id="destiny-league-loading">LOADING DESTINY LEAGUE MATCHES...</div>';
+                    }
+                    return `<div class="no-games"><div class="icon">👑</div>No Destiny League games active</div>`;
+                }
+
+                allEvents.sort((a, b) => {
+                    try {
+                        const sa = gameStatus(a.event, a.lg?.id), sb = gameStatus(b.event, b.lg?.id);
+                        if (sa.isLive !== sb.isLive) return sa.isLive ? -1 : 1;
+                        return new Date(a.event?.date || 0) - new Date(b.event?.date || 0);
+                    } catch(e) { return 0; }
+                });
+
+                const cardsHtml = allEvents.map(item => {
+                    try {
+                        return renderCard(item.event, item.lg, 'destiny');
+                    } catch (err) {
+                        console.error("Error rendering Destiny card for event:", item.event?.id, err);
+                        return '';
+                    }
+                }).join('');
+
+                return `
+                    <div class="league-header">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <span style="font-size:26px;">👑</span>
+                            <div class="league-title">DESTINY LEAGUE</div>
+                        </div>
+                        <div style="font-family:var(--font-mono); font-size:11px; color:var(--accent2); font-weight:700;">PRO AI ALGORITHM FEATURED MATCHES</div>
+                    </div>
+                    <div class="games-grid">${cardsHtml || '<div class="no-games"><div class="icon">👑</div>No Destiny League games active</div>'}</div>
+                `;
+            } catch (err) {
+                console.error("Error in renderDestinyLeaguePanel:", err);
                 return `<div class="no-games"><div class="icon">👑</div>No Destiny League games active</div>`;
             }
-
-            allEvents.sort((a, b) => {
-                const sa = gameStatus(a.event), sb = gameStatus(b.event);
-                if (sa.isLive !== sb.isLive) return sa.isLive ? -1 : 1;
-                return new Date(a.event.date || 0) - new Date(b.event.date || 0);
-            });
-
-            return `
-                <div class="league-header">
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <span style="font-size:26px;">👑</span>
-                        <div class="league-title">DESTINY LEAGUE</div>
-                    </div>
-                    <div style="font-family:var(--font-mono); font-size:11px; color:var(--accent2); font-weight:700;">PRO AI ALGORITHM FEATURED MATCHES</div>
-                </div>
-                <div class="games-grid">${allEvents.map(item => renderCard(item.event, item.lg, 'destiny')).join('')}</div>
-            `;
         }
 
         function parseMatchupTeams(eventStr = '', matchupStr = '') {
@@ -3793,16 +3842,24 @@
         }
 
         function getTeamLogoBadge(teamStr = '', logoUrlParam = null, leagueParam = null) {
-            const raw = (teamStr || '').trim();
+            let raw = '';
+            if (typeof teamStr === 'string') {
+                raw = teamStr.trim();
+            } else if (teamStr && typeof teamStr === 'object') {
+                raw = (teamStr.displayName || teamStr.name || teamStr.abbreviation || teamStr.abbr || '').trim();
+            } else if (teamStr != null) {
+                raw = String(teamStr).trim();
+            }
+
             if (!raw) {
-                return `<div class="team-logo-badge-container" style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px;">
-                    <svg width="22" height="22" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" fill="#181c22" stroke="#06b6d4" stroke-width="2"/><text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#06b6d4" text-anchor="middle">BET</text></svg>
+                return `<div class="team-logo-badge-container" style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px;">
+                    <svg width="24" height="24" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" fill="#181c22" stroke="#06b6d4" stroke-width="2"/><text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#06b6d4" text-anchor="middle">BET</text></svg>
                 </div>`;
             }
 
             const key = raw.toUpperCase();
             let abbr = key;
-            let category = (leagueParam || '').toLowerCase();
+            let category = (typeof leagueParam === 'string' ? leagueParam : '').toLowerCase();
 
             // NCAA Team Logos
             if (key.includes('SMU') || key.includes('MUSTANGS')) { abbr = 'smu'; category = 'ncaa'; }
@@ -3828,11 +3885,11 @@
                 if (!category) category = 'nfl';
             }
 
-            const logoUrl = logoUrlParam || `https://a.espncdn.com/i/teamlogos/${category}/500/${abbr}.png`;
+            const logoUrl = (typeof logoUrlParam === 'string' && logoUrlParam) ? logoUrlParam : `https://a.espncdn.com/i/teamlogos/${category}/500/${abbr}.png`;
             const displayAbbr = (raw.replace(/[^a-zA-Z]/g, '').substring(0, 4) || 'BET').toUpperCase();
 
             return `
-                <div class="team-logo-badge-container" title="${raw}" style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; position:relative; vertical-align:middle;">
+                <div class="team-logo-badge-container" title="${raw.replace(/"/g, '&quot;')}" style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; position:relative; vertical-align:middle;">
                     <img src="${logoUrl}" alt="${displayAbbr}" class="team-logo-circle" style="width:24px; height:24px; object-fit:contain;" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-flex';" />
                     <span class="team-abbr-circle" style="display:none; width:22px; height:22px; border-radius:50%; background:#181c22; border:2px solid #06b6d4; align-items:center; justify-content:center; font-family:'Barlow Condensed', sans-serif; font-weight:900; font-size:10px; color:#06b6d4; text-transform:uppercase; text-align:center;">${displayAbbr}</span>
                 </div>
@@ -4833,7 +4890,13 @@
             }
 
             const destinyPanel = document.getElementById('panel-destiny');
-            if (destinyPanel) destinyPanel.innerHTML = renderDestinyLeaguePanel();
+            if (destinyPanel) {
+                try {
+                    destinyPanel.innerHTML = renderDestinyLeaguePanel();
+                } catch(err) {
+                    console.error("Error updating destinyPanel:", err);
+                }
+            }
             loadKalshiCharts();
             loadWeatherData();
 
@@ -5351,10 +5414,26 @@
         }
 
         async function initialLoad() {
-            buildMain();
-            const fetches = LEAGUES.map(lg => pollLeague(lg, true));
-            await Promise.all(fetches);
-            renderEspnTicker();
+            try {
+                buildMain();
+                const fetches = LEAGUES.map(lg => pollLeague(lg, true).catch(err => {
+                    console.error(`[initialLoad] Error fetching league ${lg.id}:`, err);
+                    leagueData[lg.id] = { ok: false, events: [] };
+                }));
+                await Promise.all(fetches);
+                renderEspnTicker();
+            } catch(err) {
+                console.error("[initialLoad] Error:", err);
+            } finally {
+                const destinyPanel = document.getElementById('panel-destiny');
+                if (destinyPanel) {
+                    try {
+                        destinyPanel.innerHTML = renderDestinyLeaguePanel();
+                    } catch(e) {
+                        console.error("[initialLoad] Error rendering destinyPanel:", e);
+                    }
+                }
+            }
         }
 
         initialLoad();
@@ -5980,24 +6059,21 @@
         function renderActiveBetsInPanel() {
             ensureDefaultTicketsLoaded();
             const container = document.getElementById('bs-active-bets');
-            let wagers = [];
+            if (!container) return;
+
+            let pendingWagers = [];
             if (window.DestinyState) {
-                wagers = DestinyState.getWagers();
-            } else {
-                const saved = localStorage.getItem('destiny_game_wagers');
-                if (saved) {
-                    try { 
-                        wagers = JSON.parse(saved).map(normalizeWager); 
-                    } catch(e) { 
-                        wagers = []; 
-                pendingWagers = DestinyState.getWagers().filter(w => w.status === 'PENDING');
+                pendingWagers = DestinyState.getWagers().filter(w => w && w.status === 'PENDING');
             } else {
                 try {
                     const all = JSON.parse(localStorage.getItem('destiny_game_wagers') || '[]');
-                    pendingWagers = all.filter(w => w.status === 'PENDING');
-                } catch(e) { pendingWagers = []; }
+                    pendingWagers = all.filter(w => w && w.status === 'PENDING');
+                } catch(e) { 
+                    pendingWagers = []; 
+                }
             }
 
+            const activeCountEl = document.getElementById('bs-count');
             if (activeCountEl) activeCountEl.innerText = pendingWagers.length;
 
             if (pendingWagers.length === 0) {

@@ -1065,7 +1065,15 @@
         }
 
         function getTeamLogoBadge(teamStr = '', logoUrlParam = null, leagueParam = null) {
-            const raw = (teamStr || '').trim();
+            let raw = '';
+            if (typeof teamStr === 'string') {
+                raw = teamStr.trim();
+            } else if (teamStr && typeof teamStr === 'object') {
+                raw = (teamStr.displayName || teamStr.name || teamStr.abbreviation || teamStr.abbr || '').trim();
+            } else if (teamStr != null) {
+                raw = String(teamStr).trim();
+            }
+
             if (!raw) {
                 return `<div class="team-logo-badge-container" style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px;">
                     <svg width="22" height="22" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" fill="#181c22" stroke="#06b6d4" stroke-width="2"/><text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#06b6d4" text-anchor="middle">BET</text></svg>
@@ -1074,7 +1082,7 @@
 
             const key = raw.toUpperCase();
             let abbr = key;
-            let category = (leagueParam || '').toLowerCase();
+            let category = (typeof leagueParam === 'string' ? leagueParam : '').toLowerCase();
 
             // NCAA Team Logos
             if (key.includes('SMU') || key.includes('MUSTANGS')) { abbr = 'smu'; category = 'ncaa'; }
@@ -1100,11 +1108,11 @@
                 if (!category) category = 'nfl';
             }
 
-            const logoUrl = logoUrlParam || `https://a.espncdn.com/i/teamlogos/${category}/500/${abbr}.png`;
+            const logoUrl = (typeof logoUrlParam === 'string' && logoUrlParam) ? logoUrlParam : `https://a.espncdn.com/i/teamlogos/${category}/500/${abbr}.png`;
             const displayAbbr = (raw.replace(/[^a-zA-Z]/g, '').substring(0, 4) || 'BET').toUpperCase();
 
             return `
-                <div class="team-logo-badge-container" title="${raw}" style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; position:relative; vertical-align:middle;">
+                <div class="team-logo-badge-container" title="${raw.replace(/"/g, '&quot;')}" style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; position:relative; vertical-align:middle;">
                     <img src="${logoUrl}" alt="${displayAbbr}" class="team-logo-circle" style="width:24px; height:24px; object-fit:contain;" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-flex';" />
                     <span class="team-abbr-circle" style="display:none; width:22px; height:22px; border-radius:50%; background:#181c22; border:2px solid #06b6d4; align-items:center; justify-content:center; font-family:'Barlow Condensed', sans-serif; font-weight:900; font-size:10px; color:#06b6d4; text-transform:uppercase; text-align:center;">${displayAbbr}</span>
                 </div>
