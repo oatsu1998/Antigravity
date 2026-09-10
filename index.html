@@ -3235,6 +3235,11 @@
             const awayName = away.team?.displayName || away.team?.name || awayAbbr;
             const homeName = home.team?.displayName || home.team?.name || homeAbbr;
 
+            const cardSportStr = lg.sport ? (lg.sport.charAt(0).toUpperCase() + lg.sport.slice(1)) : 'Football';
+            const cardLeagueStr = lg.name || 'NFL';
+            const cardMatchupStr = `${cardSportStr} - ${cardLeagueStr} - ${awayName} vs ${homeName}`;
+            const safeCardMatchup = cardMatchupStr.replace(/'/g, "\\'");
+
             const sit = comp.situation;
             let sportGraphicHtml = '';
             if (status.isLive && sit) {
@@ -3418,25 +3423,25 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Spread', '${spreadAway} (${spreadAwayOdds})')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Spread', '${spreadAway} (${spreadAwayOdds})', '${safeCardMatchup}')">
                                         <span class="sb-line-val">${spreadAway}</span>
                                         <span class="sb-odds-val">${spreadAwayOdds}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Moneyline', '${mlAway}')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Moneyline', '${mlAway}', '${safeCardMatchup}')">
                                         <span class="sb-line-val">ML</span>
                                         <span class="sb-odds-val">${mlAway}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Total', 'O ${totalLine} (${totalOverOdds})')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Total', 'O ${totalLine} (${totalOverOdds})', '${safeCardMatchup}')">
                                         <span class="sb-line-val">${totalLine !== 'N/A' ? 'O ' + totalLine : 'O N/A'}</span>
                                         <span class="sb-odds-val">${totalOverOdds}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Team Total', 'O ${awayTeamTot} (${awayTeamTotOdds})')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Team Total', 'O ${awayTeamTot} (${awayTeamTotOdds})', '${safeCardMatchup}')">
                                         <span class="sb-line-val">${awayTeamTot !== 'N/A' ? 'O ' + awayTeamTot : 'O N/A'}</span>
                                         <span class="sb-odds-val">${awayTeamTotOdds}</span>
                                     </div>
@@ -3450,25 +3455,25 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Spread', '${spreadHome} (${spreadHomeOdds})')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Spread', '${spreadHome} (${spreadHomeOdds})', '${safeCardMatchup}')">
                                         <span class="sb-line-val">${spreadHome}</span>
                                         <span class="sb-odds-val">${spreadHomeOdds}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Moneyline', '${mlHome}')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Moneyline', '${mlHome}', '${safeCardMatchup}')">
                                         <span class="sb-line-val">ML</span>
                                         <span class="sb-odds-val">${mlHome}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Total', 'U ${totalLine} (${totalUnderOdds})')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Total', 'U ${totalLine} (${totalUnderOdds})', '${safeCardMatchup}')">
                                         <span class="sb-line-val">${totalLine !== 'N/A' ? 'U ' + totalLine : 'U N/A'}</span>
                                         <span class="sb-odds-val">${totalUnderOdds}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Team Total', 'U ${homeTeamTot} (${homeTeamTotOdds})')">
+                                    <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Team Total', 'U ${homeTeamTot} (${homeTeamTotOdds})', '${safeCardMatchup}')">
                                         <span class="sb-line-val">${homeTeamTot !== 'N/A' ? 'U ' + homeTeamTot : 'U N/A'}</span>
                                         <span class="sb-odds-val">${homeTeamTotOdds}</span>
                                     </div>
@@ -5808,14 +5813,24 @@
             const awayScore = parseInt(away.score || 0);
             const homeScore = parseInt(home.score || 0);
 
+            const awayAbbr = (away.team?.abbreviation || '').toUpperCase();
+            const homeAbbr = (home.team?.abbreviation || '').toUpperCase();
+            const awayName = (away.team?.displayName || away.team?.name || '').toUpperCase();
+            const homeName = (home.team?.displayName || home.team?.name || '').toUpperCase();
+
             const KEY = 'destiny_game_wagers';
             let wagers = [];
             try { wagers = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { wagers = []; }
 
             wagers.forEach(w => {
                 if (w.status === 'PENDING') {
-                    const wText = (String(w.event || '') + ' ' + String(w.matchup || '') + ' ' + String(w.target || '')).toUpperCase();
-                    if (wText.includes('PATRIOTS') || wText.includes('SEAHAWKS') || wText.includes('NE @ SEA')) {
+                    const wText = (String(w.event || '') + ' ' + String(w.matchup || '') + ' ' + String(w.target || '') + ' ' + String(w.selection || '')).toUpperCase();
+                    const isMatch = (awayAbbr && wText.includes(awayAbbr)) ||
+                                    (homeAbbr && wText.includes(homeAbbr)) ||
+                                    (awayName && wText.includes(awayName)) ||
+                                    (homeName && wText.includes(homeName));
+
+                    if (isMatch) {
                         gradeWagerWithScores(w.id, awayScore, homeScore);
                     }
                 }
@@ -5859,11 +5874,12 @@
                     : `<span style="font-size:9px; padding:2px 6px; background:rgba(239, 68, 68, 0.15); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.3); border-radius:4px; font-weight:800;">🔴 LIVE</span>`;
 
                 const ticketStr = w.ticketNumber ? `<div style="font-size:10px; color:var(--muted); font-weight:700; margin-bottom:4px;">TICKET #${w.ticketNumber} · ${w.acceptedDate || 'Pregame'}</div>` : '';
+                const attachedMatchupText = w.matchup || w.event || w.selection || 'Attached Matchup Wager';
                 const matchupAttachmentHeader = `
                 <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:6px; padding:6px 8px; margin-bottom:8px;">
                     <div style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">ATTACHED MATCHUP</div>
                     <div style="font-size:11px; font-weight:800; color:#fff; font-family:var(--font-head); letter-spacing:0.5px;">
-                        🏈 Football - NFL - ${w.event || w.matchup || 'New England Patriots vs Seattle Seahawks'}
+                        🏈 ${attachedMatchupText}
                     </div>
                 </div>
                 `;
@@ -6554,26 +6570,7 @@
                 if (invalidBet) return alert('Please enter valid wager amounts for all selections.');
 
                 betSlip.forEach(bet => {
-                    let matchupName = 'Unknown Game';
-                    for (const lgId in leagueData) {
-                        const events = leagueData[lgId]?.events || [];
-                        const found = events.find(ev => {
-                            const comp = ev.competitions?.[0];
-                            return comp?.competitors?.some(c => c.team?.name === bet.team || c.team?.abbreviation === bet.team || c.team?.displayName === bet.team);
-                        });
-                        if (found) {
-                            const comp = found.competitions[0];
-                            const away = comp.competitors.find(c => c.homeAway === 'away');
-                            const home = comp.competitors.find(c => c.homeAway === 'home');
-                            matchupName = `${away.team?.abbreviation || 'AWAY'} @ ${home.team?.abbreviation || 'HOME'}`;
-                            break;
-                        }
-                    }
-
-                    if (matchupName === 'Unknown Game' && (bet.team.includes('Thunder') || bet.team.includes('OKC') || bet.team.includes('Spurs') || bet.team.includes('SAS'))) {
-                        matchupName = 'OKC @ SAS';
-                    }
-
+                    const matchupName = bet.matchup || `${bet.team} Matchup`;
                     const cleanOddsStr = (bet.odds > 0 ? '+' : '') + bet.odds;
                     const cleanType = bet.type.split(' ')[0];
                     const cleanDetail = bet.type.includes('(') ? bet.type.match(/\(([^)]+)\)/)?.[1] || '' : cleanOddsStr;
@@ -6582,15 +6579,22 @@
                     wagersToPlace.push({
                         id: 'placed-' + bet.id + '-' + Date.now(),
                         matchup: matchupName,
+                        event: matchupName,
                         target: displayTarget,
+                        selection: `${bet.team} ${cleanDetail || cleanOddsStr}`,
                         type: cleanType,
                         detail: cleanDetail,
                         wager: bet.wager,
                         stake: bet.wager,
                         placedOdds: cleanOddsStr,
+                        odds: cleanOddsStr,
                         currentOdds: cleanOddsStr,
-                        sportsbook: 'FanDuel',
+                        sportsbook: 'BetOnline',
+                        bookmaker: 'BetOnline',
                         status: 'PENDING',
+                        isPregame: true,
+                        pregame: true,
+                        acceptedDate: new Date().toLocaleString(),
                         history: [cleanOddsStr, cleanOddsStr, cleanOddsStr],
                         betType: 'GAME',
                         toWin: parseFloat(bet.toWin) || (calculatePayout(bet.wager, bet.odds) - bet.wager)
@@ -6600,24 +6604,40 @@
                 if (betSlip.length < 2) return alert('Parlays require at least 2 selections.');
                 if (parlayWager <= 0) return alert('Please enter a wager amount for the parlay.');
 
+                const legMatchups = [...new Set(betSlip.map(b => b.matchup || b.team))];
+                const parlayMatchupHeader = legMatchups.length === 1 ? legMatchups[0] : `${betSlip.length}-Leg Parlay | ${legMatchups.join(' · ')}`;
                 const combinedOdds = calculateParlayOdds(betSlip);
                 const legsDetail = betSlip.map(b => `${b.team} (${b.odds})`).join(' + ');
 
                 wagersToPlace.push({
                     id: 'placed-parlay-' + Date.now(),
-                    matchup: `${betSlip.length}-Leg Parlay`,
-                    target: `Parlay: ${legsDetail}`,
-                    type: 'PARLAY',
-                    detail: legsDetail,
-                    wager: parlayWager,
+                    matchup: parlayMatchupHeader,
+                    event: parlayMatchupHeader,
+                    target: `Parlay (${betSlip.length} Legs): ${legsDetail}`,
+                    selection: betSlip.map(b => `${b.team} ${b.type}`).join(' / '),
+                    type: 'Parlay',
+                    betType: 'PARLAY',
+                    sportsbook: 'BetOnline',
+                    bookmaker: 'BetOnline',
                     stake: parlayWager,
+                    wager: parlayWager,
                     placedOdds: combinedOdds,
+                    odds: combinedOdds,
                     currentOdds: combinedOdds,
-                    sportsbook: 'FanDuel',
                     status: 'PENDING',
+                    isPregame: true,
+                    pregame: true,
+                    acceptedDate: new Date().toLocaleString(),
                     history: [combinedOdds, combinedOdds, combinedOdds],
                     betType: 'PARLAY',
-                    toWin: parlayToWin
+                    toWin: parlayToWin,
+                    legs: betSlip.map(b => ({
+                        matchup: b.matchup || b.team,
+                        selection: `${b.team} ${b.type}`,
+                        target: `${b.team} ${b.type}`,
+                        odds: b.odds,
+                        status: 'PENDING'
+                    }))
                 });
             } else if (currentBetType === 'teaser') {
                 const isPleaser = teaserPoints < 0;
@@ -6627,24 +6647,40 @@
                 if (betSlip.length < 2) return alert(`${typeLabel}s require at least 2 selections.`);
                 if (teaserWager <= 0) return alert(`Please enter a wager amount for the ${typeLabel.toLowerCase()}.`);
 
+                const legMatchups = [...new Set(betSlip.map(b => b.matchup || b.team))];
+                const teaserMatchupHeader = legMatchups.length === 1 ? legMatchups[0] : `${betSlip.length}-Leg ${typeLabel} | ${legMatchups.join(' · ')}`;
                 const teaserOdds = getTeaserOdds(betSlip.length, teaserPoints);
                 const legsDetail = betSlip.map(b => `${b.team} (${ptsLabel})`).join(' + ');
 
                 wagersToPlace.push({
                     id: 'placed-teaser-' + Date.now(),
-                    matchup: `${betSlip.length}-Leg ${typeLabel} (${ptsLabel})`,
-                    target: `${typeLabel}: ${legsDetail}`,
-                    type: typeLabel.toUpperCase(),
-                    detail: legsDetail,
-                    wager: teaserWager,
+                    matchup: teaserMatchupHeader,
+                    event: teaserMatchupHeader,
+                    target: `${typeLabel} (${ptsLabel}): ${legsDetail}`,
+                    selection: betSlip.map(b => `${b.team} ${b.type} (${ptsLabel})`).join(' / '),
+                    type: typeLabel,
+                    betType: typeLabel.toUpperCase(),
+                    sportsbook: 'BetOnline',
+                    bookmaker: 'BetOnline',
                     stake: teaserWager,
+                    wager: teaserWager,
                     placedOdds: teaserOdds,
+                    odds: teaserOdds,
                     currentOdds: teaserOdds,
-                    sportsbook: 'FanDuel',
                     status: 'PENDING',
+                    isPregame: true,
+                    pregame: true,
+                    acceptedDate: new Date().toLocaleString(),
                     history: [teaserOdds, teaserOdds, teaserOdds],
                     betType: typeLabel.toUpperCase(),
-                    toWin: teaserToWin
+                    toWin: teaserToWin,
+                    legs: betSlip.map(b => ({
+                        matchup: b.matchup || b.team,
+                        selection: `${b.team} ${b.type} (${ptsLabel})`,
+                        target: `${b.team} ${b.type} (${ptsLabel})`,
+                        odds: teaserOdds,
+                        status: 'PENDING'
+                    }))
                 });
             } else if (currentBetType === 'if_bet') {
                 if (betSlip.length < 2) return alert('If Bets require at least 2 selections in sequence.');
@@ -6652,23 +6688,36 @@
                 if (leg1Risk <= 0) return alert('Please enter a wager amount for Leg 1 (Primary Selection).');
 
                 const totalWin = betSlip.reduce((sum, b) => sum + (parseFloat(b.toWin) || 0), 0);
+                const legMatchups = [...new Set(betSlip.map(b => b.matchup || b.team))];
+                const ifBetMatchupHeader = legMatchups.length === 1 ? legMatchups[0] : `${betSlip.length}-Leg If Bet | ${legMatchups.join(' · ')}`;
                 const sequenceDetail = betSlip.map((b, i) => `L${i+1}: ${b.team} (${b.odds})`).join(' ➔ ');
 
                 wagersToPlace.push({
                     id: 'placed-ifbet-' + Date.now(),
-                    matchup: `${betSlip.length}-Leg If Bet Sequence`,
+                    matchup: ifBetMatchupHeader,
+                    event: ifBetMatchupHeader,
                     target: `If Bet: ${sequenceDetail}`,
+                    selection: sequenceDetail,
                     type: 'IF_BET',
-                    detail: sequenceDetail,
-                    wager: leg1Risk,
-                    stake: leg1Risk,
-                    placedOdds: betSlip[0].odds,
-                    currentOdds: betSlip[0].odds,
-                    sportsbook: 'FanDuel',
-                    status: 'PENDING',
-                    history: [betSlip[0].odds, betSlip[0].odds, betSlip[0].odds],
                     betType: 'IF_BET',
-                    toWin: totalWin
+                    sportsbook: 'BetOnline',
+                    bookmaker: 'BetOnline',
+                    stake: leg1Risk,
+                    wager: leg1Risk,
+                    placedOdds: betSlip[0].odds,
+                    odds: betSlip[0].odds,
+                    currentOdds: betSlip[0].odds,
+                    status: 'PENDING',
+                    isPregame: true,
+                    pregame: true,
+                    acceptedDate: new Date().toLocaleString(),
+                    history: [betSlip[0].odds, betSlip[0].odds, betSlip[0].odds],
+                    toWin: totalWin,
+                    legs: betSlip.map((b, i) => ({
+                        matchup: b.matchup || b.team,
+                        selection: `Leg ${i+1}: ${b.team} ${b.type}`,
+                        target: `Leg ${i+1}: ${b.team} ${b.type}`,
+                    }))
                 });
             }
 
