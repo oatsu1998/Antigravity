@@ -2130,7 +2130,7 @@
             background: #1f2937;
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 8px;
-            padding: 6px 4px;
+            padding: 4px 2px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -2138,7 +2138,9 @@
             cursor: pointer;
             transition: all 0.2s ease;
             user-select: none;
-            min-width: 60px;
+            width: 100%;
+            height: 38px;
+            box-sizing: border-box;
         }
         .sb-odds-pill:hover {
             background: #374151;
@@ -2147,10 +2149,14 @@
             box-shadow: 0 4px 8px rgba(6, 182, 212, 0.25);
         }
         .sb-odds-pill .sb-line-val {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
             color: #ffffff;
             line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
         .sb-odds-pill .sb-odds-val {
             font-size: 10px;
@@ -2158,6 +2164,7 @@
             color: #38bdf8;
             line-height: 1.1;
             margin-top: 2px;
+            white-space: nowrap;
         }
         .sb-odds-pill.highlighted-green {
             background: rgba(16, 185, 129, 0.18);
@@ -3359,30 +3366,30 @@
             const isKalshiLive = (kalshiML !== null || spreadObj !== null || totalObj !== null);
 
             bettingWidgetHtml = `
-            <div class="betting-widget sb-card-odds-widget" onclick="event.stopPropagation()" style="background:#111827; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:8px 10px; margin-top:8px; font-family:var(--font-mono);">
+            <div class="betting-widget sb-card-odds-widget" onclick="event.stopPropagation()" style="background:#111827; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:6px 8px; margin-top:8px; font-family:var(--font-mono); overflow:hidden;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; padding-bottom:4px; border-bottom:1px solid rgba(255,255,255,0.06);">
                     <span style="font-size:9px; font-weight:800; color:${isKalshiLive ? 'var(--cyan)' : 'var(--muted)'};">
                         ${isKalshiLive ? '⚡ LIVE KALSHI WEBSOCKET PRICING' : '⚡ KALSHI MARKET LINES N/A'}
                     </span>
                     <span style="font-size:8px; color:var(--muted);">CLICK ANY PILL TO ADD TO BETSLIP</span>
                 </div>
-                <div style="overflow-x:auto;">
-                    <table style="width:100%; border-collapse:separate; border-spacing:3px 3px; text-align:center; font-size:10px;">
+                <div style="overflow:hidden; width:100%;">
+                    <table style="width:100%; table-layout:fixed; border-collapse:separate; border-spacing:2px 2px; text-align:center; font-size:10px;">
                         <thead>
                             <tr style="color:var(--muted); font-size:8px; font-weight:700; text-transform:uppercase;">
-                                <th style="text-align:left;">Team</th>
-                                <th>Spread</th>
-                                <th>Moneyline</th>
-                                <th>Total</th>
-                                <th>Team Total</th>
+                                <th style="width:18%; text-align:left; padding-left:2px;">Team</th>
+                                <th style="width:20.5%;">Spread</th>
+                                <th style="width:20.5%;">Moneyline</th>
+                                <th style="width:20.5%;">Total</th>
+                                <th style="width:20.5%;">Team Total</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td style="text-align:left; font-weight:800; color:#fff; font-size:10px;">
-                                    <span style="display:flex; align-items:center; gap:4px;">
-                                        ${awayLogo ? `<img src="${awayLogo}" style="width:16px;height:16px;object-fit:contain;">` : ''}
-                                        <span>${awayAbbr}</span>
+                                <td style="text-align:left; font-weight:800; color:#fff; font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                    <span style="display:flex; align-items:center; gap:3px;">
+                                        ${awayLogo ? `<img src="${awayLogo}" style="width:14px;height:14px;object-fit:contain;flex-shrink:0;">` : ''}
+                                        <span style="overflow:hidden;text-overflow:ellipsis;">${awayAbbr}</span>
                                     </span>
                                 </td>
                                 <td>
@@ -3393,7 +3400,8 @@
                                 </td>
                                 <td>
                                     <div class="sb-odds-pill" onclick="addToBetSlip('${(awayName || awayAbbr).replace(/'/g, "\\'")}', 'Moneyline', '${mlAway}')">
-                                        <span class="sb-odds-val" style="font-size:10px; margin-top:2px;">${mlAway}</span>
+                                        <span class="sb-line-val">ML</span>
+                                        <span class="sb-odds-val">${mlAway}</span>
                                     </div>
                                 </td>
                                 <td>
@@ -3410,10 +3418,10 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td style="text-align:left; font-weight:800; color:#fff; font-size:10px;">
-                                    <span style="display:flex; align-items:center; gap:4px;">
-                                        ${homeLogo ? `<img src="${homeLogo}" style="width:16px;height:16px;object-fit:contain;">` : ''}
-                                        <span>${homeAbbr}</span>
+                                <td style="text-align:left; font-weight:800; color:#fff; font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                    <span style="display:flex; align-items:center; gap:3px;">
+                                        ${homeLogo ? `<img src="${homeLogo}" style="width:14px;height:14px;object-fit:contain;flex-shrink:0;">` : ''}
+                                        <span style="overflow:hidden;text-overflow:ellipsis;">${homeAbbr}</span>
                                     </span>
                                 </td>
                                 <td>
@@ -3424,7 +3432,8 @@
                                 </td>
                                 <td>
                                     <div class="sb-odds-pill" onclick="addToBetSlip('${(homeName || homeAbbr).replace(/'/g, "\\'")}', 'Moneyline', '${mlHome}')">
-                                        <span class="sb-odds-val" style="font-size:10px; margin-top:2px;">${mlHome}</span>
+                                        <span class="sb-line-val">ML</span>
+                                        <span class="sb-odds-val">${mlHome}</span>
                                     </div>
                                 </td>
                                 <td>
@@ -6121,25 +6130,25 @@
                             <span style="font-size:9px; color:var(--cyan); font-weight:800;">CLICK ANY PILL TO TRACK</span>
                         </div>
 
-                        <div style="overflow-x:auto;">
-                            <table style="width:100%; border-collapse:separate; border-spacing:4px 4px; text-align:center; font-size:10px;">
+                        <div style="overflow:hidden; width:100%;">
+                            <table style="width:100%; table-layout:fixed; border-collapse:separate; border-spacing:2px 2px; text-align:center; font-size:10px;">
                                 <thead>
-                                    <tr style="color:var(--muted); font-size:9px; font-weight:700; text-transform:uppercase;">
-                                        <th style="text-align:left; padding-left:4px;">Team</th>
-                                        <th>Spread</th>
-                                        <th>Moneyline</th>
-                                        <th>Total</th>
-                                        <th>Team Total</th>
+                                    <tr style="color:var(--muted); font-size:8px; font-weight:700; text-transform:uppercase;">
+                                        <th style="width:18%; text-align:left; padding-left:2px;">Team</th>
+                                        <th style="width:20.5%;">Spread</th>
+                                        <th style="width:20.5%;">Moneyline</th>
+                                        <th style="width:20.5%;">Total</th>
+                                        <th style="width:20.5%;">Team Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <!-- Away Team Row -->
                                     <tr>
-                                        <td style="text-align:left; font-weight:900; color:#fff; font-size:11px; padding:4px;">
-                                            <div style="display:flex; align-items:center; gap:6px;">
-                                                ${awayLg ? `<img src="${awayLg}" style="width:18px;height:18px;object-fit:contain;">` : ''}
-                                                <span>${awayAbbr}</span>
-                                                <span style="background:rgba(255,255,255,0.1); padding:1px 5px; border-radius:4px; font-size:10px; color:#fff;">${awaySc}</span>
+                                        <td style="text-align:left; font-weight:900; color:#fff; font-size:10px; padding:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                            <div style="display:flex; align-items:center; gap:3px;">
+                                                ${awayLg ? `<img src="${awayLg}" style="width:14px;height:14px;object-fit:contain;flex-shrink:0;">` : ''}
+                                                <span style="overflow:hidden;text-overflow:ellipsis;">${awayAbbr}</span>
+                                                <span style="background:rgba(255,255,255,0.1); padding:1px 4px; border-radius:3px; font-size:9px; color:#fff;">${awaySc}</span>
                                             </div>
                                         </td>
                                         <td>
@@ -6150,7 +6159,8 @@
                                         </td>
                                         <td>
                                             <div class="sb-odds-pill" onclick="autoFillMatrixBet('Moneyline', '${awayAbbr}', 'ML', '${awayML}')">
-                                                <span class="sb-odds-val" style="font-size:11px; margin-top:2px;">${awayML}</span>
+                                                <span class="sb-line-val">ML</span>
+                                                <span class="sb-odds-val">${awayML}</span>
                                             </div>
                                         </td>
                                         <td>
@@ -6169,11 +6179,11 @@
 
                                     <!-- Home Team Row -->
                                     <tr>
-                                        <td style="text-align:left; font-weight:900; color:#fff; font-size:11px; padding:4px;">
-                                            <div style="display:flex; align-items:center; gap:6px;">
-                                                ${homeLg ? `<img src="${homeLg}" style="width:18px;height:18px;object-fit:contain;">` : ''}
-                                                <span>${homeAbbr}</span>
-                                                <span style="background:rgba(255,255,255,0.1); padding:1px 5px; border-radius:4px; font-size:10px; color:#fff;">${homeSc}</span>
+                                        <td style="text-align:left; font-weight:900; color:#fff; font-size:10px; padding:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                            <div style="display:flex; align-items:center; gap:3px;">
+                                                ${homeLg ? `<img src="${homeLg}" style="width:14px;height:14px;object-fit:contain;flex-shrink:0;">` : ''}
+                                                <span style="overflow:hidden;text-overflow:ellipsis;">${homeAbbr}</span>
+                                                <span style="background:rgba(255,255,255,0.1); padding:1px 4px; border-radius:3px; font-size:9px; color:#fff;">${homeSc}</span>
                                             </div>
                                         </td>
                                         <td>
@@ -6184,7 +6194,8 @@
                                         </td>
                                         <td>
                                             <div class="sb-odds-pill" onclick="autoFillMatrixBet('Moneyline', '${homeAbbr}', 'ML', '${homeML}')">
-                                                <span class="sb-odds-val" style="font-size:11px; margin-top:2px;">${homeML}</span>
+                                                <span class="sb-line-val">ML</span>
+                                                <span class="sb-odds-val">${homeML}</span>
                                             </div>
                                         </td>
                                         <td>
