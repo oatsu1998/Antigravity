@@ -1590,6 +1590,70 @@
             border-color: var(--accent);
         }
 
+        .betslip-odds-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 2px 6px;
+        }
+        .betslip-odds-wrapper .odds-paren {
+            font-size: 11px;
+            font-weight: 800;
+            color: #64748b;
+        }
+        .betslip-line-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+            font-size: 11px;
+            color: #64748b;
+        }
+        .betslip-market-type {
+            font-weight: 800;
+            color: #334155;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .betslip-line-wrapper .line-paren,
+        .betslip-line-wrapper .separator {
+            color: #94a3b8;
+            font-weight: 700;
+        }
+        .betslip-matchup-sub {
+            color: #64748b;
+            font-weight: 600;
+        }
+        .betslip-inline-input {
+            background: #0f172a;
+            color: #38bdf8;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: var(--font-mono, monospace);
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .betslip-inline-input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+            background: #1e293b;
+            color: #ffffff;
+        }
+        .betslip-odds-input {
+            width: 60px;
+            text-align: center;
+        }
+        .betslip-line-input {
+            width: 70px;
+            text-align: center;
+        }
+
         .bs-to-win {
             font-size: 11px;
             color: var(--muted);
@@ -6303,6 +6367,80 @@
             document.getElementById('bet-slip-panel').classList.toggle('open');
         }
 
+        function getBetMarketAndLine(bet) {
+            let marketType = bet.marketType || '';
+            let lineVal = bet.line !== undefined && bet.line !== null ? String(bet.line).trim() : '';
+            
+            if (!marketType || !lineVal) {
+                const rawType = String(bet.type || '').trim();
+                if (rawType.includes('(') && rawType.includes(')')) {
+                    const match = rawType.match(/^([^(]+)\(([^)]+)\)/);
+                    if (match) {
+                        marketType = marketType || match[1].trim();
+                        lineVal = lineVal || match[2].trim();
+                    }
+                } else if (rawType) {
+                    marketType = marketType || rawType;
+                }
+            }
+
+            if (!marketType) marketType = 'Spread';
+            if (!lineVal) lineVal = '+2.5';
+
+            let matchupDescription = bet.matchup || bet.event || '';
+            if (!matchupDescription || matchupDescription === bet.team) {
+                matchupDescription = bet.team ? `${bet.team} Matchup` : 'Game Wager';
+            }
+
+            return { marketType, lineVal, matchupDescription };
+        }
+
+        function updateBetOdds(id, newOdds) {
+            const bet = betSlip.find(b => b.id === id);
+            if (!bet) return;
+            let clean = String(newOdds || '').trim();
+            if (!clean.startsWith('+') && !clean.startsWith('-')) {
+                const n = parseInt(clean, 10);
+                if (!isNaN(n) && n > 0) clean = '+' + n;
+            }
+            bet.odds = clean || '-110';
+            
+            if (bet.wager > 0) {
+                bet.toWin = calculateToWin(bet.wager, bet.odds);
+                const winInput = document.getElementById(`towin-input-${id}`);
+                if (winInput && document.activeElement !== winInput) {
+                    winInput.value = bet.toWin > 0 ? bet.toWin.toFixed(2) : '';
+                }
+            } else if (bet.toWin > 0) {
+                bet.wager = calculateStakeFromToWin(bet.toWin, bet.odds);
+                const wagerInput = document.getElementById(`wager-input-${id}`);
+                if (wagerInput && document.activeElement !== wagerInput) {
+                    wagerInput.value = bet.wager > 0 ? bet.wager.toFixed(2) : '';
+                }
+            }
+            updateSlipFooterTotals();
+        }
+
+        function updateBetLine(id, newLine) {
+            const bet = betSlip.find(b => b.id === id);
+            if (!bet) return;
+            bet.line = String(newLine || '').trim();
+            const { marketType } = getBetMarketAndLine(bet);
+            bet.marketType = marketType;
+            bet.type = bet.line ? `${marketType} (${bet.line})` : marketType;
+        }
+
+        function updateBetTypeLine(id, newTypeLine) {
+            updateBetLine(id, newTypeLine);
+        }
+
+        function updateBetTeam(id, newTeam) {
+            const bet = betSlip.find(b => b.id === id);
+            if (bet) {
+                bet.team = String(newTeam || '').trim();
+            }
+        }
+
         function addToBetSlip(team, type, odds, matchupStr, eventId) {
             if (odds === '-' || odds === undefined || odds === '' || odds.includes('—')) return;
             
@@ -6344,6 +6482,8 @@
                 team: displayTeam,
                 matchup: matchupStr || displayTeam, 
                 eventId: eventId || null,
+                marketType: type,
+                line: line,
                 type: displayType, 
                 odds: cleanedPrice, 
                 wager: 0,
@@ -6646,7 +6786,26 @@
 
         function placeSingleBet(id) {
             const bet = betSlip.find(b => b.id === id);
-            if (!bet || !bet.wager || bet.wager <= 0) return alert('Please enter a wager amount for this selection.');
+            if (!bet) return;
+
+            const oddsEl = document.getElementById(`odds-input-${id}`);
+            if (oddsEl && oddsEl.value.trim()) bet.odds = oddsEl.value.trim();
+
+            const lineEl = document.getElementById(`line-input-${id}`) || document.getElementById(`type-input-${id}`);
+            if (lineEl && lineEl.value.trim()) {
+                bet.line = lineEl.value.trim();
+                const { marketType } = getBetMarketAndLine(bet);
+                bet.marketType = marketType;
+                bet.type = bet.line ? `${marketType} (${bet.line})` : marketType;
+            }
+
+            const wagerEl = document.getElementById(`wager-input-${id}`);
+            if (wagerEl) bet.wager = parseFloat(wagerEl.value) || bet.wager;
+
+            const toWinEl = document.getElementById(`towin-input-${id}`);
+            if (toWinEl) bet.toWin = parseFloat(toWinEl.value) || bet.toWin;
+
+            if (!bet.wager || bet.wager <= 0) return alert('Please enter a wager amount for this selection.');
             
             let matchupName = 'Unknown Game';
             for (const lgId in leagueData) {
@@ -6663,10 +6822,18 @@
                     break;
                 }
             }
+            if (matchupName === 'Unknown Game' && bet.matchup) {
+                matchupName = bet.matchup;
+            }
             
-            const cleanOddsStr = (bet.odds > 0 ? '+' : '') + bet.odds;
-            const cleanType = bet.type.split(' ')[0];
-            const cleanDetail = bet.type.includes('(') ? bet.type.match(/\(([^)]+)\)/)?.[1] || '' : cleanOddsStr;
+            let cleanOddsStr = String(bet.odds || '-110').trim();
+            if (!cleanOddsStr.startsWith('+') && !cleanOddsStr.startsWith('-')) {
+                const n = parseInt(cleanOddsStr, 10);
+                if (!isNaN(n) && n > 0) cleanOddsStr = '+' + n;
+            }
+            const { marketType, lineVal } = getBetMarketAndLine(bet);
+            const cleanType = marketType || (bet.type ? bet.type.split(' ')[0] : 'Straight');
+            const cleanDetail = lineVal || (bet.type.includes('(') ? bet.type.match(/\(([^)]+)\)/)?.[1] || '' : cleanOddsStr);
             const displayTarget = `${cleanType} — ${bet.team} ${cleanDetail}`;
 
             const wagerObj = {
@@ -6678,12 +6845,18 @@
                 selection: `${bet.team} ${cleanDetail || cleanOddsStr}`,
                 type: cleanType,
                 detail: cleanDetail,
+                line: cleanDetail,
                 wager: bet.wager,
                 stake: bet.wager,
                 placedOdds: cleanOddsStr,
+                odds: cleanOddsStr,
                 currentOdds: cleanOddsStr,
                 sportsbook: 'FanDuel',
+                bookmaker: 'FanDuel',
                 status: 'PENDING',
+                isPregame: true,
+                pregame: true,
+                acceptedDate: new Date().toLocaleString(),
                 history: [cleanOddsStr, cleanOddsStr, cleanOddsStr],
                 betType: 'GAME',
                 toWin: parseFloat(bet.toWin) || (calculatePayout(bet.wager, bet.odds) - bet.wager)
@@ -6733,25 +6906,31 @@
 
             if (currentBetType === 'straight') {
                 html += betSlip.map(bet => {
+                    const { marketType, lineVal, matchupDescription } = getBetMarketAndLine(bet);
                     return `
                     <div class="bs-item" style="background:#ffffff; color:#0f172a; border-radius:8px; padding:12px 14px; margin-bottom:12px; font-family:var(--font-mono); box-shadow:0 4px 12px rgba(0,0,0,0.3);">
                         <!-- Header: Close, Title, Editable American Odds -->
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                             <div style="display:flex; align-items:center; gap:8px;">
                                 <button onclick="removeFromBetSlip(${bet.id})" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;" title="Remove Selection">✕</button>
                                 <span style="font-size:14px; font-weight:900; color:#0f172a; text-transform:uppercase; letter-spacing:0.5px;">${bet.team}</span>
                             </div>
-                            <div style="display:flex; align-items:center; gap:4px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; padding:2px 6px;">
-                                <span style="font-size:9px; font-weight:800; color:#64748b;">ODDS</span>
-                                <input type="text" id="odds-input-${bet.id}" value="${bet.odds}" onchange="updateBetOdds(${bet.id}, this.value)" style="width:55px; background:none; border:none; color:#0f172a; font-size:13px; font-weight:900; font-family:var(--font-mono); text-align:right; outline:none;">
+                            <div class="betslip-odds-wrapper">
+                                <span class="odds-paren">(</span>
+                                <input type="text" class="betslip-inline-input betslip-odds-input" id="odds-input-${bet.id}" value="${bet.odds || '+127'}" oninput="updateBetOdds(${bet.id}, this.value)" onchange="updateBetOdds(${bet.id}, this.value)" />
+                                <span class="odds-paren">)</span>
                             </div>
                         </div>
 
                         <!-- Subheader with Editable Line / Selection Type -->
                         <div style="font-size:11px; color:#64748b; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
-                            <div style="display:flex; align-items:center; gap:4px; flex:1;">
-                                <span style="font-weight:700; color:#334155;">Type/Line:</span>
-                                <input type="text" id="type-input-${bet.id}" value="${bet.type || ''}" onchange="updateBetTypeLine(${bet.id}, this.value)" style="flex:1; max-width:140px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; color:#0f172a; font-size:11px; font-weight:700; font-family:var(--font-mono); padding:1px 4px; outline:none;">
+                            <div class="betslip-line-wrapper">
+                                <span class="betslip-market-type">${marketType}</span>
+                                <span class="line-paren">(</span>
+                                <input type="text" class="betslip-inline-input betslip-line-input" id="line-input-${bet.id}" value="${lineVal}" oninput="updateBetLine(${bet.id}, this.value)" onchange="updateBetLine(${bet.id}, this.value)" />
+                                <span class="line-paren">)</span>
+                                <span class="separator">·</span>
+                                <span class="betslip-matchup-sub">${matchupDescription}</span>
                             </div>
                             <span style="color:#ef4444; font-size:9px; font-weight:800; display:inline-flex; align-items:center; gap:3px;">🔴 LIVE</span>
                         </div>
@@ -6777,7 +6956,7 @@
                         <!-- Action Links -->
                         <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;">
                             <button onclick="setMaxWager(${bet.id})" style="background:none; border:none; color:#0f172a; text-decoration:underline; font-weight:800; cursor:pointer; font-size:11px;">Risk Max Limit</button>
-                            <button onclick="placeSingleBet(${bet.id})" style="background:#e2e8f0; border:none; color:#475569; font-weight:800; padding:6px 12px; border-radius:4px; font-size:11px; cursor:pointer;">Place this Bet</button>
+                            <button onclick="placeSingleBet(${bet.id})" style="background:#0f172a; border:none; color:#38bdf8; font-weight:800; padding:6px 12px; border-radius:4px; font-size:11px; cursor:pointer;">Place this Bet</button>
                         </div>
                     </div>
                     `;
@@ -6897,6 +7076,27 @@
 
         function placeBets() {
             if (betSlip.length === 0) return alert('Your bet slip is empty.');
+
+            // Sync all bet items with current DOM input values
+            betSlip.forEach(b => {
+                const oddsEl = document.getElementById(`odds-input-${b.id}`);
+                if (oddsEl && oddsEl.value.trim()) b.odds = oddsEl.value.trim();
+
+                const lineEl = document.getElementById(`line-input-${b.id}`) || document.getElementById(`type-input-${b.id}`);
+                if (lineEl && lineEl.value.trim()) {
+                    b.line = lineEl.value.trim();
+                    const { marketType } = getBetMarketAndLine(b);
+                    b.marketType = marketType;
+                    b.type = b.line ? `${marketType} (${b.line})` : marketType;
+                }
+
+                const wagerEl = document.getElementById(`wager-input-${b.id}`);
+                if (wagerEl) b.wager = parseFloat(wagerEl.value) || b.wager;
+
+                const toWinEl = document.getElementById(`towin-input-${b.id}`);
+                if (toWinEl) b.toWin = parseFloat(toWinEl.value) || b.toWin;
+            });
+
             let wagersToPlace = [];
 
             if (currentBetType === 'straight') {
@@ -6905,9 +7105,14 @@
 
                 betSlip.forEach(bet => {
                     const matchupName = bet.matchup || `${bet.team} Matchup`;
-                    const cleanOddsStr = (bet.odds > 0 ? '+' : '') + bet.odds;
-                    const cleanType = bet.type.split(' ')[0];
-                    const cleanDetail = bet.type.includes('(') ? bet.type.match(/\(([^)]+)\)/)?.[1] || '' : cleanOddsStr;
+                    let cleanOddsStr = String(bet.odds || '-110').trim();
+                    if (!cleanOddsStr.startsWith('+') && !cleanOddsStr.startsWith('-')) {
+                        const n = parseInt(cleanOddsStr, 10);
+                        if (!isNaN(n) && n > 0) cleanOddsStr = '+' + n;
+                    }
+                    const { marketType, lineVal } = getBetMarketAndLine(bet);
+                    const cleanType = marketType || (bet.type ? bet.type.split(' ')[0] : 'Straight');
+                    const cleanDetail = lineVal || (bet.type.includes('(') ? bet.type.match(/\(([^)]+)\)/)?.[1] || '' : cleanOddsStr);
                     const displayTarget = `${cleanType} — ${bet.team} ${cleanDetail}`;
 
                     wagersToPlace.push({
@@ -6919,6 +7124,7 @@
                         selection: `${bet.team} ${cleanDetail || cleanOddsStr}`,
                         type: cleanType,
                         detail: cleanDetail,
+                        line: cleanDetail,
                         wager: bet.wager,
                         stake: bet.wager,
                         placedOdds: cleanOddsStr,
