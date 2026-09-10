@@ -6655,7 +6655,10 @@
             const wagerObj = {
                 id: 'placed-' + bet.id + '-' + Date.now(),
                 matchup: matchupName,
+                event: matchupName,
+                eventId: bet.eventId || null,
                 target: displayTarget,
+                selection: `${bet.team} ${cleanDetail || cleanOddsStr}`,
                 type: cleanType,
                 detail: cleanDetail,
                 wager: bet.wager,
@@ -6715,21 +6718,23 @@
                 html += betSlip.map(bet => {
                     return `
                     <div class="bs-item" style="background:#ffffff; color:#0f172a; border-radius:8px; padding:12px 14px; margin-bottom:12px; font-family:var(--font-mono); box-shadow:0 4px 12px rgba(0,0,0,0.3);">
-                        <!-- Header: Close, Title, American Odds -->
+                        <!-- Header: Close, Title, Editable American Odds -->
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                             <div style="display:flex; align-items:center; gap:8px;">
                                 <button onclick="removeFromBetSlip(${bet.id})" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;" title="Remove Selection">✕</button>
                                 <span style="font-size:14px; font-weight:900; color:#0f172a; text-transform:uppercase; letter-spacing:0.5px;">${bet.team}</span>
                             </div>
-                            <span style="font-size:14px; font-weight:900; color:#0f172a;">${bet.odds}</span>
+                            <div style="display:flex; align-items:center; gap:4px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; padding:2px 6px;">
+                                <span style="font-size:9px; font-weight:800; color:#64748b;">ODDS</span>
+                                <input type="text" id="odds-input-${bet.id}" value="${bet.odds}" onchange="updateBetOdds(${bet.id}, this.value)" style="width:55px; background:none; border:none; color:#0f172a; font-size:13px; font-weight:900; font-family:var(--font-mono); text-align:right; outline:none;">
+                            </div>
                         </div>
 
-                        <!-- Subheader -->
+                        <!-- Subheader with Editable Line / Selection Type -->
                         <div style="font-size:11px; color:#64748b; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
-                            <div>
-                                <span style="font-weight:700; color:#334155;">${bet.type || 'Side'}</span>
-                                <span style="margin:0 4px;">·</span>
-                                <span>${bet.matchup || bet.team}</span>
+                            <div style="display:flex; align-items:center; gap:4px; flex:1;">
+                                <span style="font-weight:700; color:#334155;">Type/Line:</span>
+                                <input type="text" id="type-input-${bet.id}" value="${bet.type || ''}" onchange="updateBetTypeLine(${bet.id}, this.value)" style="flex:1; max-width:140px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; color:#0f172a; font-size:11px; font-weight:700; font-family:var(--font-mono); padding:1px 4px; outline:none;">
                             </div>
                             <span style="color:#ef4444; font-size:9px; font-weight:800; display:inline-flex; align-items:center; gap:3px;">🔴 LIVE</span>
                         </div>
@@ -6766,11 +6771,17 @@
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center; gap:8px;">
                             <button onclick="removeFromBetSlip(${bet.id})" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;">✕</button>
-                            <span style="font-weight:900; font-size:13px; color:#0f172a;">${bet.team}</span>
+                            <input type="text" value="${bet.team}" onchange="updateBetTeam(${bet.id}, this.value)" style="background:none; border:1px solid #cbd5e1; border-radius:4px; font-weight:900; font-size:13px; color:#0f172a; width:130px; font-family:var(--font-mono); padding:1px 4px;">
                         </div>
-                        <span style="font-weight:800; font-size:13px; color:#0f172a;">${bet.odds}</span>
+                        <div style="display:flex; align-items:center; gap:4px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; padding:2px 6px;">
+                            <span style="font-size:9px; font-weight:800; color:#64748b;">ODDS</span>
+                            <input type="text" value="${bet.odds}" onchange="updateBetOdds(${bet.id}, this.value)" style="width:50px; background:none; border:none; color:#0f172a; font-size:12px; font-weight:900; font-family:var(--font-mono); text-align:right;">
+                        </div>
                     </div>
-                    <div style="font-size:10px; color:#64748b; margin-top:2px; padding-left:24px;">${bet.type} · ${bet.matchup}</div>
+                    <div style="font-size:10px; color:#64748b; margin-top:4px; padding-left:24px; display:flex; align-items:center; gap:4px;">
+                        <label style="font-size:9px; color:#64748b; font-weight:700;">LINE:</label>
+                        <input type="text" value="${bet.type}" onchange="updateBetTypeLine(${bet.id}, this.value)" style="width:160px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; font-size:10px; color:#334155; font-family:var(--font-mono); padding:1px 4px;">
+                    </div>
                 </div>
                 `).join('');
 
@@ -6813,10 +6824,13 @@
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center; gap:8px;">
                             <button onclick="removeFromBetSlip(${bet.id})" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;">✕</button>
-                            <span style="font-weight:900; font-size:13px; color:#0f172a;">${bet.team} (${ptsLabel} ${typeLabel})</span>
+                            <input type="text" value="${bet.team}" onchange="updateBetTeam(${bet.id}, this.value)" style="background:none; border:1px solid #cbd5e1; border-radius:4px; font-weight:900; font-size:12px; color:#0f172a; width:130px; font-family:var(--font-mono); padding:1px 4px;">
                         </div>
                     </div>
-                    <div style="font-size:10px; color:#64748b; margin-top:2px; padding-left:24px;">${bet.type} · ${bet.matchup}</div>
+                    <div style="font-size:10px; color:#64748b; margin-top:4px; padding-left:24px; display:flex; align-items:center; gap:4px;">
+                        <label style="font-size:9px; color:#64748b; font-weight:700;">LINE:</label>
+                        <input type="text" value="${bet.type}" onchange="updateBetTypeLine(${bet.id}, this.value)" style="width:160px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; font-size:10px; color:#334155; font-family:var(--font-mono); padding:1px 4px;">
+                    </div>
                 </div>
                 `).join('');
 
@@ -6845,11 +6859,17 @@
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center; gap:8px;">
                             <button onclick="removeFromBetSlip(${bet.id})" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;">✕</button>
-                            <span style="font-weight:900; font-size:13px; color:#0f172a;">${bet.team}</span>
+                            <input type="text" value="${bet.team}" onchange="updateBetTeam(${bet.id}, this.value)" style="background:none; border:1px solid #cbd5e1; border-radius:4px; font-weight:900; font-size:13px; color:#0f172a; width:130px; font-family:var(--font-mono); padding:1px 4px;">
                         </div>
-                        <span style="font-weight:800; font-size:13px; color:#0f172a;">${bet.odds}</span>
+                        <div style="display:flex; align-items:center; gap:4px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; padding:2px 6px;">
+                            <span style="font-size:9px; font-weight:800; color:#64748b;">ODDS</span>
+                            <input type="text" value="${bet.odds}" onchange="updateBetOdds(${bet.id}, this.value)" style="width:50px; background:none; border:none; color:#0f172a; font-size:12px; font-weight:900; font-family:var(--font-mono); text-align:right;">
+                        </div>
                     </div>
-                    <div style="font-size:10px; color:#64748b; margin-top:2px; padding-left:24px;">${bet.type} · ${bet.matchup}</div>
+                    <div style="font-size:10px; color:#64748b; margin-top:4px; padding-left:24px; display:flex; align-items:center; gap:4px;">
+                        <label style="font-size:9px; color:#64748b; font-weight:700;">LINE:</label>
+                        <input type="text" value="${bet.type}" onchange="updateBetTypeLine(${bet.id}, this.value)" style="width:160px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; font-size:10px; color:#334155; font-family:var(--font-mono); padding:1px 4px;">
+                    </div>
                 </div>
                 `).join('');
             }
@@ -8146,6 +8166,7 @@
             wagers.push({
                 id: 'track-' + Date.now(),
                 matchup: `${activeWagerGame.awayAbbr} @ ${activeWagerGame.homeAbbr}`,
+                eventId: activeWagerGame.gameId || null,
                 target: targetTitle,
                 type: currentModalMarket,
                 detail: `${currentModalSide} ${lineVal}`,
