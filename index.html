@@ -5710,6 +5710,10 @@
 
         function setTeaserPoints(pts) {
             teaserPoints = parseFloat(pts);
+            const teaserOdds = getTeaserOdds(betSlip.length, teaserPoints);
+            if (teaserWager > 0) {
+                teaserToWin = calculateToWin(teaserWager, teaserOdds);
+            }
             renderBetSlip();
         }
 
@@ -5776,11 +5780,40 @@
         }
 
         function getTeaserOdds(legCount, pts) {
-            if (legCount <= 2) return '-110';
-            if (legCount === 3) return '+160';
-            if (legCount === 4) return '+260';
-            if (legCount === 5) return '+400';
-            return '+600';
+            const legs = Math.max(2, legCount || 2);
+            const p = parseFloat(pts);
+
+            if (p === -6.0) { // Pleaser (-6 PTS)
+                if (legs === 2) return '+600';
+                if (legs === 3) return '+1800';
+                if (legs === 4) return '+4500';
+                if (legs === 5) return '+10000';
+                return '+20000';
+            } else if (p === 7.5) { // +7.5 Pts
+                if (legs === 2) return '-140';
+                if (legs === 3) return '+100';
+                if (legs === 4) return '+180';
+                if (legs === 5) return '+270';
+                return '+400';
+            } else if (p === 7.0) { // +7.0 Pts
+                if (legs === 2) return '-130';
+                if (legs === 3) return '+120';
+                if (legs === 4) return '+200';
+                if (legs === 5) return '+300';
+                return '+450';
+            } else if (p === 6.5) { // +6.5 Pts
+                if (legs === 2) return '-120';
+                if (legs === 3) return '+140';
+                if (legs === 4) return '+230';
+                if (legs === 5) return '+350';
+                return '+500';
+            } else { // +6.0 Pts (default)
+                if (legs === 2) return '-110';
+                if (legs === 3) return '+160';
+                if (legs === 4) return '+260';
+                if (legs === 5) return '+400';
+                return '+600';
+            }
         }
 
         function calculateParlayOdds(legs) {
@@ -6088,11 +6121,17 @@
                 `;
             } else if (currentBetType === 'teaser') {
                 const teaserOdds = getTeaserOdds(betSlip.length, teaserPoints);
+                const isPleaser = teaserPoints < 0;
+                const typeLabel = isPleaser ? 'Pleaser' : 'Teaser';
+                const ptsLabel = isPleaser ? `${teaserPoints} pts` : `+${teaserPoints} pts`;
+
                 html += `
-                <div style="display:flex; gap:6px; margin-bottom:12px; background:#181c22; padding:6px; border-radius:8px;">
+                <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:12px; background:#181c22; padding:6px; border-radius:8px;">
                     <button onclick="setTeaserPoints(6.0)" class="bs-type-btn ${teaserPoints === 6.0 ? 'active' : ''}">+6.0 Pts</button>
                     <button onclick="setTeaserPoints(6.5)" class="bs-type-btn ${teaserPoints === 6.5 ? 'active' : ''}">+6.5 Pts</button>
                     <button onclick="setTeaserPoints(7.0)" class="bs-type-btn ${teaserPoints === 7.0 ? 'active' : ''}">+7.0 Pts</button>
+                    <button onclick="setTeaserPoints(7.5)" class="bs-type-btn ${teaserPoints === 7.5 ? 'active' : ''}">+7.5 Pts</button>
+                    <button onclick="setTeaserPoints(-6.0)" class="bs-type-btn ${teaserPoints === -6.0 ? 'active' : ''}">-6.0 Pleaser</button>
                 </div>
                 `;
                 html += betSlip.map(bet => `
@@ -6100,7 +6139,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center; gap:8px;">
                             <button onclick="removeFromBetSlip(${bet.id})" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;">✕</button>
-                            <span style="font-weight:900; font-size:13px; color:#0f172a;">${bet.team} (+${teaserPoints} pts Teaser)</span>
+                            <span style="font-weight:900; font-size:13px; color:#0f172a;">${bet.team} (${ptsLabel} ${typeLabel})</span>
                         </div>
                     </div>
                     <div style="font-size:10px; color:#64748b; margin-top:2px; padding-left:24px;">${bet.type} · ${bet.matchup}</div>
@@ -6110,16 +6149,16 @@
                 html += `
                 <div style="background:#181c22; border:1px solid var(--accent2); border-radius:8px; padding:12px; margin-top:10px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <span style="font-weight:800; font-size:12px; color:#fff;">TEASER WAGER (${betSlip.length} LEGS)</span>
+                        <span style="font-weight:800; font-size:12px; color:#fff;">${typeLabel.toUpperCase()} WAGER (${betSlip.length} LEGS)</span>
                         <span style="background:var(--accent2); color:#fff; font-weight:900; padding:3px 8px; border-radius:4px; font-size:12px;">${teaserOdds}</span>
                     </div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                         <div style="background:#0f131a; border:1px solid var(--border2); border-radius:6px; padding:6px 10px;">
-                            <label style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; display:block;">Teaser Risk ($)</label>
+                            <label style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; display:block;">${typeLabel} Risk ($)</label>
                             <input type="number" id="teaser-risk-input" placeholder="0.00" value="${teaserWager > 0 ? teaserWager.toFixed(2) : ''}" oninput="updateTeaserWagerFromRisk(this.value)" style="width:100%; background:none; border:none; color:#fff; font-weight:800; font-size:13px; outline:none; font-family:var(--font-mono);">
                         </div>
                         <div style="background:#0f131a; border:1px solid var(--border2); border-radius:6px; padding:6px 10px;">
-                            <label style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; display:block;">Teaser Win ($)</label>
+                            <label style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; display:block;">${typeLabel} Win ($)</label>
                             <input type="number" id="teaser-win-input" placeholder="0.00" value="${teaserToWin > 0 ? teaserToWin.toFixed(2) : ''}" oninput="updateTeaserWagerFromWin(this.value)" style="width:100%; background:none; border:none; color:var(--win); font-weight:800; font-size:13px; outline:none; font-family:var(--font-mono);">
                         </div>
                     </div>
@@ -6220,17 +6259,21 @@
                     toWin: parlayToWin
                 });
             } else if (currentBetType === 'teaser') {
-                if (betSlip.length < 2) return alert('Teasers require at least 2 selections.');
-                if (teaserWager <= 0) return alert('Please enter a wager amount for the teaser.');
+                const isPleaser = teaserPoints < 0;
+                const typeLabel = isPleaser ? 'Pleaser' : 'Teaser';
+                const ptsLabel = isPleaser ? `${teaserPoints} pts` : `+${teaserPoints} pts`;
+
+                if (betSlip.length < 2) return alert(`${typeLabel}s require at least 2 selections.`);
+                if (teaserWager <= 0) return alert(`Please enter a wager amount for the ${typeLabel.toLowerCase()}.`);
 
                 const teaserOdds = getTeaserOdds(betSlip.length, teaserPoints);
-                const legsDetail = betSlip.map(b => `${b.team} (+${teaserPoints} pts)`).join(' + ');
+                const legsDetail = betSlip.map(b => `${b.team} (${ptsLabel})`).join(' + ');
 
                 wagersToPlace.push({
                     id: 'placed-teaser-' + Date.now(),
-                    matchup: `${betSlip.length}-Leg Teaser (+${teaserPoints} pts)`,
-                    target: `Teaser: ${legsDetail}`,
-                    type: 'TEASER',
+                    matchup: `${betSlip.length}-Leg ${typeLabel} (${ptsLabel})`,
+                    target: `${typeLabel}: ${legsDetail}`,
+                    type: typeLabel.toUpperCase(),
                     detail: legsDetail,
                     wager: teaserWager,
                     stake: teaserWager,
@@ -6239,7 +6282,7 @@
                     sportsbook: 'FanDuel',
                     status: 'PENDING',
                     history: [teaserOdds, teaserOdds, teaserOdds],
-                    betType: 'TEASER',
+                    betType: typeLabel.toUpperCase(),
                     toWin: teaserToWin
                 });
             } else if (currentBetType === 'if_bet') {

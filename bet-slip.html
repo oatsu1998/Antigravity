@@ -764,6 +764,43 @@
             }
         }
 
+        function getTeaserOdds(legCount, pts) {
+            const legs = Math.max(2, legCount || 2);
+            const p = parseFloat(pts || 6.0);
+
+            if (p === -6.0) { // Pleaser (-6 PTS)
+                if (legs === 2) return '+600';
+                if (legs === 3) return '+1800';
+                if (legs === 4) return '+4500';
+                if (legs === 5) return '+10000';
+                return '+20000';
+            } else if (p === 7.5) { // +7.5 Pts
+                if (legs === 2) return '-140';
+                if (legs === 3) return '+100';
+                if (legs === 4) return '+180';
+                if (legs === 5) return '+270';
+                return '+400';
+            } else if (p === 7.0) { // +7.0 Pts
+                if (legs === 2) return '-130';
+                if (legs === 3) return '+120';
+                if (legs === 4) return '+200';
+                if (legs === 5) return '+300';
+                return '+450';
+            } else if (p === 6.5) { // +6.5 Pts
+                if (legs === 2) return '-120';
+                if (legs === 3) return '+140';
+                if (legs === 4) return '+230';
+                if (legs === 5) return '+350';
+                return '+500';
+            } else { // +6.0 Pts (default)
+                if (legs === 2) return '-110';
+                if (legs === 3) return '+160';
+                if (legs === 4) return '+260';
+                if (legs === 5) return '+400';
+                return '+600';
+            }
+        }
+
         function calculateSlip() {
             const stake = parseFloat(document.getElementById('stake-input').value) || 0;
             document.getElementById('sum-legs').innerText = currentLegs.length;
@@ -789,10 +826,8 @@
                     combinedDec *= americanToDecimal(us);
                 });
             } else if (activeWagerType === 'Teaser') {
-                // Teaser calculation (+6 pts adjusts odds to approx -120 each)
-                currentLegs.forEach(() => {
-                    combinedDec *= americanToDecimal(-120);
-                });
+                const usTeaser = parseAmericanOdds(getTeaserOdds(currentLegs.length, 6.0));
+                combinedDec = americanToDecimal(usTeaser);
             } else if (activeWagerType === 'If Bet') {
                 // If Bet sequence calculates sum of individual payouts assuming sequential wins
                 let totalPayout = 0;
