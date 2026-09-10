@@ -801,6 +801,14 @@
             }
         }
 
+        function handleLiveOddsChange(val, id) {
+            updateLegOdds(id || (currentLegs[0] ? currentLegs[0].id : null), val);
+        }
+
+        function handleLiveLineChange(val, id) {
+            updateLegSelection(id || (currentLegs[0] ? currentLegs[0].id : null), val);
+        }
+
         function renderLegs() {
             const container = document.getElementById('legs-container');
             document.getElementById('legs-count').innerText = currentLegs.length;
@@ -816,26 +824,33 @@
                 return;
             }
 
-            container.innerHTML = currentLegs.map(leg => `
+            container.innerHTML = currentLegs.map((leg, idx) => {
+                const oddsId = idx === 0 ? 'betslip-active-odds' : `betslip-active-odds-${leg.id}`;
+                const lineId = idx === 0 ? 'betslip-active-line' : `betslip-active-line-${leg.id}`;
+                return `
                 <div class="leg-row" style="background:#ffffff; color:#0f172a; border:1px solid #cbd5e1; border-radius:8px; padding:10px 12px; margin-bottom:8px; font-family:var(--font-mono); display:flex; justify-content:space-between; align-items:center;">
                     <div class="leg-info" style="flex:1; margin-right:12px;">
                         <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px;">${leg.matchup}</div>
                         <div style="display:flex; align-items:center; gap:6px;">
                             <span style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase;">Line/Selection:</span>
-                            <input type="text" class="leg-selection-input" value="${leg.selection}" onchange="updateLegSelection('${leg.id}', this.value)" style="flex:1; background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; padding:2px 6px; font-size:12px; font-weight:800; color:#0f172a; font-family:var(--font-mono); outline:none;" />
+                            <input type="text" id="${lineId}" class="leg-selection-input betslip-line-field" value="${leg.selection}" oninput="handleLiveLineChange(this.value, '${leg.id}')" onchange="updateLegSelection('${leg.id}', this.value)" style="flex:1; background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; padding:2px 6px; font-size:12px; font-weight:800; color:#0f172a; font-family:var(--font-mono); outline:none;" />
                         </div>
                         <div style="font-size:9px; color:#64748b; margin-top:4px;">Bookmaker: ${leg.bookmaker || 'Destiny Book'}</div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <div style="display:flex; align-items:center; gap:4px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; padding:3px 6px;">
                             <span style="font-size:9px; font-weight:800; color:#64748b;">ODDS</span>
-                            <input type="text" class="leg-odds-input" value="${leg.odds}" onchange="updateLegOdds('${leg.id}', this.value)" style="width:60px; background:none; border:none; font-size:13px; font-weight:900; color:#0f172a; text-align:right; font-family:var(--font-mono); outline:none;" />
+                            <input type="text" id="${oddsId}" class="leg-odds-input betslip-odds-field" value="${leg.odds}" oninput="handleLiveOddsChange(this.value, '${leg.id}')" onchange="updateLegOdds('${leg.id}', this.value)" style="width:60px; background:none; border:none; font-size:13px; font-weight:900; color:#0f172a; text-align:right; font-family:var(--font-mono); outline:none;" />
                         </div>
                         <button class="btn-remove-leg" onclick="removeLeg('${leg.id}')" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;">✕</button>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
+
+        window.handleLiveOddsChange = handleLiveOddsChange;
+        window.handleLiveLineChange = handleLiveLineChange;
 
         function parseAmericanOdds(oddsStr) {
             let num = parseInt(String(oddsStr).replace('+', ''), 10);

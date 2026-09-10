@@ -6407,8 +6407,8 @@
             }
             if (!bet) return;
 
-            let clean = String(newOddsStr || '').trim();
-            if (!clean.startsWith('+') && !clean.startsWith('-')) {
+            let clean = String(newOddsStr || '').replace(/[()]/g, '').trim();
+            if (clean && !clean.startsWith('+') && !clean.startsWith('-')) {
                 const n = parseInt(clean, 10);
                 if (!isNaN(n) && n > 0) clean = '+' + n;
             }
@@ -6418,12 +6418,17 @@
             const wagerInput = document.getElementById(`wager-input-${targetId}`) || document.getElementById(`wager-input`) || document.querySelector('.betslip-wager-input');
             const toWinInput = document.getElementById(`towin-input-${targetId}`) || document.getElementById(`towin-input`) || document.querySelector('.betslip-towin-input');
 
-            if (bet.wager > 0) {
+            const activeWager = wagerInput && wagerInput.value !== '' ? parseFloat(wagerInput.value) : bet.wager;
+            const activeToWin = toWinInput && toWinInput.value !== '' ? parseFloat(toWinInput.value) : bet.toWin;
+
+            if (activeWager > 0) {
+                bet.wager = activeWager;
                 bet.toWin = calculateToWin(bet.wager, bet.odds);
                 if (toWinInput && document.activeElement !== toWinInput) {
                     toWinInput.value = bet.toWin > 0 ? bet.toWin.toFixed(2) : '';
                 }
-            } else if (bet.toWin > 0) {
+            } else if (activeToWin > 0) {
+                bet.toWin = activeToWin;
                 bet.wager = calculateStakeFromToWin(bet.toWin, bet.odds);
                 if (wagerInput && document.activeElement !== wagerInput) {
                     wagerInput.value = bet.wager > 0 ? bet.wager.toFixed(2) : '';
@@ -6444,7 +6449,7 @@
             }
             if (!bet) return;
 
-            bet.line = String(newLineStr || '').trim();
+            bet.line = String(newLineStr || '').replace(/[()]/g, '').trim();
             const { marketType } = getBetMarketAndLine(bet);
             bet.marketType = marketType;
             bet.type = bet.line ? `${marketType} (${bet.line})` : marketType;
@@ -6483,13 +6488,14 @@
             let line = '';
             let price = '';
             
-            const parts = odds.toString().trim().split(/\s+/);
+            const rawOddsStr = odds.toString().trim();
+            const parts = rawOddsStr.split(/\s+/);
             if (parts.length > 1) {
-                price = parts[parts.length - 1];
-                line = parts.slice(0, parts.length - 1).join(' ');
+                price = parts[parts.length - 1].replace(/[()]/g, '').trim();
+                line = parts.slice(0, parts.length - 1).join(' ').replace(/[()]/g, '').trim();
             } else {
-                const val = parts[0];
-                if (val.includes('.') || (val.startsWith('+') && parseFloat(val) < 50 && parseFloat(val) > -50)) {
+                const val = parts[0].replace(/[()]/g, '').trim();
+                if (val.includes('.') || (val.startsWith('+') && parseFloat(val) < 50 && parseFloat(val) > -50) || (val.startsWith('-') && parseFloat(val) > -50)) {
                     line = val;
                     price = '-110';
                 } else {
@@ -6498,7 +6504,7 @@
             }
             
             let cleanedPrice = price.startsWith('+') || price.startsWith('-') ? price : (parseFloat(price) > 0 ? '+' + price : price);
-            if (!cleanedPrice || cleanedPrice === 'NaN') cleanedPrice = '-110';
+            if (!cleanedPrice || cleanedPrice === 'NaN' || isNaN(parseInt(cleanedPrice, 10))) cleanedPrice = '-110';
             
             let displayType = type;
             if (line) {
@@ -6522,31 +6528,34 @@
         }
 
         function removeFromBetSlip(id) {
-            betSlip = betSlip.filter(b => b.id !== id);
+            betSlip = betSlip.filter(b => String(b.id) !== String(id));
             renderBetSlip();
         }
 
         function calculatePayout(stake, oddsStr) {
             const stakeNum = parseFloat(stake) || 0;
             if (stakeNum <= 0) return 0;
-            const us = parseInt(String(oddsStr).replace(/[^0-9-]/g, ''), 10);
-            if (isNaN(us)) return stakeNum * 1.909;
+            const cleanStr = String(oddsStr || '').replace(/[^0-9+-]/g, '');
+            const us = parseInt(cleanStr.replace('+', ''), 10);
+            if (isNaN(us) || us === 0) return stakeNum * 1.909;
             if (us > 0) return stakeNum + (stakeNum * (us / 100));
             return stakeNum + (stakeNum * (100 / Math.abs(us)));
         }
 
         function calculateToWin(stake, oddsStr) {
             if (!stake || stake <= 0) return 0;
-            const us = parseInt(String(oddsStr).replace('+', ''), 10);
-            if (isNaN(us)) return stake * 0.909;
+            const cleanStr = String(oddsStr || '').replace(/[^0-9+-]/g, '');
+            const us = parseInt(cleanStr.replace('+', ''), 10);
+            if (isNaN(us) || us === 0) return stake * 0.909;
             if (us > 0) return stake * (us / 100);
             return stake * (100 / Math.abs(us));
         }
 
         function calculateStakeFromToWin(toWin, oddsStr) {
             if (!toWin || toWin <= 0) return 0;
-            const us = parseInt(String(oddsStr).replace('+', ''), 10);
-            if (isNaN(us)) return toWin / 0.909;
+            const cleanStr = String(oddsStr || '').replace(/[^0-9+-]/g, '');
+            const us = parseInt(cleanStr.replace('+', ''), 10);
+            if (isNaN(us) || us === 0) return toWin / 0.909;
             if (us > 0) return toWin / (us / 100);
             return toWin / (100 / Math.abs(us));
         }
