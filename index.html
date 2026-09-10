@@ -6395,25 +6395,36 @@
             return { marketType, lineVal, matchupDescription };
         }
 
-        function updateBetOdds(id, newOdds) {
-            const bet = betSlip.find(b => b.id === id);
+        function handleLiveOddsChange(arg1, arg2) {
+            const newOddsStr = typeof arg1 === 'string' || typeof arg1 === 'number' ? String(arg1) : '';
+            const betId = arg2;
+            let bet;
+            if (betId) {
+                bet = betSlip.find(b => String(b.id) === String(betId));
+            }
+            if (!bet && betSlip.length > 0) {
+                bet = betSlip[0];
+            }
             if (!bet) return;
-            let clean = String(newOdds || '').trim();
+
+            let clean = String(newOddsStr || '').trim();
             if (!clean.startsWith('+') && !clean.startsWith('-')) {
                 const n = parseInt(clean, 10);
                 if (!isNaN(n) && n > 0) clean = '+' + n;
             }
-            bet.odds = clean || '-110';
-            
+            bet.odds = clean || '+100';
+
+            const targetId = bet.id;
+            const wagerInput = document.getElementById(`wager-input-${targetId}`) || document.getElementById(`wager-input`) || document.querySelector('.betslip-wager-input');
+            const toWinInput = document.getElementById(`towin-input-${targetId}`) || document.getElementById(`towin-input`) || document.querySelector('.betslip-towin-input');
+
             if (bet.wager > 0) {
                 bet.toWin = calculateToWin(bet.wager, bet.odds);
-                const winInput = document.getElementById(`towin-input-${id}`);
-                if (winInput && document.activeElement !== winInput) {
-                    winInput.value = bet.toWin > 0 ? bet.toWin.toFixed(2) : '';
+                if (toWinInput && document.activeElement !== toWinInput) {
+                    toWinInput.value = bet.toWin > 0 ? bet.toWin.toFixed(2) : '';
                 }
             } else if (bet.toWin > 0) {
                 bet.wager = calculateStakeFromToWin(bet.toWin, bet.odds);
-                const wagerInput = document.getElementById(`wager-input-${id}`);
                 if (wagerInput && document.activeElement !== wagerInput) {
                     wagerInput.value = bet.wager > 0 ? bet.wager.toFixed(2) : '';
                 }
@@ -6421,13 +6432,30 @@
             updateSlipFooterTotals();
         }
 
-        function updateBetLine(id, newLine) {
-            const bet = betSlip.find(b => b.id === id);
+        function handleLiveLineChange(arg1, arg2) {
+            const newLineStr = typeof arg1 === 'string' || typeof arg1 === 'number' ? String(arg1) : '';
+            const betId = arg2;
+            let bet;
+            if (betId) {
+                bet = betSlip.find(b => String(b.id) === String(betId));
+            }
+            if (!bet && betSlip.length > 0) {
+                bet = betSlip[0];
+            }
             if (!bet) return;
-            bet.line = String(newLine || '').trim();
+
+            bet.line = String(newLineStr || '').trim();
             const { marketType } = getBetMarketAndLine(bet);
             bet.marketType = marketType;
             bet.type = bet.line ? `${marketType} (${bet.line})` : marketType;
+        }
+
+        function updateBetOdds(id, newOdds) {
+            handleLiveOddsChange(newOdds, id);
+        }
+
+        function updateBetLine(id, newLine) {
+            handleLiveLineChange(newLine, id);
         }
 
         function updateBetTypeLine(id, newTypeLine) {
@@ -6785,13 +6813,13 @@
         }
 
         function placeSingleBet(id) {
-            const bet = betSlip.find(b => b.id === id);
+            const bet = betSlip.find(b => String(b.id) === String(id)) || betSlip[0];
             if (!bet) return;
 
-            const oddsEl = document.getElementById(`odds-input-${id}`);
+            const oddsEl = document.getElementById('betslip-active-odds') || document.getElementById(`betslip-active-odds-${bet.id}`) || document.getElementById(`odds-input-${bet.id}`) || document.querySelector('.betslip-odds-field');
             if (oddsEl && oddsEl.value.trim()) bet.odds = oddsEl.value.trim();
 
-            const lineEl = document.getElementById(`line-input-${id}`) || document.getElementById(`type-input-${id}`);
+            const lineEl = document.getElementById('betslip-active-line') || document.getElementById(`betslip-active-line-${bet.id}`) || document.getElementById(`line-input-${bet.id}`) || document.querySelector('.betslip-line-field');
             if (lineEl && lineEl.value.trim()) {
                 bet.line = lineEl.value.trim();
                 const { marketType } = getBetMarketAndLine(bet);
@@ -6799,10 +6827,10 @@
                 bet.type = bet.line ? `${marketType} (${bet.line})` : marketType;
             }
 
-            const wagerEl = document.getElementById(`wager-input-${id}`);
+            const wagerEl = document.getElementById(`wager-input-${bet.id}`) || document.querySelector('.betslip-wager-input');
             if (wagerEl) bet.wager = parseFloat(wagerEl.value) || bet.wager;
 
-            const toWinEl = document.getElementById(`towin-input-${id}`);
+            const toWinEl = document.getElementById(`towin-input-${bet.id}`) || document.querySelector('.betslip-towin-input');
             if (toWinEl) bet.toWin = parseFloat(toWinEl.value) || bet.toWin;
 
             if (!bet.wager || bet.wager <= 0) return alert('Please enter a wager amount for this selection.');
@@ -6908,8 +6936,10 @@
             }
 
             if (currentBetType === 'straight') {
-                html += betSlip.map(bet => {
+                html += betSlip.map((bet, idx) => {
                     const { marketType, lineVal, matchupDescription } = getBetMarketAndLine(bet);
+                    const oddsId = idx === 0 ? 'betslip-active-odds' : `betslip-active-odds-${bet.id}`;
+                    const lineId = idx === 0 ? 'betslip-active-line' : `betslip-active-line-${bet.id}`;
                     return `
                     <div class="bs-item" style="background:#ffffff; color:#0f172a; border-radius:8px; padding:12px 14px; margin-bottom:12px; font-family:var(--font-mono); box-shadow:0 4px 12px rgba(0,0,0,0.3);">
                         <!-- Header: Close, Title, Editable American Odds -->
@@ -6918,22 +6948,38 @@
                                 <button onclick="removeFromBetSlip('${bet.id}')" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;" title="Remove Selection">✕</button>
                                 <span style="font-size:14px; font-weight:900; color:#0f172a; text-transform:uppercase; letter-spacing:0.5px;">${bet.team}</span>
                             </div>
-                            <div class="betslip-odds-wrapper" style="display:inline-flex; align-items:center; gap:2px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:2px 6px;">
-                                <span class="odds-bracket" style="font-size:11px; font-weight:800; color:#64748b;">(</span>
-                                <input type="text" class="betslip-inline-input betslip-odds-input" id="slip-odds-${bet.id}" value="${bet.odds || '+127'}" style="width: 60px; padding: 2px 4px; font-weight: bold; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; color: #0f172a; font-family:var(--font-mono); outline:none;" oninput="updateBetOdds('${bet.id}', this.value)" onchange="updateBetOdds('${bet.id}', this.value)" />
-                                <span class="odds-bracket" style="font-size:11px; font-weight:800; color:#64748b;">)</span>
+                            <div style="display: inline-flex; align-items: center; gap: 2px;">
+                              <span>(</span>
+                              <input 
+                                type="text" 
+                                id="${oddsId}" 
+                                class="betslip-odds-field" 
+                                value="${bet.odds || '+100'}" 
+                                style="width: 65px; height: 26px; border: 1.5px solid #0284c7; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 14px; text-align: center; border-radius: 4px; outline: none; cursor: text;" 
+                                oninput="handleLiveOddsChange(this.value, '${bet.id}')"
+                                onchange="handleLiveOddsChange(this.value, '${bet.id}')"
+                              />
+                              <span>)</span>
                             </div>
                         </div>
 
                         <!-- Subheader with Editable Line / Selection Type -->
                         <div style="font-size:11px; color:#64748b; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
-                            <div class="betslip-line-wrapper" style="display:inline-flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                                <span class="betslip-market-label" style="font-weight:800; color:#334155; text-transform:uppercase;">${marketType || 'Spread'}</span>
-                                <span class="line-paren" style="color:#94a3b8; font-weight:700;">(</span>
-                                <input type="text" class="betslip-inline-input betslip-line-input" id="slip-line-${bet.id}" value="${lineVal || '+2.5'}" style="width: 50px; padding: 2px 4px; font-weight: bold; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; color: #0f172a; font-family:var(--font-mono); outline:none;" oninput="updateBetLine('${bet.id}', this.value)" onchange="updateBetLine('${bet.id}', this.value)" />
-                                <span class="line-paren" style="color:#94a3b8; font-weight:700;">)</span>
-                                <span class="separator" style="color:#94a3b8; font-weight:700;">·</span>
-                                <span class="betslip-matchup-sub" style="color:#64748b; font-weight:600;">${matchupDescription}</span>
+                            <div style="display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                              <span class="betslip-market-label" style="font-weight:800; color:#334155; text-transform:uppercase;">${marketType || 'Spread'}</span>
+                              <span>(</span>
+                              <input 
+                                type="text" 
+                                id="${lineId}" 
+                                class="betslip-line-field" 
+                                value="${lineVal || '-2.5'}" 
+                                style="width: 55px; height: 24px; border: 1.5px solid #0284c7; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 13px; text-align: center; border-radius: 4px; outline: none; cursor: text;" 
+                                oninput="handleLiveLineChange(this.value, '${bet.id}')"
+                                onchange="handleLiveLineChange(this.value, '${bet.id}')"
+                              />
+                              <span>)</span>
+                              <span>·</span>
+                              <span class="betslip-matchup-sub" style="color:#64748b; font-weight:600;">${matchupDescription}</span>
                             </div>
                             <span style="color:#ef4444; font-size:9px; font-weight:800; display:inline-flex; align-items:center; gap:3px;">🔴 LIVE</span>
                         </div>
@@ -6944,14 +6990,14 @@
                                 <label style="font-size:9px; color:#64748b; font-weight:700; display:block; text-transform:uppercase;">Risk</label>
                                 <div style="display:flex; align-items:center;">
                                     <span style="color:#64748b; font-weight:700; font-size:12px;">$</span>
-                                    <input type="number" id="wager-input-${bet.id}" placeholder="0.00" value="${bet.wager > 0 ? bet.wager.toFixed(2) : ''}" oninput="updateWagerFromAmount('${bet.id}', this.value)" style="width:100%; background:none; border:none; color:#0f172a; font-weight:800; font-family:var(--font-mono); font-size:13px; outline:none; padding:2px;">
+                                    <input type="number" id="wager-input-${bet.id}" class="betslip-wager-input" placeholder="0.00" value="${bet.wager > 0 ? bet.wager.toFixed(2) : ''}" oninput="updateWagerFromAmount('${bet.id}', this.value)" style="width:100%; background:none; border:none; color:#0f172a; font-weight:800; font-family:var(--font-mono); font-size:13px; outline:none; padding:2px;">
                                 </div>
                             </div>
                             <div style="border:1px solid #cbd5e1; border-radius:6px; padding:4px 8px; background:#f8fafc;">
                                 <label style="font-size:9px; color:#64748b; font-weight:700; display:block; text-transform:uppercase;">Win</label>
                                 <div style="display:flex; align-items:center;">
                                     <span style="color:#64748b; font-weight:700; font-size:12px;">$</span>
-                                    <input type="number" id="towin-input-${bet.id}" placeholder="0.00" value="${bet.toWin > 0 ? bet.toWin.toFixed(2) : ''}" oninput="updateWagerFromToWin('${bet.id}', this.value)" style="width:100%; background:none; border:none; color:#10b981; font-weight:800; font-family:var(--font-mono); font-size:13px; outline:none; padding:2px;">
+                                    <input type="number" id="towin-input-${bet.id}" class="betslip-towin-input" placeholder="0.00" value="${bet.toWin > 0 ? bet.toWin.toFixed(2) : ''}" oninput="updateWagerFromToWin('${bet.id}', this.value)" style="width:100%; background:none; border:none; color:#10b981; font-weight:800; font-family:var(--font-mono); font-size:13px; outline:none; padding:2px;">
                                 </div>
                             </div>
                         </div>
@@ -6965,8 +7011,10 @@
                     `;
                 }).join('');
             } else if (currentBetType === 'parlay') {
-                html += betSlip.map(bet => {
+                html += betSlip.map((bet, idx) => {
                     const { marketType, lineVal, matchupDescription } = getBetMarketAndLine(bet);
+                    const oddsId = idx === 0 ? 'betslip-active-odds' : `betslip-active-odds-${bet.id}`;
+                    const lineId = idx === 0 ? 'betslip-active-line' : `betslip-active-line-${bet.id}`;
                     return `
                     <div style="background:#ffffff; color:#0f172a; border-radius:8px; padding:10px 14px; margin-bottom:8px; font-family:var(--font-mono); box-shadow:0 4px 12px rgba(0,0,0,0.2);">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
@@ -6974,19 +7022,37 @@
                                 <button onclick="removeFromBetSlip('${bet.id}')" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;">✕</button>
                                 <input type="text" value="${bet.team}" onchange="updateBetTeam('${bet.id}', this.value)" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; font-weight:900; font-size:13px; color:#0f172a; width:140px; font-family:var(--font-mono); padding:2px 6px; outline:none;">
                             </div>
-                            <div class="betslip-odds-wrapper" style="display:inline-flex; align-items:center; gap:2px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:2px 6px;">
-                                <span class="odds-bracket" style="font-size:11px; font-weight:800; color:#64748b;">(</span>
-                                <input type="text" class="betslip-inline-input betslip-odds-input" id="slip-odds-${bet.id}" value="${bet.odds || '+127'}" style="width: 60px; padding: 2px 4px; font-weight: bold; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; color: #0f172a; font-family:var(--font-mono); outline:none;" oninput="updateBetOdds('${bet.id}', this.value)" onchange="updateBetOdds('${bet.id}', this.value)" />
-                                <span class="odds-bracket" style="font-size:11px; font-weight:800; color:#64748b;">)</span>
+                            <div style="display: inline-flex; align-items: center; gap: 2px;">
+                              <span>(</span>
+                              <input 
+                                type="text" 
+                                id="${oddsId}" 
+                                class="betslip-odds-field" 
+                                value="${bet.odds || '+100'}" 
+                                style="width: 65px; height: 26px; border: 1.5px solid #0284c7; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 14px; text-align: center; border-radius: 4px; outline: none; cursor: text;" 
+                                oninput="handleLiveOddsChange(this.value, '${bet.id}')"
+                                onchange="handleLiveOddsChange(this.value, '${bet.id}')"
+                              />
+                              <span>)</span>
                             </div>
                         </div>
                         <div style="font-size:11px; color:#64748b; margin-top:4px; display:flex; align-items:center; gap:4px;">
-                            <span class="betslip-market-label" style="font-weight:800; color:#334155; text-transform:uppercase;">${marketType || 'Spread'}</span>
-                            <span class="line-paren" style="color:#94a3b8; font-weight:700;">(</span>
-                            <input type="text" class="betslip-inline-input betslip-line-input" id="slip-line-${bet.id}" value="${lineVal || '+2.5'}" style="width: 50px; padding: 2px 4px; font-weight: bold; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; color: #0f172a; font-family:var(--font-mono); outline:none;" oninput="updateBetLine('${bet.id}', this.value)" onchange="updateBetLine('${bet.id}', this.value)" />
-                            <span class="line-paren" style="color:#94a3b8; font-weight:700;">)</span>
-                            <span class="separator" style="color:#94a3b8; font-weight:700;">·</span>
-                            <span class="betslip-matchup-sub" style="color:#64748b; font-weight:600;">${matchupDescription}</span>
+                            <div style="display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                              <span class="betslip-market-label" style="font-weight:800; color:#334155; text-transform:uppercase;">${marketType || 'Spread'}</span>
+                              <span>(</span>
+                              <input 
+                                type="text" 
+                                id="${lineId}" 
+                                class="betslip-line-field" 
+                                value="${lineVal || '-2.5'}" 
+                                style="width: 55px; height: 24px; border: 1.5px solid #0284c7; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 13px; text-align: center; border-radius: 4px; outline: none; cursor: text;" 
+                                oninput="handleLiveLineChange(this.value, '${bet.id}')"
+                                onchange="handleLiveLineChange(this.value, '${bet.id}')"
+                              />
+                              <span>)</span>
+                              <span>·</span>
+                              <span class="betslip-matchup-sub" style="color:#64748b; font-weight:600;">${matchupDescription}</span>
+                            </div>
                         </div>
                     </div>
                     `;
@@ -7025,8 +7091,10 @@
                     <button onclick="setTeaserPoints(-6.0)" class="bs-type-btn ${teaserPoints === -6.0 ? 'active' : ''}">-6.0 Pleaser</button>
                 </div>
                 `;
-                html += betSlip.map(bet => {
+                html += betSlip.map((bet, idx) => {
                     const { marketType, lineVal, matchupDescription } = getBetMarketAndLine(bet);
+                    const oddsId = idx === 0 ? 'betslip-active-odds' : `betslip-active-odds-${bet.id}`;
+                    const lineId = idx === 0 ? 'betslip-active-line' : `betslip-active-line-${bet.id}`;
                     return `
                     <div style="background:#ffffff; color:#0f172a; border-radius:8px; padding:10px 14px; margin-bottom:8px; font-family:var(--font-mono);">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -7036,12 +7104,22 @@
                             </div>
                         </div>
                         <div style="font-size:10px; color:#64748b; margin-top:4px; display:flex; align-items:center; gap:4px;">
-                            <span class="betslip-market-label" style="font-weight:800; color:#334155; text-transform:uppercase;">${marketType || 'Spread'}</span>
-                            <span class="line-paren" style="color:#94a3b8; font-weight:700;">(</span>
-                            <input type="text" class="betslip-inline-input betslip-line-input" id="slip-line-${bet.id}" value="${lineVal || '+2.5'}" style="width: 50px; padding: 2px 4px; font-weight: bold; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; color: #0f172a; font-family:var(--font-mono); outline:none;" oninput="updateBetLine('${bet.id}', this.value)" onchange="updateBetLine('${bet.id}', this.value)" />
-                            <span class="line-paren" style="color:#94a3b8; font-weight:700;">)</span>
-                            <span class="separator" style="color:#94a3b8; font-weight:700;">·</span>
-                            <span class="betslip-matchup-sub" style="color:#64748b; font-weight:600;">${matchupDescription}</span>
+                            <div style="display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                              <span class="betslip-market-label" style="font-weight:800; color:#334155; text-transform:uppercase;">${marketType || 'Spread'}</span>
+                              <span>(</span>
+                              <input 
+                                type="text" 
+                                id="${lineId}" 
+                                class="betslip-line-field" 
+                                value="${lineVal || '-2.5'}" 
+                                style="width: 55px; height: 24px; border: 1.5px solid #0284c7; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 13px; text-align: center; border-radius: 4px; outline: none; cursor: text;" 
+                                oninput="handleLiveLineChange(this.value, '${bet.id}')"
+                                onchange="handleLiveLineChange(this.value, '${bet.id}')"
+                              />
+                              <span>)</span>
+                              <span>·</span>
+                              <span class="betslip-matchup-sub" style="color:#64748b; font-weight:600;">${matchupDescription}</span>
+                            </div>
                         </div>
                     </div>
                     `;
@@ -7068,6 +7146,8 @@
             } else if (currentBetType === 'if_bet') {
                 html += betSlip.map((bet, idx) => {
                     const { marketType, lineVal, matchupDescription } = getBetMarketAndLine(bet);
+                    const oddsId = idx === 0 ? 'betslip-active-odds' : `betslip-active-odds-${bet.id}`;
+                    const lineId = idx === 0 ? 'betslip-active-line' : `betslip-active-line-${bet.id}`;
                     return `
                     <div style="background:#ffffff; color:#0f172a; border-radius:8px; padding:10px 14px; margin-bottom:8px; font-family:var(--font-mono);">
                         <div style="font-size:9px; font-weight:900; color:#3b82f6; margin-bottom:4px; text-transform:uppercase;">${idx === 0 ? 'LEG 1 (PRIMARY SELECTION)' : `LEG ${idx + 1} (IF LEG ${idx} WINS)`}</div>
@@ -7076,19 +7156,37 @@
                                 <button onclick="removeFromBetSlip('${bet.id}')" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;">✕</button>
                                 <input type="text" value="${bet.team}" onchange="updateBetTeam('${bet.id}', this.value)" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; font-weight:900; font-size:13px; color:#0f172a; width:130px; font-family:var(--font-mono); padding:1px 4px;">
                             </div>
-                            <div class="betslip-odds-wrapper" style="display:inline-flex; align-items:center; gap:2px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:2px 6px;">
-                                <span class="odds-bracket" style="font-size:11px; font-weight:800; color:#64748b;">(</span>
-                                <input type="text" class="betslip-inline-input betslip-odds-input" id="slip-odds-${bet.id}" value="${bet.odds || '+127'}" style="width: 60px; padding: 2px 4px; font-weight: bold; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; color: #0f172a; font-family:var(--font-mono); outline:none;" oninput="updateBetOdds('${bet.id}', this.value)" onchange="updateBetOdds('${bet.id}', this.value)" />
-                                <span class="odds-bracket" style="font-size:11px; font-weight:800; color:#64748b;">)</span>
+                            <div style="display: inline-flex; align-items: center; gap: 2px;">
+                              <span>(</span>
+                              <input 
+                                type="text" 
+                                id="${oddsId}" 
+                                class="betslip-odds-field" 
+                                value="${bet.odds || '+100'}" 
+                                style="width: 65px; height: 26px; border: 1.5px solid #0284c7; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 14px; text-align: center; border-radius: 4px; outline: none; cursor: text;" 
+                                oninput="handleLiveOddsChange(this.value, '${bet.id}')"
+                                onchange="handleLiveOddsChange(this.value, '${bet.id}')"
+                              />
+                              <span>)</span>
                             </div>
                         </div>
                         <div style="font-size:10px; color:#64748b; margin-top:4px; display:flex; align-items:center; gap:4px;">
-                            <span class="betslip-market-label" style="font-weight:800; color:#334155; text-transform:uppercase;">${marketType || 'Spread'}</span>
-                            <span class="line-paren" style="color:#94a3b8; font-weight:700;">(</span>
-                            <input type="text" class="betslip-inline-input betslip-line-input" id="slip-line-${bet.id}" value="${lineVal || '+2.5'}" style="width: 50px; padding: 2px 4px; font-weight: bold; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; color: #0f172a; font-family:var(--font-mono); outline:none;" oninput="updateBetLine('${bet.id}', this.value)" onchange="updateBetLine('${bet.id}', this.value)" />
-                            <span class="line-paren" style="color:#94a3b8; font-weight:700;">)</span>
-                            <span class="separator" style="color:#94a3b8; font-weight:700;">·</span>
-                            <span class="betslip-matchup-sub" style="color:#64748b; font-weight:600;">${matchupDescription}</span>
+                            <div style="display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                              <span class="betslip-market-label" style="font-weight:800; color:#334155; text-transform:uppercase;">${marketType || 'Spread'}</span>
+                              <span>(</span>
+                              <input 
+                                type="text" 
+                                id="${lineId}" 
+                                class="betslip-line-field" 
+                                value="${lineVal || '-2.5'}" 
+                                style="width: 55px; height: 24px; border: 1.5px solid #0284c7; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 13px; text-align: center; border-radius: 4px; outline: none; cursor: text;" 
+                                oninput="handleLiveLineChange(this.value, '${bet.id}')"
+                                onchange="handleLiveLineChange(this.value, '${bet.id}')"
+                              />
+                              <span>)</span>
+                              <span>·</span>
+                              <span class="betslip-matchup-sub" style="color:#64748b; font-weight:600;">${matchupDescription}</span>
+                            </div>
                         </div>
                     </div>
                     `;
@@ -7103,11 +7201,11 @@
             if (betSlip.length === 0) return alert('Your bet slip is empty.');
 
             // Sync all bet items with current DOM input values
-            betSlip.forEach(b => {
-                const oddsEl = document.getElementById(`odds-input-${b.id}`);
+            betSlip.forEach((b, idx) => {
+                const oddsEl = (idx === 0 ? document.getElementById('betslip-active-odds') : null) || document.getElementById(`betslip-active-odds-${b.id}`) || document.getElementById(`odds-input-${b.id}`) || document.querySelector('.betslip-odds-field');
                 if (oddsEl && oddsEl.value.trim()) b.odds = oddsEl.value.trim();
 
-                const lineEl = document.getElementById(`line-input-${b.id}`) || document.getElementById(`type-input-${b.id}`);
+                const lineEl = (idx === 0 ? document.getElementById('betslip-active-line') : null) || document.getElementById(`betslip-active-line-${b.id}`) || document.getElementById(`line-input-${b.id}`) || document.querySelector('.betslip-line-field');
                 if (lineEl && lineEl.value.trim()) {
                     b.line = lineEl.value.trim();
                     const { marketType } = getBetMarketAndLine(b);
@@ -7115,10 +7213,10 @@
                     b.type = b.line ? `${marketType} (${b.line})` : marketType;
                 }
 
-                const wagerEl = document.getElementById(`wager-input-${b.id}`);
+                const wagerEl = document.getElementById(`wager-input-${b.id}`) || document.querySelector('.betslip-wager-input');
                 if (wagerEl) b.wager = parseFloat(wagerEl.value) || b.wager;
 
-                const toWinEl = document.getElementById(`towin-input-${b.id}`);
+                const toWinEl = document.getElementById(`towin-input-${b.id}`) || document.querySelector('.betslip-towin-input');
                 if (toWinEl) b.toWin = parseFloat(toWinEl.value) || b.toWin;
             });
 
@@ -7308,6 +7406,8 @@
         window.addToBetSlip = addToBetSlip;
         window.setMaxWager = setMaxWager;
         window.placeBets = placeBets;
+        window.handleLiveOddsChange = handleLiveOddsChange;
+        window.handleLiveLineChange = handleLiveLineChange;
         window.toggleTicketEntryForm = toggleTicketEntryForm;
         window.autoFillTicket994662668 = autoFillTicket994662668;
         window.handleManualTicketSubmit = handleManualTicketSubmit;
