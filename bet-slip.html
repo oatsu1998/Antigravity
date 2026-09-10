@@ -597,6 +597,7 @@
                         <button class="wager-type-btn active" id="tab-straight" onclick="setWagerType('Straight')">STRAIGHT</button>
                         <button class="wager-type-btn" id="tab-parlay" onclick="setWagerType('Parlay')">PARLAY</button>
                         <button class="wager-type-btn" id="tab-teaser" onclick="setWagerType('Teaser')">TEASER (+6)</button>
+                        <button class="wager-type-btn" id="tab-ifbet" onclick="setWagerType('If Bet')">IF BET</button>
                     </div>
 
                     <!-- Stake Input -->
@@ -660,6 +661,7 @@
             if (type === 'Straight') document.getElementById('tab-straight').classList.add('active');
             if (type === 'Parlay') document.getElementById('tab-parlay').classList.add('active');
             if (type === 'Teaser') document.getElementById('tab-teaser').classList.add('active');
+            if (type === 'If Bet') document.getElementById('tab-ifbet').classList.add('active');
             calculateSlip();
         }
 
@@ -791,6 +793,14 @@
                 currentLegs.forEach(() => {
                     combinedDec *= americanToDecimal(-120);
                 });
+            } else if (activeWagerType === 'If Bet') {
+                // If Bet sequence calculates sum of individual payouts assuming sequential wins
+                let totalPayout = 0;
+                currentLegs.forEach(leg => {
+                    const us = parseAmericanOdds(leg.odds);
+                    totalPayout += (stake * americanToDecimal(us));
+                });
+                combinedDec = totalPayout / stake;
             }
 
             const combinedUs = decimalToAmerican(combinedDec);
@@ -830,7 +840,7 @@
 
             // Construct Wager Object
             const combinedOddsUs = document.getElementById('sum-odds-us').innerText;
-            const eventName = activeWagerType === 'Parlay' || activeWagerType === 'Teaser' 
+            const eventName = activeWagerType === 'Parlay' || activeWagerType === 'Teaser' || activeWagerType === 'If Bet'
                 ? `${currentLegs.length}-Leg ${activeWagerType}` 
                 : currentLegs[0].matchup;
 

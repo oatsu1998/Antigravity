@@ -1408,21 +1408,46 @@
 
         .bet-slip {
             position: fixed;
-            right: -340px;
+            right: -400px;
             top: 56px;
             bottom: 0;
-            width: 320px;
-            background: var(--surface);
+            width: 380px;
+            background: #111418;
             border-left: 1px solid var(--border);
             z-index: 9999;
             display: flex;
             flex-direction: column;
             transition: right 0.3s ease;
-            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+            box-shadow: -6px 0 24px rgba(0, 0, 0, 0.7);
         }
 
         .bet-slip.open {
             right: 0;
+        }
+
+        .bs-type-btn {
+            flex: 1;
+            background: #1e2430;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            padding: 6px 4px;
+            border-radius: 16px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        .bs-type-btn:hover {
+            background: #2a3242;
+            color: #ffffff;
+        }
+        .bs-type-btn.active {
+            background: #ef4444;
+            color: #ffffff;
+            border-color: #ef4444;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
         }
 
         .bs-header {
@@ -5361,31 +5386,57 @@
     </script>
     <button class="bs-toggle" onclick="toggleBetSlip()">BET SLIP (<span id="bs-count">0</span>)</button>
     <div id="bet-slip-panel" class="bet-slip">
-        <div class="bs-header">
-            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                <div class="bs-title">BET SLIP</div>
-                <div class="bs-bankroll">Bankroll: $<span id="bankroll-amount">1,000,000.00</span></div>
-                <div id="debt-tokens-badge" class="bs-debt-tokens" style="display:none;" title="Crypto Debt Tokens issued for overdraft wagers">
-                    🪙 Debt: -$<span id="debt-tokens-amount">0.00</span>
+        <!-- Header -->
+        <div class="bs-header" style="background:#111418; padding:12px 16px; border-bottom:1px solid var(--border);">
+            <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-family:var(--font-head); font-size:20px; font-weight:900; color:#fff; letter-spacing:1.5px;">BET SLIP</span>
+                    <span class="bs-bankroll">$<span id="bankroll-amount">1,000,000.00</span></span>
+                    <div id="debt-tokens-badge" class="bs-debt-tokens" style="display:none;" title="Crypto Debt Tokens issued for overdraft wagers">
+                        🪙 -$<span id="debt-tokens-amount">0.00</span>
+                    </div>
                 </div>
+                <button class="bs-close-btn" onclick="toggleBetSlip()" title="Close Bet Slip" aria-label="Close" style="font-size:22px;">&times;</button>
             </div>
-            <button class="bs-close-btn" onclick="toggleBetSlip()" title="Close Bet Slip" aria-label="Close">&times;</button>
         </div>
-        <div class="bs-tabs" style="display:flex; align-items:center; justify-content:space-between;">
-            <div style="display:flex; gap:0; flex:1;">
-                <div class="bs-tab active" id="bs-tab-slip" onclick="switchBsTab('slip')">SLIP (<span id="bs-slip-count">0</span>)</div>
-                <div class="bs-tab" id="bs-tab-active" onclick="switchBsTab('active')">ACTIVE (<span id="bs-active-count">0</span>)</div>
+
+        <!-- Primary Mode Tabs (Betslip vs My Bets) -->
+        <div class="bs-tabs" style="display:flex; background:#181c22; border-bottom:1px solid var(--border);">
+            <div class="bs-tab active" id="bs-tab-slip" onclick="switchBsTab('slip')" style="flex:1; text-align:center; padding:10px; font-weight:800; cursor:pointer;">Betslip (<span id="bs-slip-count">0</span>)</div>
+            <div class="bs-tab" id="bs-tab-active" onclick="switchBsTab('active')" style="flex:1; text-align:center; padding:10px; font-weight:800; cursor:pointer;">My Bets (<span id="bs-active-count">0</span>)</div>
+        </div>
+
+        <!-- Bet Type Segmented Control Bar (Straight, Parlay, Teaser, If Bet) -->
+        <div id="bs-bet-type-bar" style="display:flex; background:#0f131a; padding:8px 12px; gap:6px; border-bottom:1px solid var(--border);">
+            <button class="bs-type-btn active" id="btn-type-straight" onclick="switchBetType('straight')">Straight</button>
+            <button class="bs-type-btn" id="btn-type-parlay" onclick="switchBetType('parlay')">Parlay</button>
+            <button class="bs-type-btn" id="btn-type-teaser" onclick="switchBetType('teaser')">Teaser</button>
+            <button class="bs-type-btn" id="btn-type-ifbet" onclick="switchBetType('if_bet')">If Bet</button>
+        </div>
+
+        <!-- Items Container -->
+        <div id="bs-items" class="bs-items" style="flex:1; overflow-y:auto; padding:14px;">
+            <div style="color:var(--muted); font-size:12px; text-align:center; padding:30px 0;">Your bet slip is empty.</div>
+        </div>
+
+        <!-- Active Bets Container -->
+        <div id="bs-active-bets" class="bs-items" style="display:none; flex:1; overflow-y:auto; padding:14px; gap:12px;">
+            <div style="color:var(--muted); font-size:12px; text-align:center; padding:30px 0;">You have no active wagers.</div>
+        </div>
+
+        <!-- Sticky Footer Summary -->
+        <div class="bs-footer" id="bs-footer-slip" style="background:#111418; border-top:1px solid var(--border); padding:14px 16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--muted); margin-bottom:6px;">
+                <span>Free Bet <strong style="color:#fff;">0.00</strong></span>
+                <span>Total Risk: <strong style="color:#fff;" id="bs-total-risk">0.00</strong></span>
+                <span>Potential Win: <strong style="color:var(--win); font-weight:800;" id="bs-potential-win">0.00</strong></span>
             </div>
-            <button class="bs-close-btn" onclick="toggleBetSlip()" title="Close Bet Slip" aria-label="Close" style="margin-right:12px; font-size:22px;">&times;</button>
-        </div>
-        <div id="bs-items" class="bs-items">
-            <div style="color:var(--muted); font-size:12px; text-align:center;">Your bet slip is empty.</div>
-        </div>
-        <div id="bs-active-bets" class="bs-items" style="display:none; gap:12px;">
-            <div style="color:var(--muted); font-size:12px; text-align:center;">You have no active wagers.</div>
-        </div>
-        <div class="bs-footer" id="bs-footer-slip">
-            <button class="bs-place-btn" onclick="placeBets()">PLACE BETS</button>
+            <div style="display:flex; gap:10px; align-items:center; margin-top:8px;">
+                <button onclick="clearBetSlip()" style="background:rgba(255,255,255,0.05); border:1px solid var(--border2); color:var(--muted); padding:10px 14px; border-radius:6px; cursor:pointer; font-size:16px;" title="Clear All Selections">
+                    🗑️
+                </button>
+                <button class="bs-place-btn" id="bs-place-btn-el" onclick="placeBets()" style="flex:1; background:var(--accent); color:#000; border:none; padding:12px; font-family:var(--font-head); font-size:16px; font-weight:900; border-radius:6px; cursor:pointer;">PLACE BET</button>
+            </div>
         </div>
     </div>
     <script>
@@ -5641,6 +5692,115 @@
             return toWin / (100 / Math.abs(us));
         }
 
+        let currentBetType = 'straight';
+        let parlayWager = 0;
+        let parlayToWin = 0;
+        let teaserWager = 0;
+        let teaserToWin = 0;
+        let teaserPoints = 6.0;
+
+        function switchBetType(type) {
+            currentBetType = type;
+            ['straight', 'parlay', 'teaser', 'if_bet'].forEach(t => {
+                const btn = document.getElementById(`btn-type-${t.replace('_', '')}`);
+                if (btn) btn.classList.toggle('active', t === type);
+            });
+            renderBetSlip();
+        }
+
+        function setTeaserPoints(pts) {
+            teaserPoints = parseFloat(pts);
+            renderBetSlip();
+        }
+
+        function updateAllRisk(val) {
+            const riskVal = parseFloat(val) || 0;
+            betSlip.forEach(b => {
+                b.wager = riskVal;
+                b.toWin = calculateToWin(riskVal, b.odds);
+            });
+            renderBetSlip();
+        }
+
+        function updateAllWin(val) {
+            const winVal = parseFloat(val) || 0;
+            betSlip.forEach(b => {
+                b.toWin = winVal;
+                b.wager = calculateStakeFromToWin(winVal, b.odds);
+            });
+            renderBetSlip();
+        }
+
+        function updateParlayWagerFromRisk(val) {
+            parlayWager = parseFloat(val) || 0;
+            const parlayOdds = calculateParlayOdds(betSlip);
+            parlayToWin = calculateToWin(parlayWager, parlayOdds);
+            const winInput = document.getElementById('parlay-win-input');
+            if (winInput && document.activeElement !== winInput) {
+                winInput.value = parlayToWin > 0 ? parlayToWin.toFixed(2) : '';
+            }
+            updateSlipFooterTotals();
+        }
+
+        function updateParlayWagerFromWin(val) {
+            parlayToWin = parseFloat(val) || 0;
+            const parlayOdds = calculateParlayOdds(betSlip);
+            parlayWager = calculateStakeFromToWin(parlayToWin, parlayOdds);
+            const riskInput = document.getElementById('parlay-risk-input');
+            if (riskInput && document.activeElement !== riskInput) {
+                riskInput.value = parlayWager > 0 ? parlayWager.toFixed(2) : '';
+            }
+            updateSlipFooterTotals();
+        }
+
+        function updateTeaserWagerFromRisk(val) {
+            teaserWager = parseFloat(val) || 0;
+            const teaserOdds = getTeaserOdds(betSlip.length, teaserPoints);
+            teaserToWin = calculateToWin(teaserWager, teaserOdds);
+            const winInput = document.getElementById('teaser-win-input');
+            if (winInput && document.activeElement !== winInput) {
+                winInput.value = teaserToWin > 0 ? teaserToWin.toFixed(2) : '';
+            }
+            updateSlipFooterTotals();
+        }
+
+        function updateTeaserWagerFromWin(val) {
+            teaserToWin = parseFloat(val) || 0;
+            const teaserOdds = getTeaserOdds(betSlip.length, teaserPoints);
+            teaserWager = calculateStakeFromToWin(teaserToWin, teaserOdds);
+            const riskInput = document.getElementById('teaser-risk-input');
+            if (riskInput && document.activeElement !== riskInput) {
+                riskInput.value = teaserWager > 0 ? teaserWager.toFixed(2) : '';
+            }
+            updateSlipFooterTotals();
+        }
+
+        function getTeaserOdds(legCount, pts) {
+            if (legCount <= 2) return '-110';
+            if (legCount === 3) return '+160';
+            if (legCount === 4) return '+260';
+            if (legCount === 5) return '+400';
+            return '+600';
+        }
+
+        function calculateParlayOdds(legs) {
+            if (!legs || legs.length < 2) return '+100';
+            let totalDecimal = 1.0;
+            legs.forEach(leg => {
+                const us = parseInt(String(leg.odds).replace('+', ''), 10);
+                let dec = 1.0;
+                if (!isNaN(us)) {
+                    dec = us > 0 ? 1.0 + (us / 100) : 1.0 + (100 / Math.abs(us));
+                }
+                totalDecimal *= dec;
+            });
+            if (totalDecimal >= 2.0) {
+                return '+' + Math.round((totalDecimal - 1.0) * 100);
+            } else {
+                return '-' + Math.round(100 / (totalDecimal - 1.0));
+            }
+        }
+
         function updateWagerFromAmount(id, amount) {
             const bet = betSlip.find(b => b.id === id);
             if (bet) {
@@ -5650,10 +5810,7 @@
                 if (toWinInput && document.activeElement !== toWinInput) {
                     toWinInput.value = bet.toWin > 0 ? bet.toWin.toFixed(2) : '';
                 }
-                const payoutEl = document.getElementById(`payout-${id}`);
-                if (payoutEl) {
-                    payoutEl.innerText = (bet.wager + bet.toWin).toFixed(2);
-                }
+                updateSlipFooterTotals();
             }
         }
 
@@ -5666,10 +5823,7 @@
                 if (wagerInput && document.activeElement !== wagerInput) {
                     wagerInput.value = bet.wager > 0 ? bet.wager.toFixed(2) : '';
                 }
-                const payoutEl = document.getElementById(`payout-${id}`);
-                if (payoutEl) {
-                    payoutEl.innerText = (bet.wager + bet.toWin).toFixed(2);
-                }
+                updateSlipFooterTotals();
             }
         }
 
@@ -5683,73 +5837,60 @@
             renderBetSlip();
         }
 
-        function renderBetSlip() {
-            const container = document.getElementById('bs-items');
-            document.getElementById('bs-count').innerText = betSlip.length;
-            const slipCountEl = document.getElementById('bs-slip-count');
-            if (slipCountEl) slipCountEl.innerText = betSlip.length;
-
-            if (betSlip.length === 0) {
-                container.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:20px 0;">Your bet slip is empty.</div>';
-                return;
+        function updateSlipFooterTotals() {
+            let totalRisk = 0;
+            let totalWin = 0;
+            if (currentBetType === 'straight') {
+                totalRisk = betSlip.reduce((sum, b) => sum + (parseFloat(b.wager) || 0), 0);
+                totalWin = betSlip.reduce((sum, b) => sum + (parseFloat(b.toWin) || 0), 0);
+            } else if (currentBetType === 'parlay') {
+                totalRisk = parlayWager;
+                totalWin = parlayToWin;
+            } else if (currentBetType === 'teaser') {
+                totalRisk = teaserWager;
+                totalWin = teaserToWin;
+            } else if (currentBetType === 'if_bet') {
+                totalRisk = betSlip.length > 0 ? (parseFloat(betSlip[0].wager) || 0) : 0;
+                totalWin = betSlip.reduce((sum, b) => sum + (parseFloat(b.toWin) || 0), 0);
             }
+            const rEl = document.getElementById('bs-total-risk');
+            const wEl = document.getElementById('bs-potential-win');
+            if (rEl) rEl.innerText = '$' + totalRisk.toFixed(2);
+            if (wEl) wEl.innerText = '$' + totalWin.toFixed(2);
 
-            container.innerHTML = betSlip.map(bet => {
-                const teamLogos = getTeamLogosForEvent(bet.matchup || bet.team, bet.team);
-                return `
-                <div class="bs-item" style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:12px; font-family:var(--font-mono); box-shadow:0 4px 12px rgba(0,0,0,0.3);">
-                    <div class="bs-item-head" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:8px;">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            ${teamLogos.awayLogo}
-                            <span style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">${bet.matchup || bet.team}</span>
-                            ${teamLogos.homeLogo}
-                        </div>
-                        <button class="bs-remove" onclick="removeFromBetSlip(${bet.id})" style="background:transparent; border:none; color:var(--muted); font-size:18px; cursor:pointer;" title="Remove Leg">×</button>
-                    </div>
-
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                        <span style="font-size:15px; font-weight:900; color:#f59e0b; letter-spacing:0.2px;">${bet.team}</span>
-                        <span class="odds-pill" style="background:var(--surface2); border:1px solid var(--border); color:var(--accent); font-weight:800; padding:2px 8px; border-radius:4px; font-size:12px;">${bet.odds}</span>
-                    </div>
-
-                    <div style="font-size:10px; color:var(--cyan); font-weight:700; margin-bottom:10px;">${bet.type} · <span style="color:#fff;">BetOnline</span></div>
-
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; background:rgba(0,0,0,0.35); padding:10px; border-radius:8px; border:1px solid var(--border);">
-                        <div>
-                            <label style="font-size:9px; color:var(--muted); text-transform:uppercase; display:block; margin-bottom:4px; font-weight:700;">Wager Risk ($)</label>
-                            <div style="display:flex; align-items:center; gap:4px;">
-                                <input type="number" id="wager-input-${bet.id}" class="bs-wager-input" placeholder="0.00" value="${bet.wager > 0 ? bet.wager.toFixed(2) : ''}" oninput="updateWagerFromAmount(${bet.id}, this.value)" style="width:100%; background:var(--bg); border:1px solid var(--border); color:#fff; padding:6px; border-radius:4px; font-weight:800; font-family:var(--font-mono); font-size:12px;">
-                                <button class="bs-max-btn" onclick="setMaxWager(${bet.id})" style="background:rgba(6, 182, 212, 0.2); border:1px solid var(--cyan); color:var(--cyan); padding:5px 6px; border-radius:4px; font-size:9px; font-weight:900; cursor:pointer;" title="Fill Max Bankroll">MAX</button>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label style="font-size:9px; color:var(--muted); text-transform:uppercase; display:block; margin-bottom:4px; font-weight:700;">To Win ($)</label>
-                            <input type="number" id="towin-input-${bet.id}" class="bs-wager-input" placeholder="0.00" value="${bet.toWin > 0 ? bet.toWin.toFixed(2) : ''}" oninput="updateWagerFromToWin(${bet.id}, this.value)" style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--win); padding:6px; border-radius:4px; font-weight:800; font-family:var(--font-mono); font-size:12px;">
-                        </div>
-                    </div>
-
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:11px; color:var(--muted);">
-                        <span>Total Payout:</span>
-                        <span style="color:#fff; font-weight:800; font-size:12px;">$<span id="payout-${bet.id}">${((bet.wager || 0) + (bet.toWin || 0)).toFixed(2)}</span></span>
-                    </div>
-                </div>
-                `;
-            }).join('');
+            const placeBtn = document.getElementById('bs-place-btn-el');
+            if (placeBtn) {
+                if (currentBetType === 'straight') placeBtn.innerText = 'PLACE STRAIGHT BETS';
+                else if (currentBetType === 'parlay') placeBtn.innerText = `PLACE PARLAY (${calculateParlayOdds(betSlip)})`;
+                else if (currentBetType === 'teaser') placeBtn.innerText = `PLACE TEASER (${getTeaserOdds(betSlip.length, teaserPoints)})`;
+                else if (currentBetType === 'if_bet') placeBtn.innerText = 'PLACE IF BET';
+            }
         }
 
-        function placeBets() {
-            let totalWager = betSlip.reduce((sum, bet) => sum + (parseFloat(bet.wager) || 0), 0);
-            if (totalWager <= 0) return alert('Please enter wager amounts.');
+        function clearBetSlip() {
+            betSlip = [];
+            parlayWager = 0;
+            parlayToWin = 0;
+            teaserWager = 0;
+            teaserToWin = 0;
+            renderBetSlip();
+        }
 
-            if (totalWager > bankroll) {
-                const deficit = totalWager - bankroll;
+        function executePlacedWagers(wagerList) {
+            let totalRisk = wagerList.reduce((sum, w) => sum + (parseFloat(w.stake || w.wager) || 0), 0);
+            if (totalRisk <= 0) {
+                alert('Please enter a valid wager amount.');
+                return false;
+            }
+
+            if (totalRisk > bankroll) {
+                const deficit = totalRisk - bankroll;
                 const confirmDebt = confirm(
                     `🪙 INSUFFICIENT BANKROLL!\n\n` +
-                    `Your wager total ($${totalWager.toFixed(2)}) exceeds your available bankroll ($${bankroll.toFixed(2)}).\n\n` +
+                    `Your wager total ($${totalRisk.toFixed(2)}) exceeds your available bankroll ($${bankroll.toFixed(2)}).\n\n` +
                     `Would you like to issue $${deficit.toFixed(2)} in Crypto Debt Tokens (DEBT) to cover the overdraft and place this bet?`
                 );
-                if (!confirmDebt) return;
+                if (!confirmDebt) return false;
 
                 debtTokens += deficit;
                 bankroll = 0.00;
@@ -5758,74 +5899,387 @@
                 localStorage.setItem('bankroll', bankroll);
                 updateBankrollDisplay();
             } else {
-                bankroll -= totalWager;
+                bankroll -= totalRisk;
                 localStorage.setItem('destiny_bankroll', bankroll);
                 localStorage.setItem('bankroll', bankroll);
                 updateBankrollDisplay();
             }
 
-            // Log each placed bet into destiny_game_wagers!
             const KEY = 'destiny_game_wagers';
             let wagers = [];
             try { wagers = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { wagers = []; }
             
-            betSlip.forEach(bet => {
-                let matchupName = 'Unknown Game';
-                for (const lgId in leagueData) {
-                    const events = leagueData[lgId]?.events || [];
-                    const found = events.find(ev => {
-                        const comp = ev.competitions?.[0];
-                        return comp?.competitors?.some(c => c.team?.name === bet.team || c.team?.abbreviation === bet.team || c.team?.displayName === bet.team);
-                    });
-                    if (found) {
-                        const comp = found.competitions[0];
-                        const away = comp.competitors.find(c => c.homeAway === 'away');
-                        const home = comp.competitors.find(c => c.homeAway === 'home');
-                        matchupName = `${away.team?.abbreviation || 'AWAY'} @ ${home.team?.abbreviation || 'HOME'}`;
-                        break;
-                    }
-                }
-                
-                if (matchupName === 'Unknown Game' && (bet.team.includes('Thunder') || bet.team.includes('OKC') || bet.team.includes('Spurs') || bet.team.includes('SAS'))) {
-                    matchupName = 'OKC @ SAS';
-                }
-
-                const cleanOddsStr = (bet.odds > 0 ? '+' : '') + bet.odds;
-                const cleanType = bet.type.split(' ')[0];
-                const cleanDetail = bet.type.includes('(') ? bet.type.match(/\(([^)]+)\)/)?.[1] || '' : cleanOddsStr;
-                const displayTarget = `${cleanType} — ${bet.team} ${cleanDetail}`;
-
-                wagers.push({
-                    id: 'placed-' + bet.id + '-' + Date.now(),
-                    matchup: matchupName,
-                    target: displayTarget,
-                    type: cleanType,
-                    detail: cleanDetail,
-                    wager: bet.wager,
-                    stake: bet.wager,
-                    placedOdds: cleanOddsStr,
-                    currentOdds: cleanOddsStr,
-                    sportsbook: 'FanDuel',
-                    status: 'PENDING',
-                    history: [cleanOddsStr, cleanOddsStr, cleanOddsStr],
-                    betType: 'GAME',
-                    toWin: calculatePayout(bet.wager, bet.odds) - bet.wager
-                });
-            });
-            
+            wagers.push(...wagerList);
             localStorage.setItem(KEY, JSON.stringify(wagers));
 
-            betSlip = [];
-            renderBetSlip();
             updateAllCardBetsCounts();
             updateActiveBetsCountGlobal();
             if (activeBsTab === 'active') {
                 renderActiveBetsInPanel();
             }
-            alert('Bets placed successfully!');
-            const panel = document.getElementById('bet-slip-panel');
-            if (panel && panel.classList.contains('open')) {
-                panel.classList.remove('open');
+            return true;
+        }
+
+        function placeSingleBet(id) {
+            const bet = betSlip.find(b => b.id === id);
+            if (!bet || !bet.wager || bet.wager <= 0) return alert('Please enter a wager amount for this selection.');
+            
+            let matchupName = 'Unknown Game';
+            for (const lgId in leagueData) {
+                const events = leagueData[lgId]?.events || [];
+                const found = events.find(ev => {
+                    const comp = ev.competitions?.[0];
+                    return comp?.competitors?.some(c => c.team?.name === bet.team || c.team?.abbreviation === bet.team || c.team?.displayName === bet.team);
+                });
+                if (found) {
+                    const comp = found.competitions[0];
+                    const away = comp.competitors.find(c => c.homeAway === 'away');
+                    const home = comp.competitors.find(c => c.homeAway === 'home');
+                    matchupName = `${away.team?.abbreviation || 'AWAY'} @ ${home.team?.abbreviation || 'HOME'}`;
+                    break;
+                }
+            }
+            
+            const cleanOddsStr = (bet.odds > 0 ? '+' : '') + bet.odds;
+            const cleanType = bet.type.split(' ')[0];
+            const cleanDetail = bet.type.includes('(') ? bet.type.match(/\(([^)]+)\)/)?.[1] || '' : cleanOddsStr;
+            const displayTarget = `${cleanType} — ${bet.team} ${cleanDetail}`;
+
+            const wagerObj = {
+                id: 'placed-' + bet.id + '-' + Date.now(),
+                matchup: matchupName,
+                target: displayTarget,
+                type: cleanType,
+                detail: cleanDetail,
+                wager: bet.wager,
+                stake: bet.wager,
+                placedOdds: cleanOddsStr,
+                currentOdds: cleanOddsStr,
+                sportsbook: 'FanDuel',
+                status: 'PENDING',
+                history: [cleanOddsStr, cleanOddsStr, cleanOddsStr],
+                betType: 'GAME',
+                toWin: parseFloat(bet.toWin) || (calculatePayout(bet.wager, bet.odds) - bet.wager)
+            };
+
+            if (executePlacedWagers([wagerObj])) {
+                removeFromBetSlip(id);
+                alert('Bet placed successfully!');
+            }
+        }
+
+        function renderBetSlip() {
+            const container = document.getElementById('bs-items');
+            document.getElementById('bs-count').innerText = betSlip.length;
+            const slipCountEl = document.getElementById('bs-slip-count');
+            if (slipCountEl) slipCountEl.innerText = betSlip.length;
+
+            if (betSlip.length === 0) {
+                container.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:30px 0;">Your bet slip is empty.</div>';
+                updateSlipFooterTotals();
+                return;
+            }
+
+            let html = '';
+
+            // Render Global Inputs Bar for Straight Mode when 2+ selections exist
+            if (currentBetType === 'straight' && betSlip.length > 1) {
+                html += `
+                <div class="bs-global-inputs" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; background:#181c22; padding:10px; border-radius:8px; border:1px solid var(--border);">
+                    <div>
+                        <label style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; display:block; margin-bottom:4px;">Risk All Selections</label>
+                        <div style="display:flex; align-items:center; background:#0f131a; border:1px solid var(--border2); border-radius:6px; padding:0 8px;">
+                            <span style="color:var(--muted); font-size:12px; font-weight:700;">$</span>
+                            <input type="number" id="risk-all-input" placeholder="0.00" oninput="updateAllRisk(this.value)" style="width:100%; background:none; border:none; color:#fff; padding:6px 4px; font-weight:800; font-family:var(--font-mono); font-size:12px; outline:none;">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; display:block; margin-bottom:4px;">Win All Selections</label>
+                        <div style="display:flex; align-items:center; background:#0f131a; border:1px solid var(--border2); border-radius:6px; padding:0 8px;">
+                            <span style="color:var(--muted); font-size:12px; font-weight:700;">$</span>
+                            <input type="number" id="win-all-input" placeholder="0.00" oninput="updateAllWin(this.value)" style="width:100%; background:none; border:none; color:var(--win); padding:6px 4px; font-weight:800; font-family:var(--font-mono); font-size:12px; outline:none;">
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+
+            if (currentBetType === 'straight') {
+                html += betSlip.map(bet => {
+                    return `
+                    <div class="bs-item" style="background:#ffffff; color:#0f172a; border-radius:8px; padding:12px 14px; margin-bottom:12px; font-family:var(--font-mono); box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+                        <!-- Header: Close, Title, American Odds -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <button onclick="removeFromBetSlip(${bet.id})" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;" title="Remove Selection">✕</button>
+                                <span style="font-size:14px; font-weight:900; color:#0f172a; text-transform:uppercase; letter-spacing:0.5px;">${bet.team}</span>
+                            </div>
+                            <span style="font-size:14px; font-weight:900; color:#0f172a;">${bet.odds}</span>
+                        </div>
+
+                        <!-- Subheader -->
+                        <div style="font-size:11px; color:#64748b; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
+                            <div>
+                                <span style="font-weight:700; color:#334155;">${bet.type || 'Side'}</span>
+                                <span style="margin:0 4px;">·</span>
+                                <span>${bet.matchup || bet.team}</span>
+                            </div>
+                            <span style="color:#ef4444; font-size:9px; font-weight:800; display:inline-flex; align-items:center; gap:3px;">🔴 LIVE</span>
+                        </div>
+
+                        <!-- Risk / Win Inputs Grid -->
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                            <div style="border:1px solid #cbd5e1; border-radius:6px; padding:4px 8px; background:#f8fafc;">
+                                <label style="font-size:9px; color:#64748b; font-weight:700; display:block; text-transform:uppercase;">Risk</label>
+                                <div style="display:flex; align-items:center;">
+                                    <span style="color:#64748b; font-weight:700; font-size:12px;">$</span>
+                                    <input type="number" id="wager-input-${bet.id}" placeholder="0.00" value="${bet.wager > 0 ? bet.wager.toFixed(2) : ''}" oninput="updateWagerFromAmount(${bet.id}, this.value)" style="width:100%; background:none; border:none; color:#0f172a; font-weight:800; font-family:var(--font-mono); font-size:13px; outline:none; padding:2px;">
+                                </div>
+                            </div>
+                            <div style="border:1px solid #cbd5e1; border-radius:6px; padding:4px 8px; background:#f8fafc;">
+                                <label style="font-size:9px; color:#64748b; font-weight:700; display:block; text-transform:uppercase;">Win</label>
+                                <div style="display:flex; align-items:center;">
+                                    <span style="color:#64748b; font-weight:700; font-size:12px;">$</span>
+                                    <input type="number" id="towin-input-${bet.id}" placeholder="0.00" value="${bet.toWin > 0 ? bet.toWin.toFixed(2) : ''}" oninput="updateWagerFromToWin(${bet.id}, this.value)" style="width:100%; background:none; border:none; color:#10b981; font-weight:800; font-family:var(--font-mono); font-size:13px; outline:none; padding:2px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Links -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;">
+                            <button onclick="setMaxWager(${bet.id})" style="background:none; border:none; color:#0f172a; text-decoration:underline; font-weight:800; cursor:pointer; font-size:11px;">Risk Max Limit</button>
+                            <button onclick="placeSingleBet(${bet.id})" style="background:#e2e8f0; border:none; color:#475569; font-weight:800; padding:6px 12px; border-radius:4px; font-size:11px; cursor:pointer;">Place this Bet</button>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            } else if (currentBetType === 'parlay') {
+                html += betSlip.map(bet => `
+                <div style="background:#ffffff; color:#0f172a; border-radius:8px; padding:10px 14px; margin-bottom:8px; font-family:var(--font-mono);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button onclick="removeFromBetSlip(${bet.id})" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;">✕</button>
+                            <span style="font-weight:900; font-size:13px; color:#0f172a;">${bet.team}</span>
+                        </div>
+                        <span style="font-weight:800; font-size:13px; color:#0f172a;">${bet.odds}</span>
+                    </div>
+                    <div style="font-size:10px; color:#64748b; margin-top:2px; padding-left:24px;">${bet.type} · ${bet.matchup}</div>
+                </div>
+                `).join('');
+
+                const combinedOdds = calculateParlayOdds(betSlip);
+                html += `
+                <div style="background:#181c22; border:1px solid var(--accent); border-radius:8px; padding:12px; margin-top:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-weight:800; font-size:12px; color:#fff;">PARLAY WAGER (${betSlip.length} LEGS)</span>
+                        <span style="background:var(--accent); color:#000; font-weight:900; padding:3px 8px; border-radius:4px; font-size:12px;">${combinedOdds}</span>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <div style="background:#0f131a; border:1px solid var(--border2); border-radius:6px; padding:6px 10px;">
+                            <label style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; display:block;">Parlay Risk ($)</label>
+                            <input type="number" id="parlay-risk-input" placeholder="0.00" value="${parlayWager > 0 ? parlayWager.toFixed(2) : ''}" oninput="updateParlayWagerFromRisk(this.value)" style="width:100%; background:none; border:none; color:#fff; font-weight:800; font-size:13px; outline:none; font-family:var(--font-mono);">
+                        </div>
+                        <div style="background:#0f131a; border:1px solid var(--border2); border-radius:6px; padding:6px 10px;">
+                            <label style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; display:block;">Parlay Win ($)</label>
+                            <input type="number" id="parlay-win-input" placeholder="0.00" value="${parlayToWin > 0 ? parlayToWin.toFixed(2) : ''}" oninput="updateParlayWagerFromWin(this.value)" style="width:100%; background:none; border:none; color:var(--win); font-weight:800; font-size:13px; outline:none; font-family:var(--font-mono);">
+                        </div>
+                    </div>
+                </div>
+                `;
+            } else if (currentBetType === 'teaser') {
+                const teaserOdds = getTeaserOdds(betSlip.length, teaserPoints);
+                html += `
+                <div style="display:flex; gap:6px; margin-bottom:12px; background:#181c22; padding:6px; border-radius:8px;">
+                    <button onclick="setTeaserPoints(6.0)" class="bs-type-btn ${teaserPoints === 6.0 ? 'active' : ''}">+6.0 Pts</button>
+                    <button onclick="setTeaserPoints(6.5)" class="bs-type-btn ${teaserPoints === 6.5 ? 'active' : ''}">+6.5 Pts</button>
+                    <button onclick="setTeaserPoints(7.0)" class="bs-type-btn ${teaserPoints === 7.0 ? 'active' : ''}">+7.0 Pts</button>
+                </div>
+                `;
+                html += betSlip.map(bet => `
+                <div style="background:#ffffff; color:#0f172a; border-radius:8px; padding:10px 14px; margin-bottom:8px; font-family:var(--font-mono);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button onclick="removeFromBetSlip(${bet.id})" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;">✕</button>
+                            <span style="font-weight:900; font-size:13px; color:#0f172a;">${bet.team} (+${teaserPoints} pts Teaser)</span>
+                        </div>
+                    </div>
+                    <div style="font-size:10px; color:#64748b; margin-top:2px; padding-left:24px;">${bet.type} · ${bet.matchup}</div>
+                </div>
+                `).join('');
+
+                html += `
+                <div style="background:#181c22; border:1px solid var(--accent2); border-radius:8px; padding:12px; margin-top:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-weight:800; font-size:12px; color:#fff;">TEASER WAGER (${betSlip.length} LEGS)</span>
+                        <span style="background:var(--accent2); color:#fff; font-weight:900; padding:3px 8px; border-radius:4px; font-size:12px;">${teaserOdds}</span>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <div style="background:#0f131a; border:1px solid var(--border2); border-radius:6px; padding:6px 10px;">
+                            <label style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; display:block;">Teaser Risk ($)</label>
+                            <input type="number" id="teaser-risk-input" placeholder="0.00" value="${teaserWager > 0 ? teaserWager.toFixed(2) : ''}" oninput="updateTeaserWagerFromRisk(this.value)" style="width:100%; background:none; border:none; color:#fff; font-weight:800; font-size:13px; outline:none; font-family:var(--font-mono);">
+                        </div>
+                        <div style="background:#0f131a; border:1px solid var(--border2); border-radius:6px; padding:6px 10px;">
+                            <label style="font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; display:block;">Teaser Win ($)</label>
+                            <input type="number" id="teaser-win-input" placeholder="0.00" value="${teaserToWin > 0 ? teaserToWin.toFixed(2) : ''}" oninput="updateTeaserWagerFromWin(this.value)" style="width:100%; background:none; border:none; color:var(--win); font-weight:800; font-size:13px; outline:none; font-family:var(--font-mono);">
+                        </div>
+                    </div>
+                </div>
+                `;
+            } else if (currentBetType === 'if_bet') {
+                html += betSlip.map((bet, idx) => `
+                <div style="background:#ffffff; color:#0f172a; border-radius:8px; padding:10px 14px; margin-bottom:8px; font-family:var(--font-mono);">
+                    <div style="font-size:9px; font-weight:900; color:#3b82f6; margin-bottom:4px; text-transform:uppercase;">${idx === 0 ? 'LEG 1 (PRIMARY SELECTION)' : `LEG ${idx + 1} (IF LEG ${idx} WINS)`}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button onclick="removeFromBetSlip(${bet.id})" style="background:none; border:none; color:#64748b; font-size:16px; font-weight:900; cursor:pointer;">✕</button>
+                            <span style="font-weight:900; font-size:13px; color:#0f172a;">${bet.team}</span>
+                        </div>
+                        <span style="font-weight:800; font-size:13px; color:#0f172a;">${bet.odds}</span>
+                    </div>
+                    <div style="font-size:10px; color:#64748b; margin-top:2px; padding-left:24px;">${bet.type} · ${bet.matchup}</div>
+                </div>
+                `).join('');
+            }
+
+            container.innerHTML = html;
+            updateSlipFooterTotals();
+        }
+
+        function placeBets() {
+            if (betSlip.length === 0) return alert('Your bet slip is empty.');
+            let wagersToPlace = [];
+
+            if (currentBetType === 'straight') {
+                const invalidBet = betSlip.find(b => !b.wager || b.wager <= 0);
+                if (invalidBet) return alert('Please enter valid wager amounts for all selections.');
+
+                betSlip.forEach(bet => {
+                    let matchupName = 'Unknown Game';
+                    for (const lgId in leagueData) {
+                        const events = leagueData[lgId]?.events || [];
+                        const found = events.find(ev => {
+                            const comp = ev.competitions?.[0];
+                            return comp?.competitors?.some(c => c.team?.name === bet.team || c.team?.abbreviation === bet.team || c.team?.displayName === bet.team);
+                        });
+                        if (found) {
+                            const comp = found.competitions[0];
+                            const away = comp.competitors.find(c => c.homeAway === 'away');
+                            const home = comp.competitors.find(c => c.homeAway === 'home');
+                            matchupName = `${away.team?.abbreviation || 'AWAY'} @ ${home.team?.abbreviation || 'HOME'}`;
+                            break;
+                        }
+                    }
+
+                    if (matchupName === 'Unknown Game' && (bet.team.includes('Thunder') || bet.team.includes('OKC') || bet.team.includes('Spurs') || bet.team.includes('SAS'))) {
+                        matchupName = 'OKC @ SAS';
+                    }
+
+                    const cleanOddsStr = (bet.odds > 0 ? '+' : '') + bet.odds;
+                    const cleanType = bet.type.split(' ')[0];
+                    const cleanDetail = bet.type.includes('(') ? bet.type.match(/\(([^)]+)\)/)?.[1] || '' : cleanOddsStr;
+                    const displayTarget = `${cleanType} — ${bet.team} ${cleanDetail}`;
+
+                    wagersToPlace.push({
+                        id: 'placed-' + bet.id + '-' + Date.now(),
+                        matchup: matchupName,
+                        target: displayTarget,
+                        type: cleanType,
+                        detail: cleanDetail,
+                        wager: bet.wager,
+                        stake: bet.wager,
+                        placedOdds: cleanOddsStr,
+                        currentOdds: cleanOddsStr,
+                        sportsbook: 'FanDuel',
+                        status: 'PENDING',
+                        history: [cleanOddsStr, cleanOddsStr, cleanOddsStr],
+                        betType: 'GAME',
+                        toWin: parseFloat(bet.toWin) || (calculatePayout(bet.wager, bet.odds) - bet.wager)
+                    });
+                });
+            } else if (currentBetType === 'parlay') {
+                if (betSlip.length < 2) return alert('Parlays require at least 2 selections.');
+                if (parlayWager <= 0) return alert('Please enter a wager amount for the parlay.');
+
+                const combinedOdds = calculateParlayOdds(betSlip);
+                const legsDetail = betSlip.map(b => `${b.team} (${b.odds})`).join(' + ');
+
+                wagersToPlace.push({
+                    id: 'placed-parlay-' + Date.now(),
+                    matchup: `${betSlip.length}-Leg Parlay`,
+                    target: `Parlay: ${legsDetail}`,
+                    type: 'PARLAY',
+                    detail: legsDetail,
+                    wager: parlayWager,
+                    stake: parlayWager,
+                    placedOdds: combinedOdds,
+                    currentOdds: combinedOdds,
+                    sportsbook: 'FanDuel',
+                    status: 'PENDING',
+                    history: [combinedOdds, combinedOdds, combinedOdds],
+                    betType: 'PARLAY',
+                    toWin: parlayToWin
+                });
+            } else if (currentBetType === 'teaser') {
+                if (betSlip.length < 2) return alert('Teasers require at least 2 selections.');
+                if (teaserWager <= 0) return alert('Please enter a wager amount for the teaser.');
+
+                const teaserOdds = getTeaserOdds(betSlip.length, teaserPoints);
+                const legsDetail = betSlip.map(b => `${b.team} (+${teaserPoints} pts)`).join(' + ');
+
+                wagersToPlace.push({
+                    id: 'placed-teaser-' + Date.now(),
+                    matchup: `${betSlip.length}-Leg Teaser (+${teaserPoints} pts)`,
+                    target: `Teaser: ${legsDetail}`,
+                    type: 'TEASER',
+                    detail: legsDetail,
+                    wager: teaserWager,
+                    stake: teaserWager,
+                    placedOdds: teaserOdds,
+                    currentOdds: teaserOdds,
+                    sportsbook: 'FanDuel',
+                    status: 'PENDING',
+                    history: [teaserOdds, teaserOdds, teaserOdds],
+                    betType: 'TEASER',
+                    toWin: teaserToWin
+                });
+            } else if (currentBetType === 'if_bet') {
+                if (betSlip.length < 2) return alert('If Bets require at least 2 selections in sequence.');
+                const leg1Risk = parseFloat(betSlip[0].wager) || 0;
+                if (leg1Risk <= 0) return alert('Please enter a wager amount for Leg 1 (Primary Selection).');
+
+                const totalWin = betSlip.reduce((sum, b) => sum + (parseFloat(b.toWin) || 0), 0);
+                const sequenceDetail = betSlip.map((b, i) => `L${i+1}: ${b.team} (${b.odds})`).join(' ➔ ');
+
+                wagersToPlace.push({
+                    id: 'placed-ifbet-' + Date.now(),
+                    matchup: `${betSlip.length}-Leg If Bet Sequence`,
+                    target: `If Bet: ${sequenceDetail}`,
+                    type: 'IF_BET',
+                    detail: sequenceDetail,
+                    wager: leg1Risk,
+                    stake: leg1Risk,
+                    placedOdds: betSlip[0].odds,
+                    currentOdds: betSlip[0].odds,
+                    sportsbook: 'FanDuel',
+                    status: 'PENDING',
+                    history: [betSlip[0].odds, betSlip[0].odds, betSlip[0].odds],
+                    betType: 'IF_BET',
+                    toWin: totalWin
+                });
+            }
+
+            if (executePlacedWagers(wagersToPlace)) {
+                betSlip = [];
+                parlayWager = 0;
+                parlayToWin = 0;
+                teaserWager = 0;
+                teaserToWin = 0;
+                renderBetSlip();
+                alert('Bets placed successfully!');
+                const panel = document.getElementById('bet-slip-panel');
+                if (panel && panel.classList.contains('open')) {
+                    panel.classList.remove('open');
+                }
             }
         }
         window.addToBetSlip = addToBetSlip;
