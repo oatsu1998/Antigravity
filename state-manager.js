@@ -156,6 +156,36 @@
                         legs: [
                             { matchup: 'FRESNO STATE at USC', event: 'FRESNO STATE at USC', awayTag: 'FRESNO ST', homeTag: 'USC', selection: 'Fresno St Team Total Over 9.5', odds: '-120', status: 'LOST' }
                         ]
+                    },
+                    {
+                        id: 'ticket-994662668',
+                        ticketNumber: '994662668',
+                        event: 'NE Patriots vs SEA Seahawks',
+                        matchup: 'NE @ SEA',
+                        target: '2-Leg Parlay — Patriots +3 (-113) & Over 44.5 (-110)',
+                        selection: 'NE Patriots +3 (-113) / Over 44.5 (-110)',
+                        type: 'Parlay',
+                        betType: 'PARLAY',
+                        side: 'Patriots +3 / Over 44.5',
+                        sportsbook: 'BetOnline',
+                        bookmaker: 'BetOnline',
+                        stake: 10.00,
+                        wager: 10.00,
+                        toWin: 61.70,
+                        placedOdds: '+617',
+                        odds: '+617',
+                        currentOdds: '+617',
+                        status: 'PENDING',
+                        isPregame: true,
+                        pregame: true,
+                        acceptedDate: '09/09/2026 08:20:00 PM (EST)',
+                        timestamp: '2026-09-09T20:20:00.000Z',
+                        description: 'Football - NFL - New England Patriots vs Seattle Seahawks - Parlay | 451 New England Patriots +3 -113 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending Week 1 Football - NFL - New England Patriots vs Seattle Seahawks - Parlay | 451 New England Patriots/Seattle Seahawks over 44½ -110 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending [PREGAME]',
+                        history: ['+617', '+617', '+617'],
+                        legs: [
+                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: '451 New England Patriots +3 (-113)', odds: '-113', status: 'PENDING', isPregame: true },
+                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: '451 NE Patriots / SEA Seahawks Over 44.5 (-110)', odds: '-110', status: 'PENDING', isPregame: true }
+                        ]
                     }
                 ];
 
