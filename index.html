@@ -5514,24 +5514,74 @@
         let activeBsTab = 'slip';
 
         function ensureDefaultTicketsLoaded() {
+            if (window.DestinyState && window.DestinyState.getWagers) {
+                window.DestinyState.getWagers();
+                return;
+            }
             const KEY = 'destiny_game_wagers';
             let wagers = [];
             try { wagers = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { wagers = []; }
             
-            const ticket994662668Exists = wagers.some(w => 
-                (w.ticketNumber && w.ticketNumber.includes('994662668')) || 
-                (w.id && w.id.includes('994662668')) ||
-                (w.target && w.target.includes('994662668'))
-            );
-
-            if (!ticket994662668Exists) {
-                wagers.unshift({
-                    id: 'ticket-994662668',
-                    ticketNumber: '994662668',
+            const defaults = [
+                {
+                    id: 'ticket-994692629',
+                    ticketNumber: '994692629',
                     event: 'NE Patriots vs SEA Seahawks',
                     matchup: 'NE Patriots vs SEA Seahawks',
-                    target: '2-Leg Parlay — Patriots +3 (-113) & Over 44.5 (-110)',
-                    selection: 'NE Patriots +3 (-113) / Over 44.5 (-110)',
+                    target: 'Live — Seahawks +2.5 [3rd Quarter]',
+                    selection: 'PATRIOTS at SEAHAWKS - Side [3rd Quarter] - SEAHAWKS +2.5',
+                    type: 'Live',
+                    side: 'Seahawks +2.5 [3rd Qtr]',
+                    sportsbook: 'BetOnline',
+                    bookmaker: 'BetOnline',
+                    stake: 20.00,
+                    wager: 20.00,
+                    toWin: 20.00,
+                    placedOdds: '+100',
+                    odds: '+100',
+                    currentOdds: '+100',
+                    status: 'PENDING',
+                    acceptedDate: '09/10/2026 08:20:00 PM (EST)',
+                    timestamp: '2026-09-10T20:20:00.000Z',
+                    description: 'PATRIOTS at SEAHAWKS - Side [3rd Quarter] - SEAHAWKS +2.5',
+                    legs: [
+                        { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: 'PATRIOTS at SEAHAWKS - Side [3rd Quarter] - SEAHAWKS +2.5', odds: '+100', status: 'PENDING' }
+                    ]
+                },
+                {
+                    id: 'ticket-994662813',
+                    ticketNumber: '994662813',
+                    event: 'NE Patriots vs SEA Seahawks / SF 49ers vs LA Rams',
+                    matchup: 'Multi-Matchup Teaser (3 Legs)',
+                    target: 'Teaser (3 Teams) — Patriots +9, Over 38.5 & 49ers +9.5',
+                    selection: 'NE Patriots +9 / Over 38.5 / SF 49ers +9.5',
+                    type: 'Teaser',
+                    side: 'Patriots +9 / Over 38.5 / 49ers +9.5',
+                    sportsbook: 'BetOnline',
+                    bookmaker: 'BetOnline',
+                    stake: 25.00,
+                    wager: 25.00,
+                    toWin: 38.83,
+                    placedOdds: '+155',
+                    odds: '+155',
+                    currentOdds: '+155',
+                    status: 'PENDING',
+                    acceptedDate: '09/09/2026 08:20:00 PM (EST)',
+                    timestamp: '2026-09-09T20:20:00.000Z',
+                    description: 'Football - NFL - New England Patriots vs Seattle Seahawks - Teaser | 451 New England Patriots +9 -113 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending Week 1 Football - NFL - New England Patriots vs Seattle Seahawks - Teaser | 451 New England Patriots/Seattle Seahawks over 38½ -110 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending Week 1 Football - NFL - San Francisco 49ers vs Los Angeles Rams - Teaser | 453 San Francisco 49ers +9½ -102 for GAME | 09/10/2026 08:35:00 PM (EST) | Pending Week 1 - Melbourne Cricket Ground, Australia',
+                    legs: [
+                        { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: '451 New England Patriots +9 (-113)', odds: '-113', status: 'PENDING', isPregame: true },
+                        { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: '451 NE Patriots / SEA Seahawks Over 38.5 (-110)', odds: '-110', status: 'PENDING', isPregame: true },
+                        { matchup: 'SF 49ers vs LA Rams', event: 'SF 49ers vs LA Rams', awayTag: 'SF', homeTag: 'LAR', selection: '453 San Francisco 49ers +9.5 (-102)', odds: '-102', status: 'PENDING' }
+                    ]
+                },
+                {
+                    id: 'ticket-994662668',
+                    ticketNumber: '994662668',
+                    event: 'NE Patriots vs SEA Seahawks / SF 49ers vs LA Rams',
+                    matchup: 'Multi-Matchup Parlay (3 Legs)',
+                    target: '3-Leg Parlay — Patriots +3 (-113), Over 44.5 (-110) & 49ers +3.5 (-102)',
+                    selection: 'NE Patriots +3 (-113) / Over 44.5 (-110) / SF 49ers +3.5 (-102)',
                     type: 'Parlay',
                     betType: 'PARLAY',
                     sportsbook: 'BetOnline',
@@ -5547,15 +5597,26 @@
                     pregame: true,
                     acceptedDate: '09/09/2026 08:20:00 PM (EST)',
                     timestamp: '2026-09-09T20:20:00.000Z',
-                    description: 'Football - NFL - New England Patriots vs Seattle Seahawks - Parlay | 451 New England Patriots +3 -113 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending Week 1 Football - NFL - New England Patriots vs Seattle Seahawks - Parlay | 451 New England Patriots/Seattle Seahawks over 44½ -110 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending [PREGAME]',
+                    description: 'Football - NFL - New England Patriots vs Seattle Seahawks - Parlay | 451 New England Patriots +3 -113 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending Week 1 Football - NFL - New England Patriots vs Seattle Seahawks - Parlay | 451 New England Patriots/Seattle Seahawks over 44½ -110 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending Week 1 Football - NFL - San Francisco 49ers vs Los Angeles Rams - Parlay | 453 San Francisco 49ers +3½ -102 for GAME | 09/10/2026 08:35:00 PM (EST) | Pending [PREGAME]',
                     history: ['+617', '+617', '+617'],
                     legs: [
-                        { matchup: 'NE Patriots vs SEA Seahawks', selection: '451 New England Patriots +3 (-113)', odds: '-113', status: 'PENDING', isPregame: true },
-                        { matchup: 'NE Patriots vs SEA Seahawks', selection: '451 NE Patriots / SEA Seahawks Over 44.5 (-110)', odds: '-110', status: 'PENDING', isPregame: true }
+                        { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: '451 New England Patriots +3 (-113)', odds: '-113', status: 'PENDING', isPregame: true },
+                        { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: '451 NE Patriots / SEA Seahawks Over 44.5 (-110)', odds: '-110', status: 'PENDING', isPregame: true },
+                        { matchup: 'SF 49ers vs LA Rams', event: 'SF 49ers vs LA Rams', awayTag: 'SF', homeTag: 'LAR', selection: '453 San Francisco 49ers +3.5 (-102)', odds: '-102', status: 'PENDING' }
                     ]
-                });
-                localStorage.setItem(KEY, JSON.stringify(wagers));
-            }
+                }
+            ];
+
+            defaults.forEach(dt => {
+                const idx = wagers.findIndex(w => (w.ticketNumber && w.ticketNumber.includes(dt.ticketNumber)) || (w.id && w.id.includes(dt.ticketNumber)));
+                if (idx < 0) {
+                    wagers.unshift(dt);
+                } else {
+                    wagers[idx] = { ...wagers[idx], ...dt };
+                }
+            });
+
+            localStorage.setItem(KEY, JSON.stringify(wagers));
         }
 
         function toggleTicketEntryForm() {
@@ -5568,8 +5629,8 @@
         function autoFillTicket994662668() {
             document.getElementById('t-num').value = '994662668';
             document.getElementById('t-type').value = 'Parlay';
-            document.getElementById('t-matchup').value = 'NE Patriots vs SEA Seahawks';
-            document.getElementById('t-selection').value = 'NE Patriots +3 (-113) / Over 44.5 (-110)';
+            document.getElementById('t-matchup').value = 'Multi-Matchup Parlay (3 Legs)';
+            document.getElementById('t-selection').value = 'NE Patriots +3 (-113) / Over 44.5 (-110) / SF 49ers +3.5 (-102)';
             document.getElementById('t-risk').value = '10.00';
             document.getElementById('t-win').value = '61.70';
             document.getElementById('t-timing').value = 'PREGAME';

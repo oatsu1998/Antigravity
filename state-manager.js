@@ -18,7 +18,7 @@
                     const ts = String(w.timestamp || '');
                     const text = (String(w.event || '') + ' ' + String(w.target || '') + ' ' + String(w.matchup || '') + ' ' + String(w.selection || '') + ' ' + String(w.description || '') + ' ' + String(w.side || '')).toUpperCase();
 
-                    if (id.includes('wager-seed') || id.includes('mock-okc') || id.includes('9913') || id.includes('9912')) return false;
+                    if (id.includes('wager-seed') || id.includes('mock-okc') || id.includes('9913') || id.includes('9912') || id.includes('993192834') || ticket.includes('993192834')) return false;
                     if (date.includes('8/28') || date.includes('8/29') || ts.includes('2026-08-28') || ts.includes('2026-08-29')) return false;
                     if (text.includes('VIKINGS') || text.includes('BRONCOS') || text.includes('SAN JOSE') || text.includes('SJSU') || text.includes('NC STATE') || text.includes('NCST') || text.includes('MEMPHIS') || text.includes('GB @ DEN') || text.includes('PACKERS') || text.includes('GREEN BAY') || text.includes('THUNDER') || text.includes('SPURS') || text.includes('OKLAHOMA') || text.includes('OKC @ SAS') || text.includes('DENVER') || text.includes('GB')) return false;
                     return true;
@@ -64,7 +64,7 @@
             const ts = String(w.timestamp || '');
             const text = (String(w.event || '') + ' ' + String(w.target || '') + ' ' + String(w.matchup || '') + ' ' + String(w.selection || '') + ' ' + String(w.description || '') + ' ' + String(w.side || '')).toUpperCase();
 
-            if (id.includes('9913') || id.includes('9912') || ticket.includes('9913') || ticket.includes('9912') || id.includes('wager-seed') || id.includes('mock-okc')) return true;
+            if (id.includes('9913') || id.includes('9912') || ticket.includes('9913') || ticket.includes('9912') || id.includes('wager-seed') || id.includes('mock-okc') || id.includes('993192834') || ticket.includes('993192834')) return true;
             if (date.includes('8/28') || date.includes('8/29') || ts.includes('2026-08-28') || ts.includes('2026-08-29')) return true;
             if (text.includes('VIKINGS') || text.includes('BRONCOS') || text.includes('SAN JOSE') || text.includes('SJSU') || text.includes('NC STATE') || text.includes('NCST') || text.includes('MEMPHIS') || text.includes('GB @ DEN') || text.includes('PACKERS') || text.includes('GREEN BAY') || text.includes('THUNDER') || text.includes('SPURS') || text.includes('OKLAHOMA') || text.includes('OKC @ SAS') || text.includes('DENVER') || text.includes('GB')) return true;
 
@@ -76,97 +76,69 @@
                 let stored = JSON.parse(localStorage.getItem(KEYS.WAGERS) || '[]');
                 const defaultWagers = [
                     {
-                        id: 'ticket-993182991-1',
-                        ticketNumber: '993182991-1',
-                        event: 'FRESNO STATE at USC',
-                        matchup: 'FRESNO ST @ USC',
-                        target: 'Teaser (3 Teams) — Fresno St +28.5, LSU -4 & Stanford +30.5',
-                        selection: 'Fresno State +28.5',
-                        type: 'Teaser',
-                        side: 'Fresno St +28.5 / LSU -4 / Stanford +30.5',
-                        sportsbook: 'BetOnline',
-                        bookmaker: 'BetOnline',
-                        stake: 25.00,
-                        wager: 25.00,
-                        toWin: 40.00,
-                        placedOdds: '+28.5',
-                        odds: '+28.5',
-                        currentOdds: '+38.5',
-                        status: 'LOST',
-                        acceptedDate: '09/04/26 07:56 PM GMT-5',
-                        timestamp: '2026-09-04T19:56:00.000Z',
-                        description: 'Football - NCAA - Fresno State vs USC - Teaser | 151 Fresno State +28½ -102 For Game | 09/04/2026 | 09:00:00 PM (EST) | Settled LOST | Football - NCAA - Clemson vs LSU - Teaser | 220 LSU -4 -110 For Game | 09/05/2026 | 07:30:00 PM (EST) | Pending | Football - NCAA - Miami Florida vs Stanford - Teaser | 154 Stanford +30½ -105 For Game | 09/04/2026 | 09:00:00 PM (EST) | Pending',
-                        history: ['54.5', '38.0', '22.0'],
-                        legs: [
-                            { matchup: 'FRESNO STATE at USC', event: 'FRESNO STATE at USC', awayTag: 'FRESNO ST', homeTag: 'USC', selection: 'Fresno State +28.5', odds: '+28.5', status: 'LOST' },
-                            { matchup: 'CLEMSON at LSU', event: 'CLEMSON at LSU', awayTag: 'CLEM', homeTag: 'LSU', selection: 'LSU -4', odds: '-110', status: 'PENDING' },
-                            { matchup: 'MIAMI FLORIDA at STANFORD', event: 'MIAMI FLORIDA at STANFORD', awayTag: 'MIA', homeTag: 'STAN', selection: 'Stanford +30.5', odds: '-105', status: 'PENDING' }
-                        ]
-                    },
-                    {
-                        id: 'ticket-993183110-1',
-                        ticketNumber: '993183110-1',
-                        event: 'MIAMI FL at STANFORD / FRESNO ST at USC / CLEMSON at LSU',
-                        matchup: 'MIA @ STAN / FRESNO ST @ USC / CLEM @ LSU',
-                        target: 'Teaser (3 Teams) — Miami FL -18.5, USC -16.5 & LSU -4',
-                        selection: 'Teaser — Miami FL -18.5, USC -16.5 & LSU -4 (+160)',
-                        type: 'Teaser',
-                        side: 'Miami FL -18.5 / USC -16.5 / LSU -4',
-                        sportsbook: 'BetOnline',
-                        bookmaker: 'BetOnline',
-                        stake: 25.00,
-                        wager: 25.00,
-                        toWin: 40.00,
-                        placedOdds: '+160',
-                        odds: '+160',
-                        currentOdds: '+160',
-                        status: 'PENDING',
-                        acceptedDate: '09/04/26 07:57 PM GMT-5',
-                        timestamp: '2026-09-04T19:57:00.000Z',
-                        description: 'Football - NCAA - Miami Florida vs Stanford - Teaser | 153 Miami Florida -18½ -115 For Game | 09/04/2026 | 09:00:00 PM (EST) | Settled WON | Football - NCAA - Fresno State vs USC - Teaser | 152 USC -16½ -118 For Game | 09/04/2026 | 09:00:00 PM (EST) | Settled WON | Football - NCAA - Clemson vs LSU - Teaser | 220 LSU -4 -110 For Game | 09/05/2026 | 07:30:00 PM (EST) | Pending',
-                        history: ['+160', '+160', '+160'],
-                        legs: [
-                            { matchup: 'MIAMI FLORIDA at STANFORD', event: 'MIAMI FLORIDA at STANFORD', awayTag: 'MIA', homeTag: 'STAN', selection: 'Miami Florida -18.5', odds: '-115', status: 'WON' },
-                            { matchup: 'FRESNO STATE at USC', event: 'FRESNO STATE at USC', awayTag: 'FRESNO ST', homeTag: 'USC', selection: 'USC -16.5', odds: '-118', status: 'WON' },
-                            { matchup: 'CLEMSON at LSU', event: 'CLEMSON at LSU', awayTag: 'CLEM', homeTag: 'LSU', selection: 'LSU -4', odds: '-110', status: 'PENDING' }
-                        ]
-                    },
-                    {
-                        id: 'ticket-993192834-1',
-                        ticketNumber: '993192834-1',
-                        event: 'FRESNO STATE at USC',
-                        matchup: 'FRESNO ST @ USC',
-                        target: 'FRESNO STATE at USC',
-                        selection: 'FRESNO ST — Team Total — OVER 9.5',
+                        id: 'ticket-994692629',
+                        ticketNumber: '994692629',
+                        event: 'NE Patriots vs SEA Seahawks',
+                        matchup: 'NE Patriots vs SEA Seahawks',
+                        target: 'Live — Seahawks +2.5 [3rd Quarter]',
+                        selection: 'PATRIOTS at SEAHAWKS - Side [3rd Quarter] - SEAHAWKS +2.5',
                         type: 'Live',
-                        side: 'Fresno St Team Total Over 9.5',
+                        side: 'Seahawks +2.5 [3rd Qtr]',
                         sportsbook: 'BetOnline',
                         bookmaker: 'BetOnline',
-                        stake: 79.32,
-                        wager: 79.32,
-                        toWin: 66.10,
-                        placedOdds: '-120',
-                        odds: '-120',
-                        currentOdds: '-120',
-                        status: 'LOST',
-                        acceptedDate: '09/04/26 08:44 PM GMT-5',
-                        timestamp: '2026-09-04T20:44:00.000Z',
-                        description: 'FRESNO STATE at USC - FRESNO ST - Team Total - OVER 9.5',
-                        history: ['-120', '-120', '-120'],
+                        stake: 20.00,
+                        wager: 20.00,
+                        toWin: 20.00,
+                        placedOdds: '+100',
+                        odds: '+100',
+                        currentOdds: '+100',
+                        status: 'PENDING',
+                        acceptedDate: '09/10/2026 08:20:00 PM (EST)',
+                        timestamp: '2026-09-10T20:20:00.000Z',
+                        description: 'PATRIOTS at SEAHAWKS - Side [3rd Quarter] - SEAHAWKS +2.5',
+                        history: ['+100', '+100', '+100'],
                         legs: [
-                            { matchup: 'FRESNO STATE at USC', event: 'FRESNO STATE at USC', awayTag: 'FRESNO ST', homeTag: 'USC', selection: 'Fresno St Team Total Over 9.5', odds: '-120', status: 'LOST' }
+                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: 'PATRIOTS at SEAHAWKS - Side [3rd Quarter] - SEAHAWKS +2.5', odds: '+100', status: 'PENDING' }
+                        ]
+                    },
+                    {
+                        id: 'ticket-994662813',
+                        ticketNumber: '994662813',
+                        event: 'NE Patriots vs SEA Seahawks / SF 49ers vs LA Rams',
+                        matchup: 'Multi-Matchup Teaser (3 Legs)',
+                        target: 'Teaser (3 Teams) — Patriots +9, Over 38.5 & 49ers +9.5',
+                        selection: 'NE Patriots +9 / Over 38.5 / SF 49ers +9.5',
+                        type: 'Teaser',
+                        side: 'Patriots +9 / Over 38.5 / 49ers +9.5',
+                        sportsbook: 'BetOnline',
+                        bookmaker: 'BetOnline',
+                        stake: 25.00,
+                        wager: 25.00,
+                        toWin: 38.83,
+                        placedOdds: '+155',
+                        odds: '+155',
+                        currentOdds: '+155',
+                        status: 'PENDING',
+                        acceptedDate: '09/09/2026 08:20:00 PM (EST)',
+                        timestamp: '2026-09-09T20:20:00.000Z',
+                        description: 'Football - NFL - New England Patriots vs Seattle Seahawks - Teaser | 451 New England Patriots +9 -113 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending Week 1 Football - NFL - New England Patriots vs Seattle Seahawks - Teaser | 451 New England Patriots/Seattle Seahawks over 38½ -110 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending Week 1 Football - NFL - San Francisco 49ers vs Los Angeles Rams - Teaser | 453 San Francisco 49ers +9½ -102 for GAME | 09/10/2026 08:35:00 PM (EST) | Pending Week 1 - Melbourne Cricket Ground, Australia',
+                        history: ['+155', '+155', '+155'],
+                        legs: [
+                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: '451 New England Patriots +9 (-113)', odds: '-113', status: 'PENDING', isPregame: true },
+                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: '451 NE Patriots / SEA Seahawks Over 38.5 (-110)', odds: '-110', status: 'PENDING', isPregame: true },
+                            { matchup: 'SF 49ers vs LA Rams', event: 'SF 49ers vs LA Rams', awayTag: 'SF', homeTag: 'LAR', selection: '453 San Francisco 49ers +9.5 (-102)', odds: '-102', status: 'PENDING' }
                         ]
                     },
                     {
                         id: 'ticket-994662668',
                         ticketNumber: '994662668',
-                        event: 'NE Patriots vs SEA Seahawks',
-                        matchup: 'NE @ SEA',
-                        target: '2-Leg Parlay — Patriots +3 (-113) & Over 44.5 (-110)',
-                        selection: 'NE Patriots +3 (-113) / Over 44.5 (-110)',
+                        event: 'NE Patriots vs SEA Seahawks / SF 49ers vs LA Rams',
+                        matchup: 'Multi-Matchup Parlay (3 Legs)',
+                        target: '3-Leg Parlay — Patriots +3 (-113), Over 44.5 (-110) & 49ers +3.5 (-102)',
+                        selection: 'NE Patriots +3 (-113) / Over 44.5 (-110) / SF 49ers +3.5 (-102)',
                         type: 'Parlay',
                         betType: 'PARLAY',
-                        side: 'Patriots +3 / Over 44.5',
+                        side: 'Patriots +3 / Over 44.5 / 49ers +3.5',
                         sportsbook: 'BetOnline',
                         bookmaker: 'BetOnline',
                         stake: 10.00,
@@ -180,11 +152,12 @@
                         pregame: true,
                         acceptedDate: '09/09/2026 08:20:00 PM (EST)',
                         timestamp: '2026-09-09T20:20:00.000Z',
-                        description: 'Football - NFL - New England Patriots vs Seattle Seahawks - Parlay | 451 New England Patriots +3 -113 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending Week 1 Football - NFL - New England Patriots vs Seattle Seahawks - Parlay | 451 New England Patriots/Seattle Seahawks over 44½ -110 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending [PREGAME]',
+                        description: 'Football - NFL - New England Patriots vs Seattle Seahawks - Parlay | 451 New England Patriots +3 -113 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending Week 1 Football - NFL - New England Patriots vs Seattle Seahawks - Parlay | 451 New England Patriots/Seattle Seahawks over 44½ -110 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending Week 1 Football - NFL - San Francisco 49ers vs Los Angeles Rams - Parlay | 453 San Francisco 49ers +3½ -102 for GAME | 09/10/2026 08:35:00 PM (EST) | Pending [PREGAME]',
                         history: ['+617', '+617', '+617'],
                         legs: [
                             { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: '451 New England Patriots +3 (-113)', odds: '-113', status: 'PENDING', isPregame: true },
-                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: '451 NE Patriots / SEA Seahawks Over 44.5 (-110)', odds: '-110', status: 'PENDING', isPregame: true }
+                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: '451 NE Patriots / SEA Seahawks Over 44.5 (-110)', odds: '-110', status: 'PENDING', isPregame: true },
+                            { matchup: 'SF 49ers vs LA Rams', event: 'SF 49ers vs LA Rams', awayTag: 'SF', homeTag: 'LAR', selection: '453 San Francisco 49ers +3.5 (-102)', odds: '-102', status: 'PENDING' }
                         ]
                     }
                 ];
@@ -196,7 +169,7 @@
                 if (!stored || !Array.isArray(stored) || stored.length === 0) {
                     stored = defaultWagers;
                 } else {
-                    // Merge any missing default wagers into stored and sync default settled statuses
+                    // Merge/update default wagers into stored
                     defaultWagers.forEach(dw => {
                         const matchIdx = stored.findIndex(sw => 
                             sw.id === dw.id || 
@@ -207,14 +180,12 @@
                         if (matchIdx < 0) {
                             stored.push(dw);
                         } else {
-                            if (dw.status === 'LOST' && stored[matchIdx].status === 'PENDING') {
-                                stored[matchIdx].status = 'LOST';
-                                if (dw.legs) stored[matchIdx].legs = dw.legs;
-                            } else if (dw.status === 'WON' && stored[matchIdx].status === 'PENDING') {
-                                stored[matchIdx].status = 'WON';
-                                stored[matchIdx].settledPayout = dw.settledPayout;
-                                if (dw.legs) stored[matchIdx].legs = dw.legs;
-                            }
+                            // Update ticket definition with complete leg schema if user updated legs
+                            stored[matchIdx] = {
+                                ...stored[matchIdx],
+                                ...dw,
+                                status: stored[matchIdx].status && stored[matchIdx].status !== 'PENDING' ? stored[matchIdx].status : dw.status
+                            };
                         }
                     });
                 }
