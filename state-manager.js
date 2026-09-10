@@ -104,40 +104,43 @@
                         ]
                     },
                     {
-                        id: 'ticket-987889889',
-                        ticketNumber: '987889889',
+                        id: 'placed-994697208',
+                        ticketNumber: '994697208',
                         event: 'NE Patriots vs SEA Seahawks',
-                        matchup: 'NE Patriots vs SEA Seahawks',
-                        target: 'Straight — Seahawks +2.5 3rd quarter',
-                        selection: 'Seahawks +2.5 3rd quarter',
-                        type: 'Straight',
-                        side: 'Seahawks +2.5 3rd Qtr',
+                        matchup: 'PATRIOTS at SEAHAWKS',
+                        target: 'PATRIOTS at SEAHAWKS - Side - PATRIOTS -2.5',
+                        selection: 'PATRIOTS at SEAHAWKS - Side - PATRIOTS -2.5',
+                        type: 'Live',
+                        side: 'Patriots -2.5',
                         sportsbook: 'BetOnline',
                         bookmaker: 'BetOnline',
-                        stake: 20.00,
-                        wager: 20.00,
-                        toWin: 20.00,
-                        placedOdds: '+100',
-                        odds: '+100',
-                        currentOdds: '+100',
-                        status: 'PENDING',
-                        acceptedDate: '09/09/2026 08:20:00 PM (EST)',
-                        timestamp: '2026-09-09T20:20:00.000Z',
-                        description: 'Football - NFL - New England Patriots vs Seattle Seahawks - Straight | Seahawks +2.5 3rd quarter +100 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending',
-                        history: ['+100', '+100', '+100'],
+                        stake: 25.00,
+                        wager: 25.00,
+                        toWin: 21.74,
+                        placedOdds: '-115',
+                        odds: '-115',
+                        currentOdds: '-115',
+                        status: 'LOST',
+                        settledPayout: 0.00,
+                        acceptedDate: '2026-09-10T00:00:00Z',
+                        gradedDate: '2026-09-10T00:00:00Z',
+                        settledDate: '2026-09-10T00:00:00Z',
+                        timestamp: '2026-09-10T00:00:00.000Z',
+                        description: 'PATRIOTS at SEAHAWKS - Side - PATRIOTS -2.5 | Lost',
+                        history: ['-115', '-115', '-115'],
                         legs: [
-                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: 'Seahawks +2.5 3rd quarter', odds: '+100', status: 'PENDING' }
+                            { matchup: 'NE @ SEA', selection: 'Patriots -2.5', odds: '-115', status: 'LOST' }
                         ]
                     },
                     {
-                        id: 'ticket-994692629',
+                        id: 'placed-994692629',
                         ticketNumber: '994692629',
                         event: 'NE Patriots vs SEA Seahawks',
-                        matchup: 'NE Patriots vs SEA Seahawks',
-                        target: 'Live — Seahawks +2.5 [3rd Quarter]',
+                        matchup: 'PATRIOTS at SEAHAWKS',
+                        target: 'PATRIOTS at SEAHAWKS - Side [3rd Quarter] - SEAHAWKS +2.5',
                         selection: 'PATRIOTS at SEAHAWKS - Side [3rd Quarter] - SEAHAWKS +2.5',
                         type: 'Live',
-                        side: 'Seahawks +2.5 [3rd Qtr]',
+                        side: 'Seahawks +2.5 (3rd Qtr)',
                         sportsbook: 'BetOnline',
                         bookmaker: 'BetOnline',
                         stake: 20.00,
@@ -146,22 +149,25 @@
                         placedOdds: '+100',
                         odds: '+100',
                         currentOdds: '+100',
-                        status: 'PENDING',
-                        acceptedDate: '09/10/2026 08:20:00 PM (EST)',
-                        timestamp: '2026-09-10T20:20:00.000Z',
-                        description: 'PATRIOTS at SEAHAWKS - Side [3rd Quarter] - SEAHAWKS +2.5',
+                        status: 'WON',
+                        settledPayout: 40.00,
+                        acceptedDate: '2026-09-10T00:00:00Z',
+                        gradedDate: '2026-09-10T00:00:00Z',
+                        settledDate: '2026-09-10T00:00:00Z',
+                        timestamp: '2026-09-10T00:00:00.000Z',
+                        description: 'PATRIOTS at SEAHAWKS - Side [3rd Quarter] - SEAHAWKS +2.5 | Won',
                         history: ['+100', '+100', '+100'],
                         legs: [
-                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: 'PATRIOTS at SEAHAWKS - Side [3rd Quarter] - SEAHAWKS +2.5', odds: '+100', status: 'PENDING' }
+                            { matchup: 'NE @ SEA', selection: 'Seahawks +2.5 (3rd Qtr)', odds: '+100', status: 'WON' }
                         ]
                     },
                     {
-                        id: 'ticket-994662813',
+                        id: 'placed-994662813',
                         ticketNumber: '994662813',
                         event: 'NE Patriots vs SEA Seahawks / SF 49ers vs LA Rams',
-                        matchup: 'Multi-Matchup Teaser (3 Legs)',
-                        target: 'Teaser (3 Teams) — Patriots +9, Over 38.5 & 49ers +9.5',
-                        selection: 'NE Patriots +9 / Over 38.5 / SF 49ers +9.5',
+                        matchup: 'NE vs SEA / SF vs LAR',
+                        target: 'Teaser (3 Teams): Patriots +9, Over 38.5, 49ers +9.5',
+                        selection: 'New England Patriots +9 / Over 38.5 / SF 49ers +9.5',
                         type: 'Teaser',
                         side: 'Patriots +9 / Over 38.5 / 49ers +9.5',
                         sportsbook: 'BetOnline',
@@ -172,24 +178,27 @@
                         placedOdds: '+155',
                         odds: '+155',
                         currentOdds: '+155',
-                        status: 'PENDING',
-                        acceptedDate: '09/09/2026 08:20:00 PM (EST)',
+                        status: 'LOST',
+                        settledPayout: 0.00,
+                        acceptedDate: '2026-09-09T20:20:00Z',
+                        gradedDate: '2026-09-10T00:00:00Z',
+                        settledDate: '2026-09-10T00:00:00Z',
                         timestamp: '2026-09-09T20:20:00.000Z',
-                        description: 'Football - NFL - New England Patriots vs Seattle Seahawks - Teaser | 451 New England Patriots +9 -113 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending Week 1 Football - NFL - New England Patriots vs Seattle Seahawks - Teaser | 451 New England Patriots/Seattle Seahawks over 38½ -110 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending Week 1 Football - NFL - San Francisco 49ers vs Los Angeles Rams - Teaser | 453 San Francisco 49ers +9½ -102 for GAME | 09/10/2026 08:35:00 PM (EST) | Pending Week 1 - Melbourne Cricket Ground, Australia',
+                        description: 'Football - NFL - New England Patriots vs Seattle Seahawks - Teaser | Lost',
                         history: ['+155', '+155', '+155'],
                         legs: [
-                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: '451 New England Patriots +9 (-113)', odds: '-113', status: 'PENDING', isPregame: true },
-                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: '451 NE Patriots / SEA Seahawks Over 38.5 (-110)', odds: '-110', status: 'PENDING', isPregame: true },
-                            { matchup: 'SF 49ers vs LA Rams', event: 'SF 49ers vs LA Rams', awayTag: 'SF', homeTag: 'LAR', selection: '453 San Francisco 49ers +9.5 (-102)', odds: '-102', status: 'PENDING' }
+                            { selection: 'New England Patriots +9 (-113)', odds: '-113', status: 'LOST' },
+                            { selection: 'NE Patriots / SEA Seahawks over 38.5 (-110)', odds: '-110', status: 'LOST' },
+                            { selection: 'San Francisco 49ers +9.5 (-102)', odds: '-102', status: 'PENDING' }
                         ]
                     },
                     {
-                        id: 'ticket-994662668',
+                        id: 'placed-994662668',
                         ticketNumber: '994662668',
                         event: 'NE Patriots vs SEA Seahawks / SF 49ers vs LA Rams',
-                        matchup: 'Multi-Matchup Parlay (3 Legs)',
-                        target: '3-Leg Parlay — Patriots +3 (-113), Over 44.5 (-110) & 49ers +3.5 (-102)',
-                        selection: 'NE Patriots +3 (-113) / Over 44.5 (-110) / SF 49ers +3.5 (-102)',
+                        matchup: 'NE vs SEA / SF vs LAR',
+                        target: 'Parlay (3 Teams): Patriots +3, Over 44.5, 49ers +3.5',
+                        selection: 'New England Patriots +3 (-113) / Over 44.5 (-110) / SF 49ers +3.5 (-102)',
                         type: 'Parlay',
                         betType: 'PARLAY',
                         side: 'Patriots +3 / Over 44.5 / 49ers +3.5',
@@ -201,17 +210,18 @@
                         placedOdds: '+617',
                         odds: '+617',
                         currentOdds: '+617',
-                        status: 'PENDING',
-                        isPregame: true,
-                        pregame: true,
-                        acceptedDate: '09/09/2026 08:20:00 PM (EST)',
+                        status: 'LOST',
+                        settledPayout: 0.00,
+                        acceptedDate: '2026-09-09T20:20:00Z',
+                        gradedDate: '2026-09-10T00:00:00Z',
+                        settledDate: '2026-09-10T00:00:00Z',
                         timestamp: '2026-09-09T20:20:00.000Z',
-                        description: 'Football - NFL - New England Patriots vs Seattle Seahawks - Parlay | 451 New England Patriots +3 -113 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending Week 1 Football - NFL - New England Patriots vs Seattle Seahawks - Parlay | 451 New England Patriots/Seattle Seahawks over 44½ -110 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending Week 1 Football - NFL - San Francisco 49ers vs Los Angeles Rams - Parlay | 453 San Francisco 49ers +3½ -102 for GAME | 09/10/2026 08:35:00 PM (EST) | Pending [PREGAME]',
+                        description: 'Football - NFL - New England Patriots vs Seattle Seahawks - Parlay | Lost',
                         history: ['+617', '+617', '+617'],
                         legs: [
-                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: '451 New England Patriots +3 (-113)', odds: '-113', status: 'PENDING', isPregame: true },
-                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: '451 NE Patriots / SEA Seahawks Over 44.5 (-110)', odds: '-110', status: 'PENDING', isPregame: true },
-                            { matchup: 'SF 49ers vs LA Rams', event: 'SF 49ers vs LA Rams', awayTag: 'SF', homeTag: 'LAR', selection: '453 San Francisco 49ers +3.5 (-102)', odds: '-102', status: 'PENDING' }
+                            { selection: 'New England Patriots +3 (-113)', odds: '-113', status: 'LOST' },
+                            { selection: 'NE Patriots / SEA Seahawks over 44.5 (-110)', odds: '-110', status: 'LOST' },
+                            { selection: 'San Francisco 49ers +3.5 (-102)', odds: '-102', status: 'PENDING' }
                         ]
                     }
                 ];
@@ -227,18 +237,23 @@
                     defaultWagers.forEach(dw => {
                         const matchIdx = stored.findIndex(sw => 
                             sw.id === dw.id || 
-                            (sw.ticketNumber && dw.ticketNumber && sw.ticketNumber === dw.ticketNumber) || 
-                            (sw.id && dw.ticketNumber && sw.id.includes(dw.ticketNumber)) ||
-                            (sw.ticketNumber && dw.id && dw.id.includes(sw.ticketNumber))
+                            (sw.ticketNumber && dw.ticketNumber && String(sw.ticketNumber) === String(dw.ticketNumber)) || 
+                            (sw.id && dw.ticketNumber && String(sw.id).includes(String(dw.ticketNumber))) ||
+                            (sw.ticketNumber && dw.id && String(dw.id).includes(String(sw.ticketNumber))) ||
+                            (String(dw.ticketNumber) === '994692629' && (String(sw.id).includes('987889889') || String(sw.ticketNumber).includes('987889889'))) ||
+                            (String(dw.ticketNumber) === '994697208' && (String(sw.target || '').includes('PATRIOTS -2.5') || String(sw.selection || '').includes('PATRIOTS -2.5')))
                         );
                         if (matchIdx < 0) {
                             stored.push(dw);
                         } else {
-                            // Update ticket definition with complete leg schema if user updated legs
                             stored[matchIdx] = {
                                 ...stored[matchIdx],
                                 ...dw,
-                                status: stored[matchIdx].status && stored[matchIdx].status !== 'PENDING' ? stored[matchIdx].status : dw.status
+                                status: dw.status,
+                                settledPayout: dw.settledPayout,
+                                settledDate: dw.settledDate || dw.gradedDate,
+                                gradedDate: dw.gradedDate,
+                                acceptedDate: dw.acceptedDate || stored[matchIdx].acceptedDate
                             };
                         }
                     });
@@ -246,10 +261,23 @@
 
                 stored = stored.map(w => {
                     const ticketNum = String(w.ticketNumber || w.id || '');
-                    const isTicket1003 = ticketNum.includes('1003') || (w.target && w.target.includes('SMU at FSU'));
-                    const st = isTicket1003 ? 'LOST' : String(w.status || 'PENDING').toUpperCase();
+                    const targetStr = String(w.target || w.selection || '').toUpperCase();
+                    
+                    const isTicket1003 = ticketNum.includes('1003') || targetStr.includes('SMU AT FSU');
+                    const is994692629 = ticketNum.includes('994692629') || ticketNum.includes('987889889') || targetStr.includes('994692629') || targetStr.includes('SEAHAWKS +2.5');
+                    const is994697208 = ticketNum.includes('994697208') || targetStr.includes('PATRIOTS -2.5');
+                    const is994662813 = ticketNum.includes('994662813') || targetStr.includes('994662813');
+                    const is994662668 = ticketNum.includes('994662668') || targetStr.includes('994662668');
+
+                    let st = String(w.status || 'PENDING').toUpperCase();
+                    if (isTicket1003 || is994697208 || is994662813 || is994662668) {
+                        st = 'LOST';
+                    } else if (is994692629) {
+                        st = 'WON';
+                    }
+
                     const wType = String(w.type || 'Straight').toLowerCase();
-                    const isStraightOrLive = wType === 'straight' || wType === 'live' || wType === 'single' || wType === 'game' || ticketNum.includes('987889889');
+                    const isStraightOrLive = wType === 'straight' || wType === 'live' || wType === 'single' || wType === 'game';
 
                     let legs = w.legs;
                     if (isStraightOrLive || !legs || !Array.isArray(legs) || legs.length <= 1) {
@@ -258,17 +286,17 @@
                                 eventId: w.eventId || null,
                                 matchup: w.matchup || w.event || w.target || 'GAME MATCHUP',
                                 event: w.event || w.target || 'GAME MATCHUP',
-                                selection: w.selection || w.target || 'Straight Bet',
+                                selection: w.selection || w.target || 'Bet',
                                 odds: w.placedOdds || w.odds || '-110',
-                                status: (st === 'PENDING' || st === 'OPEN') ? 'PENDING' : st
+                                status: st
                             }
                         ];
                     }
                     return {
                         ...w,
-                        status: (st === 'PENDING' || st === 'OPEN') ? 'PENDING' : st,
-                        settledDate: isTicket1003 ? '2026-09-07T23:00:00Z' : w.settledDate,
-                        settledPayout: isTicket1003 ? 0.00 : w.settledPayout,
+                        status: st,
+                        settledDate: isTicket1003 ? '2026-09-07T23:00:00Z' : (w.settledDate || w.gradedDate || '2026-09-10T00:00:00Z'),
+                        settledPayout: st === 'WON' ? (w.settledPayout !== undefined ? w.settledPayout : 40.00) : 0.00,
                         odds: w.placedOdds || w.odds || '-110',
                         placedOdds: w.placedOdds || w.odds || '-110',
                         sportsbook: w.sportsbook || 'BetOnline',
