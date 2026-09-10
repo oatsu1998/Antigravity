@@ -3887,6 +3887,24 @@
         }
 
         function getWagerLegs(w) {
+            const wagerType = String(w.type || 'Straight').toLowerCase();
+            const isStraightOrLive = wagerType === 'straight' || wagerType === 'live' || wagerType === 'single' || wagerType === 'game';
+
+            if (isStraightOrLive) {
+                return [
+                    {
+                        eventId: w.eventId || null,
+                        matchup: w.matchup || w.event || w.target || 'GAME MATCHUP',
+                        event: w.event || w.target || 'GAME MATCHUP',
+                        awayTag: w.awayTag || '',
+                        homeTag: w.homeTag || '',
+                        selection: w.selection || w.side || w.target || 'Selection',
+                        odds: w.placedOdds || w.odds || '-110',
+                        status: w.status || 'PENDING'
+                    }
+                ];
+            }
+
             if (w.legs && Array.isArray(w.legs) && w.legs.length > 0) {
                 return w.legs;
             }
@@ -3919,6 +3937,7 @@
 
             return [
                 {
+                    eventId: w.eventId || null,
                     matchup: w.matchup || w.event || w.target || 'GAME MATCHUP',
                     event: w.event || w.target || 'GAME MATCHUP',
                     awayTag: w.awayTag || '',
@@ -4014,9 +4033,11 @@
                 const potentialPayout = ((parseFloat(wager.wager || wager.stake) || 0) + (parseFloat(wager.toWin) || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 });
 
                 const legs = getWagerLegs(wager);
+                const wType = String(wager.type || '').toUpperCase();
+                const isMultiLeg = (wType === 'PARLAY' || wType === 'TEASER' || wType === 'PLEASER' || wType === 'IF BET' || wType.includes('PARLAY') || wType.includes('TEASER')) && legs && legs.length > 1;
 
                 let legsHtml = '';
-                if (legs && legs.length > 0) {
+                if (isMultiLeg) {
                     legsHtml = `
                         <div class="wager-legs-grid" style="display:flex; flex-direction:column; gap:8px; margin:10px 0;">
                             ${legs.map((leg, legIdx) => {
@@ -4025,7 +4046,7 @@
                                     <div class="wager-leg-item" style="background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 10px; font-family:var(--font-mono);">
                                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed rgba(255,255,255,0.08); padding-bottom:4px; margin-bottom:4px;">
                                             <div style="display:flex; align-items:center; gap:6px;">
-                                                ${legs.length > 1 ? `<span style="font-size:8px; color:var(--accent); font-weight:800; background:rgba(245,158,11,0.15); padding:1px 4px; border-radius:3px;">LEG #${legIdx + 1}</span>` : ''}
+                                                <span style="font-size:8px; color:var(--accent); font-weight:800; background:rgba(245,158,11,0.15); padding:1px 4px; border-radius:3px;">LEG #${legIdx + 1}</span>
                                                 ${logos.awayLogo}
                                                 <span style="font-size:10px; font-weight:800; color:#fff; text-transform:uppercase;">${leg.matchup || leg.event}</span>
                                                 ${logos.homeLogo}
@@ -4039,6 +4060,27 @@
                                     </div>
                                 `;
                             }).join('')}
+                        </div>
+                    `;
+                } else {
+                    const singleLeg = (legs && legs.length > 0) ? legs[0] : null;
+                    const logos = getTeamLogosForEvent(wager.event || wager.matchup, wager.matchup);
+                    const selectionText = wager.selection || wager.target || (singleLeg ? singleLeg.selection : 'Straight Bet');
+                    const oddsText = wager.placedOdds || wager.odds || (singleLeg ? singleLeg.odds : '-110');
+                    legsHtml = `
+                        <div class="wager-single-item" style="background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px 12px; margin:10px 0; font-family:var(--font-mono);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed rgba(255,255,255,0.08); padding-bottom:4px; margin-bottom:6px;">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    ${logos.awayLogo}
+                                    <span style="font-size:11px; font-weight:800; color:#fff; text-transform:uppercase;">${wager.matchup || wager.event || 'GAME MATCHUP'}</span>
+                                    ${logos.homeLogo}
+                                </div>
+                                <span style="font-size:10px; color:var(--muted); font-weight:700;">${oddsText}</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:13px; font-weight:900; color:#f59e0b;">${selectionText}</span>
+                                <span class="badge ${wager.status.toLowerCase()}" style="font-size:9px; padding:2px 6px; background:rgba(234, 179, 8, 0.15); color:#eab308; border:1px solid rgba(234, 179, 8, 0.3); border-radius:3px;">${wager.status}</span>
+                            </div>
                         </div>
                     `;
                 }
@@ -5987,14 +6029,14 @@
                         wagers = JSON.parse(saved).map(normalizeWager); 
                     } catch(e) { 
                         wagers = []; 
-                    }
-                }
+                pendingWagers = DestinyState.getWagers().filter(w => w.status === 'PENDING');
+            } else {
+                try {
+                    const all = JSON.parse(localStorage.getItem('destiny_game_wagers') || '[]');
+                    pendingWagers = all.filter(w => w.status === 'PENDING');
+                } catch(e) { pendingWagers = []; }
             }
 
-            // Filter strictly PENDING active wagers
-            const pendingWagers = wagers.filter(w => w.status === 'PENDING');
-
-            const activeCountEl = document.getElementById('bs-active-count');
             if (activeCountEl) activeCountEl.innerText = pendingWagers.length;
 
             if (pendingWagers.length === 0) {
@@ -6012,8 +6054,11 @@
 
                 const ticketStr = w.ticketNumber ? `<div style="font-size:10px; color:var(--muted); font-weight:700; margin-bottom:4px;">TICKET #${w.ticketNumber} · ${w.acceptedDate || 'Pregame'}</div>` : '';
                 
+                const wType = String(w.type || '').toUpperCase();
+                const isMultiLeg = (wType === 'PARLAY' || wType === 'TEASER' || wType === 'PLEASER' || wType === 'IF BET' || wType.includes('PARLAY') || wType.includes('TEASER')) && w.legs && Array.isArray(w.legs) && w.legs.length > 1;
+
                 let headerMatchupTitle = w.matchup || w.event || w.selection || 'Attached Matchup Wager';
-                if (w.legs && Array.isArray(w.legs) && w.legs.length > 0) {
+                if (isMultiLeg) {
                     const uniqueMatchups = [...new Set(w.legs.map(l => l.matchup).filter(Boolean))];
                     if (uniqueMatchups.length > 1) {
                         headerMatchupTitle = `Multi-Matchup ${w.type || 'Parlay'} (${w.legs.length} Legs)`;
@@ -6032,7 +6077,7 @@
                 `;
 
                 let legsHtml = '';
-                if (w.legs && Array.isArray(w.legs) && w.legs.length > 0) {
+                if (isMultiLeg) {
                     legsHtml = `<div style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border); font-size:10px;">` +
                         w.legs.map((leg, lIdx) => {
                             const legSt = leg.status || 'PENDING';
@@ -6059,6 +6104,17 @@
                             `;
                         }).join('') +
                         `</div>`;
+                } else {
+                    legsHtml = `
+                        <div style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border); font-size:10px;">
+                            <div style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.05); padding:6px 8px; border-radius:6px;">
+                                <div style="display:flex; justify-content:space-between; color:#e2e8f0;">
+                                    <span><strong style="color:#f59e0b;">Selection:</strong> ${w.selection || w.target}</span>
+                                    <span style="color:var(--accent); font-weight:800;">${w.placedOdds || w.odds || '-110'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 }
 
                 return `

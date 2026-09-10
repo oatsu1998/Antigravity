@@ -192,13 +192,29 @@
 
                 stored = stored.map(w => {
                     const st = String(w.status || 'PENDING').toUpperCase();
+                    const wType = String(w.type || 'Straight').toLowerCase();
+                    const isStraightOrLive = wType === 'straight' || wType === 'live' || wType === 'single' || wType === 'game';
+                    let legs = w.legs;
+                    if (isStraightOrLive || !legs || !Array.isArray(legs) || legs.length <= 1) {
+                        legs = [
+                            {
+                                eventId: w.eventId || null,
+                                matchup: w.matchup || w.event || w.target || 'GAME MATCHUP',
+                                event: w.event || w.target || 'GAME MATCHUP',
+                                selection: w.selection || w.target || 'Straight Bet',
+                                odds: w.placedOdds || w.odds || '-110',
+                                status: (st === 'PENDING' || st === 'OPEN') ? 'PENDING' : st
+                            }
+                        ];
+                    }
                     return {
                         ...w,
                         status: (st === 'PENDING' || st === 'OPEN') ? 'PENDING' : st,
                         odds: w.placedOdds || w.odds || '-110',
                         placedOdds: w.placedOdds || w.odds || '-110',
-                        sportsbook: 'BetOnline',
-                        bookmaker: 'BetOnline'
+                        sportsbook: w.sportsbook || 'BetOnline',
+                        bookmaker: w.bookmaker || 'BetOnline',
+                        legs: legs
                     };
                 });
 
