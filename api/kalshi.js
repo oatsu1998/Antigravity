@@ -32,7 +32,7 @@ const SERIES_LIST = Object.entries(LEAGUES).flatMap(([league, s]) => ([
 async function fetchSeries(ticker) {
   try {
     const r = await fetch(
-      `https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=${ticker}&status=open&limit=200`
+      `https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=${ticker}&status=open&limit=1000`
     );
     if (!r.ok) return [];
     const d = await r.json();

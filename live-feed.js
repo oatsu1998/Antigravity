@@ -59,15 +59,71 @@
         return (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     }
 
-    // Does the Kalshi team label (e.g. "Golden State") match this ESPN team's
-    // name or abbreviation (e.g. "Golden State Valkyries" / "GS")?
+    function extractTeamName(label) {
+        let clean = (label || '')
+            .replace(/wins?\b/gi, '')
+            .replace(/by\b/gi, '')
+            .replace(/over\b/gi, '')
+            .replace(/under\b/gi, '')
+            .replace(/points?\b/gi, '')
+            .replace(/scored\b/gi, '')
+            .replace(/\d+(\.\d+)?/g, '')
+            .trim();
+        return normalize(clean);
+    }
+
+    const TEAM_MAP = {
+        'ne': ['newengland', 'patriots', 'england', 'ne'],
+        'sea': ['seattle', 'seahawks', 'sea'],
+        'kc': ['kansascity', 'chiefs', 'kansas', 'kc'],
+        'den': ['denver', 'broncos', 'den'],
+        'lar': ['losangelesram', 'rams', 'lar', 'losangelesr'],
+        'nyg': ['newyorkgiants', 'giants', 'nyg', 'newyorkg'],
+        'nyj': ['newyorkjets', 'jets', 'nyj', 'newyorkj'],
+        'sf': ['sanfrancisco', '49ers', 'sf'],
+        'det': ['detroit', 'lions', 'det'],
+        'gb': ['greenbay', 'packers', 'gb'],
+        'no': ['neworleans', 'saints', 'no'],
+        'atl': ['atlanta', 'falcons', 'atl'],
+        'pit': ['pittsburgh', 'steelers', 'pit'],
+        'tb': ['tampabay', 'buccaneers', 'bucs', 'tb'],
+        'buf': ['buffalo', 'bills', 'buf'],
+        'mia': ['miami', 'dolphins', 'mia'],
+        'bal': ['baltimore', 'ravens', 'bal'],
+        'cin': ['cincinnati', 'bengals', 'cin'],
+        'cle': ['cleveland', 'browns', 'cle'],
+        'hou': ['houston', 'texans', 'hou'],
+        'ind': ['indianapolis', 'colts', 'ind'],
+        'jax': ['jacksonville', 'jaguars', 'jax'],
+        'ten': ['tennessee', 'titans', 'ten'],
+        'ari': ['arizona', 'cardinals', 'ari'],
+        'chi': ['chicago', 'bears', 'chi'],
+        'min': ['minnesota', 'vikings', 'min'],
+        'car': ['carolina', 'panthers', 'car'],
+        'was': ['washington', 'commanders', 'was'],
+        'phi': ['philadelphia', 'eagles', 'phi'],
+        'lac': ['chargers', 'losangeleschargers', 'lac'],
+        'lv': ['lasvegas', 'raiders', 'lv', 'vegas']
+    };
+
     function teamMatches(kalshiLabel, espnName, espnAbbr) {
-        const k = normalize(kalshiLabel);
-        if (!k) return false;
+        const kTeam = extractTeamName(kalshiLabel);
+        if (!kTeam) return false;
         const n = normalize(espnName);
         const a = normalize(espnAbbr);
-        if (n && (n.includes(k) || k.includes(n))) return true;
-        if (a && (a === k || (a.length >= 2 && k.includes(a)))) return true;
+
+        if (a && a === kTeam) return true;
+        if (n && (n === kTeam || (n.length > 5 && kTeam.length > 5 && (n.includes(kTeam) || kTeam.includes(n))))) return true;
+
+        const aliasList = TEAM_MAP[a];
+        if (aliasList) {
+            return aliasList.some(alias => {
+                if (alias.length <= 3) {
+                    return kTeam === alias;
+                }
+                return kTeam.includes(alias) || alias.includes(kTeam);
+            });
+        }
         return false;
     }
 
@@ -187,15 +243,34 @@
         // away/home pair, checking every league's game index. Returns null
         // if there's no real match — callers must never fabricate a result.
         _findGameKey: function(awayAbbr, homeAbbr, awayName, homeName) {
-            for (const gk in this.gameIndex) {
-                const teams = this.gameIndex[gk];
-                if (teams.length < 2) continue;
-                const t0 = teams[0].team, t1 = teams[1].team;
-                const awayHitsT0 = teamMatches(t0, awayName, awayAbbr);
-                const homeHitsT1 = teamMatches(t1, homeName, homeAbbr);
-                const awayHitsT1 = teamMatches(t1, awayName, awayAbbr);
-                const homeHitsT0 = teamMatches(t0, homeName, homeAbbr);
-                if ((awayHitsT0 && homeHitsT1) || (awayHitsT1 && homeHitsT0)) return gk;
+            const indexes = [this.gameIndex, this.spreadIndex, this.totalIndex];
+            // First pass: require BOTH away and home teams to match in the game key's markets
+            for (const idx of indexes) {
+                for (const gk in idx) {
+                    const markets = idx[gk];
+                    if (!markets || markets.length === 0) continue;
+                    let matchesAway = false;
+                    let matchesHome = false;
+                    for (const m of markets) {
+                        const label = m.team || m.title || '';
+                        if (teamMatches(label, awayName, awayAbbr)) matchesAway = true;
+                        if (teamMatches(label, homeName, homeAbbr)) matchesHome = true;
+                    }
+                    if (matchesAway && matchesHome) {
+                        return gk;
+                    }
+                }
+            }
+            // Second pass: fallback if ticker itself contains both abbreviations
+            const eventSuffix = (normalize(awayAbbr) + normalize(homeAbbr));
+            const eventSuffixRev = (normalize(homeAbbr) + normalize(awayAbbr));
+            for (const idx of indexes) {
+                for (const gk in idx) {
+                    const normGk = normalize(gk);
+                    if (normGk.includes(eventSuffix) || normGk.includes(eventSuffixRev)) {
+                        return gk;
+                    }
+                }
             }
             return null;
         },
