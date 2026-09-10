@@ -2779,26 +2779,19 @@
             const comp = e.competitions?.[0];
             if (!comp) return false;
 
-            const now = new Date();
-            const maxWindowMs = 3 * 24 * 60 * 60 * 1000; // Strictly max 3 days into future
-            const pastWindowMs = 36 * 60 * 60 * 1000;   // Past 36 hours for recent final scores
-
             const st = gameStatus(e, lgId);
             if (st.isLive) return true;
 
             const eventDate = e.date ? new Date(e.date) : null;
+            if (!eventDate || isNaN(eventDate.getTime())) return false;
 
-            // 1. Strict 3-day future date check
-            if (eventDate) {
-                const diff = eventDate.getTime() - now.getTime();
-                if (diff > maxWindowMs) {
-                    return false; // Reject any game > 3 days away
-                }
-                if (diff < -pastWindowMs && !st.isFinal) {
-                    return false; // Reject outdated stale games
-                }
-            } else {
-                return false;
+            // 1. Strict Today's Games Date Filter:
+            // Compare local start date with today's local calendar date
+            const todayStr = new Date().toLocaleDateString();
+            const eventDateStr = eventDate.toLocaleDateString();
+
+            if (eventDateStr !== todayStr) {
+                return false; // Reject future slate/weekend games on default daily view
             }
 
             // 2. Out-of-season / unplayed 0-0 placeholder check for NBA & NHL
@@ -3722,9 +3715,6 @@
                             if (w.eventId && String(w.eventId) === targetEid) return true;
                             if (w.eventIds && Array.isArray(w.eventIds) && w.eventIds.map(String).includes(targetEid)) return true;
                             if (w.legs && Array.isArray(w.legs) && w.legs.some(l => l.eventId && String(l.eventId) === targetEid)) return true;
-                        }
-                        if (typeof window.matchesTeamWager === 'function') {
-                            return window.matchesTeamWager(w, awayAbbr, awayName) || window.matchesTeamWager(w, homeAbbr, homeName);
                         }
                         return false;
                     });
@@ -7118,7 +7108,7 @@
             return false;
         }
 
-        function getWagersForGame(eventIdOrAwayAbbr, awayAbbrOrName, awayNameOrHomeAbbr, homeAbbrOrName, homeNameOpt) {
+        function getWagersForGame(eventIdOrAwayAbbr, awayAbbrOrName, awayNameOrHomeAbbr, homeAbbrOrName, homeNameOpt, allowFuzzy = false) {
             seedWagersIfEmpty();
             let saved = localStorage.getItem('destiny_game_wagers');
             if (!saved || saved === '[]') return [];
@@ -7147,19 +7137,27 @@
                 if (!Array.isArray(parsed) || parsed.length === 0) return [];
 
                 const filtered = parsed.filter(w => {
-                    if (w.status && w.status !== 'PENDING') return false; // Filter strictly active wagers
+                    if (w.status && w.status !== 'PENDING') return false; // Strictly active pending wagers only
 
                     // 1. Primary match on unique Event ID
                     if (targetEid && targetEid !== 'undefined' && targetEid !== 'null') {
                         if (w.eventId && String(w.eventId) === targetEid) return true;
                         if (w.eventIds && Array.isArray(w.eventIds) && w.eventIds.map(String).includes(targetEid)) return true;
                         if (w.legs && Array.isArray(w.legs) && w.legs.some(l => l.eventId && String(l.eventId) === targetEid)) return true;
+
+                        // Target eventId was provided on game card but did not match this wager.
+                        // Disable loose substring/fuzzy team matching unless allowFuzzy === true.
+                        if (!allowFuzzy) return false;
                     }
 
-                    // 2. Team String Matching Fallback
-                    const matchAway = matchesTeamWager(w, awayAbbr, awayName);
-                    const matchHome = matchesTeamWager(w, homeAbbr, homeName);
-                    return matchAway || matchHome;
+                    // 2. Strict Team String Matching Fallback (only used if targetEid is absent or allowFuzzy === true)
+                    if (allowFuzzy) {
+                        const matchAway = matchesTeamWager(w, awayAbbr, awayName);
+                        const matchHome = matchesTeamWager(w, homeAbbr, homeName);
+                        return matchAway && matchHome; // Requires BOTH away and home teams to match
+                    }
+
+                    return false;
                 });
 
                 return filtered;

@@ -416,6 +416,16 @@
         onKalshiMomentum: function(cb) { listeners.momentum.add(cb); return () => listeners.momentum.delete(cb); },
         onError: function(cb) { listeners.error.add(cb); return () => listeners.error.delete(cb); },
 
+        isTodayEvent: function(dateStr) {
+            if (!dateStr) return false;
+            try {
+                const d = new Date(dateStr);
+                return !isNaN(d.getTime()) && d.toLocaleDateString() === new Date().toLocaleDateString();
+            } catch(e) {
+                return false;
+            }
+        },
+
         _updateBadge: function(active, text) {
             const badges = document.querySelectorAll('.live-ticker, #apiStatusBadge, .live-pill, #webhookStatusBadge');
             badges.forEach(b => {
