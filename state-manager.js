@@ -5,7 +5,7 @@
 (function() {
     'use strict';
 
-    const WAGER_VERSION = "2026-09-10-settled-v1";
+    const WAGER_VERSION = "2026-09-10-settled-v2";
     const settledWagersUpdate = [
       {
         id: "placed-994697208",
@@ -93,7 +93,7 @@
         legs: [
           { matchup: "NE Patriots vs SEA Seahawks", event: "NE Patriots vs SEA Seahawks", selection: "New England Patriots +9 (-113)", odds: "-113", status: "LOST" },
           { matchup: "NE Patriots vs SEA Seahawks", event: "NE Patriots vs SEA Seahawks", selection: "NE Patriots / SEA Seahawks over 38.5 (-110)", odds: "-110", status: "LOST" },
-          { matchup: "SF 49ers vs LA Rams", event: "SF 49ers vs LA Rams", selection: "San Francisco 49ers +9.5 (-102)", odds: "-102", status: "PENDING" }
+          { matchup: "SF 49ers vs LA Rams", event: "SF 49ers vs LA Rams", selection: "San Francisco 49ers +9.5 (-102)", odds: "-102", status: "LOST" }
         ]
       },
       {
@@ -125,7 +125,7 @@
         legs: [
           { matchup: "NE Patriots vs SEA Seahawks", event: "NE Patriots vs SEA Seahawks", selection: "New England Patriots +3 (-113)", odds: "-113", status: "LOST" },
           { matchup: "NE Patriots vs SEA Seahawks", event: "NE Patriots vs SEA Seahawks", selection: "NE Patriots / SEA Seahawks over 44.5 (-110)", odds: "-110", status: "LOST" },
-          { matchup: "SF 49ers vs LA Rams", event: "SF 49ers vs LA Rams", selection: "San Francisco 49ers +3.5 (-102)", odds: "-102", status: "PENDING" }
+          { matchup: "SF 49ers vs LA Rams", event: "SF 49ers vs LA Rams", selection: "San Francisco 49ers +3.5 (-102)", odds: "-102", status: "LOST" }
         ]
       },
       {
@@ -449,6 +449,8 @@
                                 status: st
                             }
                         ];
+                    } else if (st === 'LOST') {
+                        legs = legs.map(l => ({ ...l, status: 'LOST' }));
                     }
                     return {
                         ...w,

@@ -983,7 +983,7 @@
 
         function seedInitialWagers() {
             try {
-                const WAGER_VERSION = "2026-09-10-settled-v1";
+                const WAGER_VERSION = "2026-09-10-settled-v2";
                 if (localStorage.getItem("destiny_wager_sync_ver") !== WAGER_VERSION) {
                     if (window.DestinyState && window.DestinyState.getWagers) {
                         window.DestinyState.getWagers();

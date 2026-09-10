@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Destiny — Sports Command Center</title>
     <script src="live-feed.js"></script>
+    <script src="state-manager.js"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
@@ -5720,9 +5721,8 @@
                 window.DestinyState.getWagers();
                 return;
             }
+            const WAGER_VERSION = "2026-09-10-settled-v2";
             const KEY = 'destiny_game_wagers';
-            let wagers = [];
-            try { wagers = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { wagers = []; }
             
             const defaults = [
                 {
@@ -5808,7 +5808,7 @@
                     legs: [
                         { selection: 'New England Patriots +9 (-113)', odds: '-113', status: 'LOST' },
                         { selection: 'NE Patriots / SEA Seahawks over 38.5 (-110)', odds: '-110', status: 'LOST' },
-                        { selection: 'San Francisco 49ers +9.5 (-102)', odds: '-102', status: 'PENDING' }
+                        { selection: 'San Francisco 49ers +9.5 (-102)', odds: '-102', status: 'LOST' }
                     ]
                 },
                 {
@@ -5839,21 +5839,51 @@
                     legs: [
                         { selection: 'New England Patriots +3 (-113)', odds: '-113', status: 'LOST' },
                         { selection: 'NE Patriots / SEA Seahawks over 44.5 (-110)', odds: '-110', status: 'LOST' },
-                        { selection: 'San Francisco 49ers +3.5 (-102)', odds: '-102', status: 'PENDING' }
+                        { selection: 'San Francisco 49ers +3.5 (-102)', odds: '-102', status: 'LOST' }
+                    ]
+                },
+                {
+                    id: 'ticket-1003',
+                    ticketNumber: '1003',
+                    type: 'Straight',
+                    matchup: 'SMU Mustangs at Florida State Seminoles',
+                    event: 'SMU Mustangs at Florida State Seminoles',
+                    target: 'SMU at FSU - Total [GAME] - UNDER 45.5 (-110)',
+                    selection: 'SMU at FSU - Total [GAME] - UNDER 45.5 (-110)',
+                    side: 'UNDER 45.5',
+                    stake: 25.85,
+                    wager: 25.85,
+                    toWin: 23.50,
+                    status: 'LOST',
+                    placedOdds: '-110',
+                    odds: '-110',
+                    currentOdds: '-110',
+                    settledPayout: 0.00,
+                    settledDate: '2026-09-07T23:00:00Z',
+                    acceptedDate: '09/07/2026 07:30:00 PM (EST)',
+                    timestamp: '2026-09-07T19:30:00.000Z',
+                    description: 'Football - NCAA - SMU vs Florida State - Total | 451 SMU/Florida State under 45½ -110 for GAME | 09/07/2026 07:30:00 PM (EST) | Lost',
+                    sportsbook: 'BetOnline',
+                    bookmaker: 'BetOnline',
+                    history: ['-110', '-110', '-110'],
+                    legs: [
+                        { matchup: 'SMU Mustangs at Florida State Seminoles', event: 'SMU @ FSU', awayTag: 'SMU', homeTag: 'FSU', selection: 'SMU at FSU - Total [GAME] - UNDER 45.5 (-110)', odds: '-110', status: 'LOST' }
                     ]
                 }
             ];
 
-            defaults.forEach(dt => {
-                const idx = wagers.findIndex(w => (w.ticketNumber && w.ticketNumber.includes(dt.ticketNumber)) || (w.id && w.id.includes(dt.ticketNumber)));
-                if (idx < 0) {
-                    wagers.unshift(dt);
-                } else {
-                    wagers[idx] = { ...wagers[idx], ...dt };
-                }
-            });
+            if (localStorage.getItem('destiny_wager_sync_ver') !== WAGER_VERSION) {
+                localStorage.setItem(KEY, JSON.stringify(defaults));
+                localStorage.setItem('destiny_wager_sync_ver', WAGER_VERSION);
+                return;
+            }
 
-            localStorage.setItem(KEY, JSON.stringify(wagers));
+            let wagers = [];
+            try { wagers = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { wagers = []; }
+            if (wagers.length === 0) {
+                localStorage.setItem(KEY, JSON.stringify(defaults));
+                localStorage.setItem('destiny_wager_sync_ver', WAGER_VERSION);
+            }
         }
 
         function toggleTicketEntryForm() {
