@@ -3291,56 +3291,70 @@
                 totalPaceText = `${liveTotalPoints} PTS SCORED`;
             }
 
-            // 1. Spread calculation: Prefer Kalshi WebSocket spread, fall back to ESPN consensus spread
+            // Real Data Only — Never invent fake lines or fake odds
             let spreadAway = 'N/A';
             let spreadHome = 'N/A';
-            let spreadAwayOdds = '-110';
-            let spreadHomeOdds = '-110';
+            let spreadAwayOdds = 'N/A';
+            let spreadHomeOdds = 'N/A';
 
-            if (spreadObj && spreadObj.awayLine !== undefined && spreadObj.awayLine !== null) {
+            if (spreadObj && (spreadObj.awayLine !== undefined && spreadObj.awayLine !== null)) {
                 spreadAway = spreadObj.awayLine > 0 ? '+' + spreadObj.awayLine : spreadObj.awayLine;
                 spreadHome = spreadObj.homeLine > 0 ? '+' + spreadObj.homeLine : spreadObj.homeLine;
-                spreadAwayOdds = spreadObj.awayAmerican || '-110';
-                spreadHomeOdds = spreadObj.homeAmerican || '-110';
+                spreadAwayOdds = spreadObj.awayAmerican || 'N/A';
+                spreadHomeOdds = spreadObj.homeAmerican || 'N/A';
             } else if (odds && (odds.details || odds.spread !== undefined)) {
-                let sp = odds.spread !== undefined ? odds.spread : 3.5;
+                let sp = null;
                 if (odds.details) {
                     const match = odds.details.match(/([+-]?\d+(\.\d+)?)/);
                     if (match) sp = Math.abs(parseFloat(match[1]));
                 }
-                const isAwayFav = odds.details && odds.details.toLowerCase().includes(awayAbbr.toLowerCase());
-                spreadAway = isAwayFav ? `-${sp}` : `+${sp}`;
-                spreadHome = isAwayFav ? `+${sp}` : `-${sp}`;
-            } else {
-                spreadAway = '-3.5';
-                spreadHome = '+3.5';
+                if (sp === null && odds.spread !== undefined) sp = Math.abs(parseFloat(odds.spread));
+                if (sp !== null) {
+                    const isAwayFav = odds.details && odds.details.toLowerCase().includes(awayAbbr.toLowerCase());
+                    spreadAway = isAwayFav ? `-${sp}` : `+${sp}`;
+                    spreadHome = isAwayFav ? `+${sp}` : `-${sp}`;
+                    spreadAwayOdds = odds.awayTeamOdds?.moneyLine ? (odds.awayTeamOdds.moneyLine > 0 ? '+' + odds.awayTeamOdds.moneyLine : odds.awayTeamOdds.moneyLine) : 'N/A';
+                    spreadHomeOdds = odds.homeTeamOdds?.moneyLine ? (odds.homeTeamOdds.moneyLine > 0 ? '+' + odds.homeTeamOdds.moneyLine : odds.homeTeamOdds.moneyLine) : 'N/A';
+                }
             }
 
-            // 2. Moneyline calculation: Prefer Kalshi WebSocket moneyline, fall back to ESPN moneyline
-            const mlAway = kalshiML?.awayAmerican || (odds?.awayTeamOdds?.moneyLine ? (odds.awayTeamOdds.moneyLine > 0 ? '+' + odds.awayTeamOdds.moneyLine : odds.awayTeamOdds.moneyLine) : '-115');
-            const mlHome = kalshiML?.homeAmerican || (odds?.homeTeamOdds?.moneyLine ? (odds.homeTeamOdds.moneyLine > 0 ? '+' + odds.homeTeamOdds.moneyLine : odds.homeTeamOdds.moneyLine) : '+105');
+            // Real Moneyline: Kalshi or ESPN provider
+            let mlAway = 'N/A';
+            let mlHome = 'N/A';
+            if (kalshiML && kalshiML.awayAmerican) {
+                mlAway = kalshiML.awayAmerican;
+                mlHome = kalshiML.homeAmerican;
+            } else if (odds?.awayTeamOdds?.moneyLine || odds?.homeTeamOdds?.moneyLine) {
+                mlAway = odds.awayTeamOdds?.moneyLine ? (odds.awayTeamOdds.moneyLine > 0 ? '+' + odds.awayTeamOdds.moneyLine : odds.awayTeamOdds.moneyLine) : 'N/A';
+                mlHome = odds.homeTeamOdds?.moneyLine ? (odds.homeTeamOdds.moneyLine > 0 ? '+' + odds.homeTeamOdds.moneyLine : odds.homeTeamOdds.moneyLine) : 'N/A';
+            }
 
-            // 3. Total calculation: Prefer Kalshi WebSocket total, fall back to ESPN overUnder
+            // Real Total: Kalshi or ESPN provider
             let totalLine = 'N/A';
-            let totalOverOdds = '-110';
-            let totalUnderOdds = '-110';
+            let totalOverOdds = 'N/A';
+            let totalUnderOdds = 'N/A';
 
             if (totalObj && (totalObj.line !== undefined || totalObj.overUnder !== undefined)) {
                 totalLine = totalObj.line || totalObj.overUnder;
-                totalOverOdds = totalObj.overAmerican || '-110';
-                totalUnderOdds = totalObj.underAmerican || '-110';
+                totalOverOdds = totalObj.overAmerican || 'N/A';
+                totalUnderOdds = totalObj.underAmerican || 'N/A';
             } else if (odds && odds.overUnder) {
                 totalLine = odds.overUnder;
-            } else {
-                totalLine = '44.5';
             }
 
-            // 4. Team Total calculation derived from Total line
-            const numericTotal = parseFloat(totalLine) || 44.5;
-            const awayTeamTot = (numericTotal * 0.55).toFixed(1);
-            const homeTeamTot = (numericTotal * 0.45).toFixed(1);
-            const awayTeamTotOdds = '-110';
-            const homeTeamTotOdds = '-110';
+            // Real Team Total (derived only if real totalLine exists)
+            let awayTeamTot = 'N/A';
+            let homeTeamTot = 'N/A';
+            let awayTeamTotOdds = 'N/A';
+            let homeTeamTotOdds = 'N/A';
+
+            if (totalLine !== 'N/A') {
+                const numericTotal = parseFloat(totalLine);
+                if (!isNaN(numericTotal)) {
+                    awayTeamTot = (numericTotal * 0.55).toFixed(1);
+                    homeTeamTot = (numericTotal * 0.45).toFixed(1);
+                }
+            }
 
             const isKalshiLive = (kalshiML !== null || spreadObj !== null || totalObj !== null);
 
