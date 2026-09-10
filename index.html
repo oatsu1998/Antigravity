@@ -3784,96 +3784,49 @@
             return { awayStr: cleanTag(awayStr), homeStr: cleanTag(homeStr) };
         }
 
-        function getTeamLogoBadge(teamStr = '') {
-            const key = (teamStr || '').toUpperCase();
-            if (key.includes('MIN') || key.includes('VIKINGS') || key.includes('MINNESOTA')) {
-                return `
-                    <div class="team-logo-badge" title="Minnesota Vikings" style="display:inline-flex; align-items:center;">
-                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="16" cy="16" r="15" fill="#4F2683" stroke="#FFC62F" stroke-width="2"/>
-                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#FFC62F" text-anchor="middle">MIN</text>
-                        </svg>
-                    </div>
-                `;
-            }
-            if (key.includes('DEN') || key.includes('BRONCOS') || key.includes('DENVER')) {
-                return `
-                    <div class="team-logo-badge" title="Denver Broncos" style="display:inline-flex; align-items:center;">
-                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="16" cy="16" r="15" fill="#002244" stroke="#FB4F14" stroke-width="2"/>
-                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#FB4F14" text-anchor="middle">DEN</text>
-                        </svg>
-                    </div>
-                `;
-            }
-            if (key.includes('NCST') || key.includes('NC STATE') || key.includes('WOLFPACK')) {
-                return `
-                    <div class="team-logo-badge" title="NC State Wolfpack" style="display:inline-flex; align-items:center;">
-                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="16" cy="16" r="15" fill="#CC0000" stroke="#FFFFFF" stroke-width="2"/>
-                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="10" fill="#FFFFFF" text-anchor="middle">NCST</text>
-                        </svg>
-                    </div>
-                `;
-            }
-            if (key.includes('UVA') || key.includes('VIRGINIA') || key.includes('CAVALIERS')) {
-                return `
-                    <div class="team-logo-badge" title="Virginia Cavaliers" style="display:inline-flex; align-items:center;">
-                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="16" cy="16" r="15" fill="#232D4B" stroke="#F84C1E" stroke-width="2"/>
-                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="10" fill="#F84C1E" text-anchor="middle">UVA</text>
-                        </svg>
-                    </div>
-                `;
-            }
-            if (key.includes('MEM') || key.includes('MEMPHIS') || key.includes('TIGERS')) {
-                return `
-                    <div class="team-logo-badge" title="Memphis Tigers" style="display:inline-flex; align-items:center;">
-                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="16" cy="16" r="15" fill="#003087" stroke="#8D9093" stroke-width="2"/>
-                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="10" fill="#FFFFFF" text-anchor="middle">MEM</text>
-                        </svg>
-                    </div>
-                `;
-            }
-            if (key.includes('UNLV') || key.includes('REBELS')) {
-                return `
-                    <div class="team-logo-badge" title="UNLV Rebels" style="display:inline-flex; align-items:center;">
-                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="16" cy="16" r="15" fill="#CF102D" stroke="#666666" stroke-width="2"/>
-                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="9" fill="#FFFFFF" text-anchor="middle">UNLV</text>
-                        </svg>
-                    </div>
-                `;
-            }
-            if (key.includes('SJSU') || key.includes('SAN JOSE STATE') || key.includes('SPARTANS')) {
-                return `
-                    <div class="team-logo-badge" title="San Jose State" style="display:inline-flex; align-items:center;">
-                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="16" cy="16" r="15" fill="#0055A5" stroke="#E5A823" stroke-width="2"/>
-                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="10" fill="#E5A823" text-anchor="middle">SJSU</text>
-                        </svg>
-                    </div>
-                `;
-            }
-            if (key.includes('USC') || key.includes('TROJANS')) {
-                return `
-                    <div class="team-logo-badge" title="USC Trojans" style="display:inline-flex; align-items:center;">
-                        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="16" cy="16" r="15" fill="#990000" stroke="#FFC72C" stroke-width="2"/>
-                            <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#FFC72C" text-anchor="middle">USC</text>
-                        </svg>
-                    </div>
-                `;
+        function getTeamLogoBadge(teamStr = '', logoUrlParam = null, leagueParam = null) {
+            const raw = (teamStr || '').trim();
+            if (!raw) {
+                return `<div class="team-logo-badge-container" style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px;">
+                    <svg width="22" height="22" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" fill="#181c22" stroke="#06b6d4" stroke-width="2"/><text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#06b6d4" text-anchor="middle">BET</text></svg>
+                </div>`;
             }
 
-            const tag = key.substring(0, 3) || 'BET';
+            const key = raw.toUpperCase();
+            let abbr = key;
+            let category = (leagueParam || '').toLowerCase();
+
+            // NCAA Team Logos
+            if (key.includes('SMU') || key.includes('MUSTANGS')) { abbr = 'smu'; category = 'ncaa'; }
+            else if (key.includes('FSU') || key.includes('FLORIDA STATE') || key.includes('SEMINOLES')) { abbr = 'fsu'; category = 'ncaa'; }
+            else if (key.includes('NCST') || key.includes('NC STATE') || key.includes('WOLFPACK')) { abbr = 'ncst'; category = 'ncaa'; }
+            else if (key.includes('UVA') || key.includes('VIRGINIA') || key.includes('CAVALIERS')) { abbr = 'uva'; category = 'ncaa'; }
+            else if (key.includes('MEM') || key.includes('MEMPHIS') || key.includes('TIGERS')) { abbr = 'mem'; category = 'ncaa'; }
+            else if (key.includes('UNLV') || key.includes('REBELS')) { abbr = 'unlv'; category = 'ncaa'; }
+            else if (key.includes('SJSU') || key.includes('SAN JOSE') || key.includes('SPARTANS')) { abbr = 'sjsu'; category = 'ncaa'; }
+            else if (key.includes('USC') || key.includes('TROJANS')) { abbr = 'usc'; category = 'ncaa'; }
+            // NFL Team Logos
+            else if (key.includes('NE') || key.includes('PATRIOTS') || key.includes('NEW ENGLAND')) { abbr = 'ne'; category = 'nfl'; }
+            else if (key.includes('SEA') || key.includes('SEAHAWKS') || key.includes('SEATTLE')) { abbr = 'sea'; category = 'nfl'; }
+            else if (key.includes('SF') || key.includes('49ERS') || key.includes('SAN FRANCISCO')) { abbr = 'sf'; category = 'nfl'; }
+            else if (key.includes('LAR') || key.includes('RAMS') || key.includes('LOS ANGELES RAMS')) { abbr = 'lar'; category = 'nfl'; }
+            else if (key.includes('MIN') || key.includes('VIKINGS') || key.includes('MINNESOTA')) { abbr = 'min'; category = 'nfl'; }
+            else if (key.includes('DEN') || key.includes('BRONCOS') || key.includes('DENVER')) { abbr = 'den'; category = 'nfl'; }
+            else if (key.includes('KC') || key.includes('CHIEFS') || key.includes('KANSAS')) { abbr = 'kc'; category = 'nfl'; }
+            else if (key.includes('GB') || key.includes('PACKERS') || key.includes('GREEN BAY')) { abbr = 'gb'; category = 'nfl'; }
+            else {
+                const cleaned = raw.replace(/[^a-zA-Z]/g, '').toLowerCase();
+                abbr = cleaned.substring(0, 4) || 'espn';
+                if (!category) category = 'nfl';
+            }
+
+            const logoUrl = logoUrlParam || `https://a.espncdn.com/i/teamlogos/${category}/500/${abbr}.png`;
+            const displayAbbr = (raw.replace(/[^a-zA-Z]/g, '').substring(0, 4) || 'BET').toUpperCase();
+
             return `
-                <div class="team-logo-badge" title="${key}" style="display:inline-flex; align-items:center;">
-                    <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="16" cy="16" r="15" fill="#181c22" stroke="#06b6d4" stroke-width="2"/>
-                        <text x="16" y="21" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="11" fill="#06b6d4" text-anchor="middle">${tag}</text>
-                    </svg>
+                <div class="team-logo-badge-container" title="${raw}" style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; position:relative; vertical-align:middle;">
+                    <img src="${logoUrl}" alt="${displayAbbr}" class="team-logo-circle" style="width:24px; height:24px; object-fit:contain;" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-flex';" />
+                    <span class="team-abbr-circle" style="display:none; width:22px; height:22px; border-radius:50%; background:#181c22; border:2px solid #06b6d4; align-items:center; justify-content:center; font-family:'Barlow Condensed', sans-serif; font-weight:900; font-size:10px; color:#06b6d4; text-transform:uppercase; text-align:center;">${displayAbbr}</span>
                 </div>
             `;
         }

@@ -76,6 +76,60 @@
                 let stored = JSON.parse(localStorage.getItem(KEYS.WAGERS) || '[]');
                 const defaultWagers = [
                     {
+                        id: 'ticket-1003',
+                        ticketNumber: '1003',
+                        event: 'SMU Mustangs at Florida State Seminoles',
+                        matchup: 'SMU Mustangs at Florida State Seminoles',
+                        target: 'SMU at FSU - Total [GAME] - UNDER 45.5 (-110)',
+                        selection: 'SMU at FSU - Total [GAME] - UNDER 45.5 (-110)',
+                        type: 'Straight',
+                        side: 'UNDER 45.5',
+                        sportsbook: 'BetOnline',
+                        bookmaker: 'BetOnline',
+                        stake: 25.85,
+                        wager: 25.85,
+                        toWin: 23.50,
+                        placedOdds: '-110',
+                        odds: '-110',
+                        currentOdds: '-110',
+                        status: 'LOST',
+                        settledDate: '2026-09-07T23:00:00Z',
+                        settledPayout: 0.00,
+                        acceptedDate: '09/07/2026 07:30:00 PM (EST)',
+                        timestamp: '2026-09-07T19:30:00.000Z',
+                        description: 'Football - NCAA - SMU vs Florida State - Total | 451 SMU/Florida State under 45½ -110 for GAME | 09/07/2026 07:30:00 PM (EST) | Lost',
+                        history: ['-110', '-110', '-110'],
+                        legs: [
+                            { matchup: 'SMU Mustangs at Florida State Seminoles', event: 'SMU @ FSU', awayTag: 'SMU', homeTag: 'FSU', selection: 'SMU at FSU - Total [GAME] - UNDER 45.5 (-110)', odds: '-110', status: 'LOST' }
+                        ]
+                    },
+                    {
+                        id: 'ticket-987889889',
+                        ticketNumber: '987889889',
+                        event: 'NE Patriots vs SEA Seahawks',
+                        matchup: 'NE Patriots vs SEA Seahawks',
+                        target: 'Straight — Seahawks +2.5 3rd quarter',
+                        selection: 'Seahawks +2.5 3rd quarter',
+                        type: 'Straight',
+                        side: 'Seahawks +2.5 3rd Qtr',
+                        sportsbook: 'BetOnline',
+                        bookmaker: 'BetOnline',
+                        stake: 20.00,
+                        wager: 20.00,
+                        toWin: 20.00,
+                        placedOdds: '+100',
+                        odds: '+100',
+                        currentOdds: '+100',
+                        status: 'PENDING',
+                        acceptedDate: '09/09/2026 08:20:00 PM (EST)',
+                        timestamp: '2026-09-09T20:20:00.000Z',
+                        description: 'Football - NFL - New England Patriots vs Seattle Seahawks - Straight | Seahawks +2.5 3rd quarter +100 for GAME | 09/09/2026 08:20:00 PM (EST) | Pending',
+                        history: ['+100', '+100', '+100'],
+                        legs: [
+                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: 'Seahawks +2.5 3rd quarter', odds: '+100', status: 'PENDING' }
+                        ]
+                    },
+                    {
                         id: 'ticket-994692629',
                         ticketNumber: '994692629',
                         event: 'NE Patriots vs SEA Seahawks',
@@ -191,9 +245,12 @@
                 }
 
                 stored = stored.map(w => {
-                    const st = String(w.status || 'PENDING').toUpperCase();
+                    const ticketNum = String(w.ticketNumber || w.id || '');
+                    const isTicket1003 = ticketNum.includes('1003') || (w.target && w.target.includes('SMU at FSU'));
+                    const st = isTicket1003 ? 'LOST' : String(w.status || 'PENDING').toUpperCase();
                     const wType = String(w.type || 'Straight').toLowerCase();
-                    const isStraightOrLive = wType === 'straight' || wType === 'live' || wType === 'single' || wType === 'game';
+                    const isStraightOrLive = wType === 'straight' || wType === 'live' || wType === 'single' || wType === 'game' || ticketNum.includes('987889889');
+
                     let legs = w.legs;
                     if (isStraightOrLive || !legs || !Array.isArray(legs) || legs.length <= 1) {
                         legs = [
@@ -210,6 +267,8 @@
                     return {
                         ...w,
                         status: (st === 'PENDING' || st === 'OPEN') ? 'PENDING' : st,
+                        settledDate: isTicket1003 ? '2026-09-07T23:00:00Z' : w.settledDate,
+                        settledPayout: isTicket1003 ? 0.00 : w.settledPayout,
                         odds: w.placedOdds || w.odds || '-110',
                         placedOdds: w.placedOdds || w.odds || '-110',
                         sportsbook: w.sportsbook || 'BetOnline',
@@ -403,6 +462,47 @@
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
+        },
+
+        // ── Automated Wager Settlement & Reconciliation ────────────────────
+        reconcileCompletedWagers: function(completedGamesArr = []) {
+            if (!Array.isArray(completedGamesArr) || completedGamesArr.length === 0) return;
+            const wagers = this.getWagers();
+            let changed = false;
+
+            wagers.forEach(w => {
+                if (w.status !== 'PENDING') return;
+                const text = (String(w.event || '') + ' ' + String(w.matchup || '') + ' ' + String(w.selection || '') + ' ' + String(w.description || '')).toUpperCase();
+                
+                completedGamesArr.forEach(game => {
+                    const awayStr = (game.away_team || game.away_abbr || '').toUpperCase();
+                    const homeStr = (game.home_team || game.home_abbr || '').toUpperCase();
+
+                    if (awayStr && homeStr && text.includes(awayStr) && text.includes(homeStr)) {
+                        const awayScore = parseInt(game.away_score || 0);
+                        const homeScore = parseInt(game.home_score || 0);
+                        const totalScore = awayScore + homeScore;
+
+                        if (text.includes('UNDER') || text.includes('OVER')) {
+                            const matchLine = text.match(/(UNDER|OVER)\s*(\d+\.?\d*)/);
+                            if (matchLine) {
+                                const side = matchLine[1];
+                                const lineVal = parseFloat(matchLine[2]);
+                                if (!isNaN(lineVal)) {
+                                    w.status = (side === 'UNDER' ? totalScore < lineVal : totalScore > lineVal) ? 'WON' : (totalScore === lineVal ? 'PUSH' : 'LOST');
+                                    w.settledDate = new Date().toISOString();
+                                    w.settledPayout = w.status === 'WON' ? (parseFloat(w.stake) + parseFloat(w.toWin)) : (w.status === 'PUSH' ? parseFloat(w.stake) : 0);
+                                    changed = true;
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+            if (changed) {
+                this.saveWagers(wagers);
+            }
         }
     };
 
