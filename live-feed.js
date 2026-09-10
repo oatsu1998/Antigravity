@@ -138,11 +138,13 @@
 
     let pollTimer = null;
     let consecutiveFailures = 0;
+    let currentPollDelay = 5000;
+    const INITIAL_POLL_INTERVAL = 5000;
+    const MAX_POLL_INTERVAL = 60000;
 
     // Calls YOUR OWN Vercel server (which then talks to Kalshi), not Kalshi directly.
     // This avoids the browser CORS block.
     const KALSHI_PROXY_URL = '/api/kalshi';
-    const POLL_INTERVAL_MS = 5000;
 
     const DestinyLiveFeed = {
         centsToAmericanOdds: centsToAmericanOdds,
@@ -153,13 +155,47 @@
         lastError: null,
 
         connect: function() {
+            this._loadCacheFallback();
+            this._setupVisibilityListener();
             this._pollRealKalshiData();
-            pollTimer = setInterval(() => this._pollRealKalshiData(), POLL_INTERVAL_MS);
+        },
+
+        _setupVisibilityListener: function() {
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    if (pollTimer) clearTimeout(pollTimer);
+                } else {
+                    currentPollDelay = INITIAL_POLL_INTERVAL;
+                    this._pollRealKalshiData();
+                }
+            });
+        },
+
+        _loadCacheFallback: function() {
+            try {
+                const rawCache = localStorage.getItem('espn_events_cache') || localStorage.getItem('kalshi_events_cache');
+                if (rawCache) {
+                    const markets = JSON.parse(rawCache);
+                    if (Array.isArray(markets) && markets.length > 0) {
+                        this._processMarkets(markets, true);
+                    }
+                }
+            } catch (e) {
+                console.warn('[DestinyLiveFeed] Cache fallback load error:', e);
+            }
+        },
+
+        _scheduleNextPoll: function() {
+            if (pollTimer) clearTimeout(pollTimer);
+            if (!document.hidden) {
+                pollTimer = setTimeout(() => this._pollRealKalshiData(), currentPollDelay);
+            }
         },
 
         // ── Fetch real sports market data via our own server proxy ──────────
         // If this fails for ANY reason, we show an error. We never invent numbers.
         _pollRealKalshiData: function() {
+            if (document.hidden) return;
             fetch(KALSHI_PROXY_URL)
                 .then(res => {
                     if (!res.ok) throw new Error('Proxy returned status ' + res.status);
@@ -169,74 +205,96 @@
                     if (data.error) throw new Error(data.error);
 
                     consecutiveFailures = 0;
+                    currentPollDelay = INITIAL_POLL_INTERVAL; // Reset backoff on success
                     this.lastError = null;
                     const markets = data.markets || [];
 
                     if (markets.length === 0) {
                         this._setError('No open Kalshi sports markets returned');
+                        this._scheduleNextPoll();
                         return;
                     }
 
-                    const newGameIndex = {};
-                    const newSpreadIndex = {};
-                    const newTotalIndex = {};
-                    let pricedCount = 0;
+                    // Save to cache for fallback resilience
+                    try {
+                        localStorage.setItem('kalshi_events_cache', JSON.stringify(markets));
+                        localStorage.setItem('espn_events_cache', JSON.stringify(markets));
+                    } catch (e) {}
 
-                    markets.forEach(m => {
-                        const gk = gameKeyOf(m);
-                        if (!gk) return;
-
-                        const yesPrice = realPriceCents(m);
-                        if (yesPrice === null) return; // no real liquidity yet — skip, never guess
-
-                        pricedCount++;
-
-                        if (m._kind === 'game') {
-                            if (!newGameIndex[gk]) newGameIndex[gk] = [];
-                            newGameIndex[gk].push({ team: m.yes_sub_title, yesPrice, ticker: m.ticker });
-                        } else if (m._kind === 'spread') {
-                            if (!newSpreadIndex[gk]) newSpreadIndex[gk] = [];
-                            newSpreadIndex[gk].push({ team: m.yes_sub_title, line: m.floor_strike, yesPrice, ticker: m.ticker });
-                        } else if (m._kind === 'total') {
-                            if (!newTotalIndex[gk]) newTotalIndex[gk] = [];
-                            newTotalIndex[gk].push({ line: m.floor_strike, yesPrice, ticker: m.ticker });
-                        }
-
-                        // Momentum / flash-effect tick, same as before
-                        const prevPayload = this.kalshiCache[m.ticker];
-                        const direction = prevPayload ? (yesPrice > prevPayload.yesPrice ? 'UP' : (yesPrice < prevPayload.yesPrice ? 'DOWN' : prevPayload.direction || 'FLAT')) : 'FLAT';
-                        const payload = {
-                            ticker: m.ticker,
-                            team: m.yes_sub_title || m.title,
-                            matchup: m.title,
-                            yesPrice: yesPrice,
-                            noPrice: 100 - yesPrice,
-                            americanOdds: centsToAmericanOdds(yesPrice),
-                            direction: direction,
-                            volume: parseFloat(m.volume_fp) || 0,
-                            closeTime: m.close_time || null,
-                            timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
-                        };
-                        this.kalshiCache[m.ticker] = payload;
-                        listeners.kalshi.forEach(cb => cb(payload));
-                        listeners.momentum.forEach(cb => cb(payload));
-                    });
-
-                    this.gameIndex = newGameIndex;
-                    this.spreadIndex = newSpreadIndex;
-                    this.totalIndex = newTotalIndex;
-
-                    if (pricedCount === 0) {
-                        this._setError('Kalshi markets are open but none have real pricing yet');
-                        return;
-                    }
-
-                    this._updateBadge(true, '⚡ KALSHI SPORTS LIVE');
+                    this._processMarkets(markets, false);
+                    this._scheduleNextPoll();
                 })
                 .catch(err => {
                     consecutiveFailures++;
+                    currentPollDelay = Math.min(currentPollDelay * 2, MAX_POLL_INTERVAL); // Exponential backoff: 5s -> 10s -> 20s -> 40s -> 60s
                     this._setError(err.message);
+                    this._loadCacheFallback();
+                    this._scheduleNextPoll();
                 });
+        },
+
+        _processMarkets: function(markets, isFallback = false) {
+            const newGameIndex = {};
+            const newSpreadIndex = {};
+            const newTotalIndex = {};
+            let pricedCount = 0;
+
+            markets.forEach(m => {
+                const gk = gameKeyOf(m);
+                if (!gk) return;
+
+                const yesPrice = realPriceCents(m);
+                if (yesPrice === null) return; // no real liquidity yet — skip, never guess
+
+                pricedCount++;
+
+                if (m._kind === 'game') {
+                    if (!newGameIndex[gk]) newGameIndex[gk] = [];
+                    newGameIndex[gk].push({ team: m.yes_sub_title, yesPrice, ticker: m.ticker });
+                } else if (m._kind === 'spread') {
+                    if (!newSpreadIndex[gk]) newSpreadIndex[gk] = [];
+                    newSpreadIndex[gk].push({ team: m.yes_sub_title, line: m.floor_strike, yesPrice, ticker: m.ticker });
+                } else if (m._kind === 'total') {
+                    if (!newTotalIndex[gk]) newTotalIndex[gk] = [];
+                    newTotalIndex[gk].push({ line: m.floor_strike, yesPrice, ticker: m.ticker });
+                }
+
+                // Momentum / flash-effect tick, same as before
+                const prevPayload = this.kalshiCache[m.ticker];
+                const direction = prevPayload ? (yesPrice > prevPayload.yesPrice ? 'UP' : (yesPrice < prevPayload.yesPrice ? 'DOWN' : prevPayload.direction || 'FLAT')) : 'FLAT';
+                const payload = {
+                    ticker: m.ticker,
+                    team: m.yes_sub_title || m.title,
+                    matchup: m.title,
+                    yesPrice: yesPrice,
+                    noPrice: 100 - yesPrice,
+                    americanOdds: centsToAmericanOdds(yesPrice),
+                    direction: direction,
+                    volume: parseFloat(m.volume_fp) || 0,
+                    closeTime: m.close_time || null,
+                    timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
+                };
+                this.kalshiCache[m.ticker] = payload;
+                if (!isFallback) {
+                    listeners.kalshi.forEach(cb => cb(payload));
+                    listeners.momentum.forEach(cb => cb(payload));
+                }
+            });
+
+            this.gameIndex = newGameIndex;
+            this.spreadIndex = newSpreadIndex;
+            this.totalIndex = newTotalIndex;
+
+            if (pricedCount === 0 && !isFallback) {
+                this._setError('Kalshi markets are open but none have real pricing yet');
+                return;
+            }
+
+            if (!isFallback) {
+                this._updateBadge(true, '⚡ KALSHI SPORTS LIVE');
+            } else {
+                this._updateBadge(true, '⚡ KALSHI CACHED DATA');
+            }
         },
 
         // Find the gameKey whose two Kalshi team labels match this ESPN

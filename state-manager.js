@@ -419,6 +419,36 @@
         }
     };
 
+    /**
+     * Individual leg inside a multi-leg wager or straight bet.
+     * @typedef {Object} WagerLeg
+     * @property {string} [eventId] - ESPN's unique event identifier (e.g. "401671607").
+     * @property {string} matchup - Formatted matchup header string (e.g. "Football - NFL - Patriots vs Seahawks").
+     * @property {string} selection - Selected team and line description (e.g. "Patriots +3 (-113)").
+     * @property {string} odds - Placed American odds string (e.g. "-113").
+     * @property {'PENDING' | 'WON' | 'LOST' | 'PUSH'} status - Leg settlement status.
+     */
+
+    /**
+     * Complete placed wager ticket object.
+     * @typedef {Object} WagerTicket
+     * @property {string} id - Unique internal ticket ID (e.g. "placed-17890045-1725900000").
+     * @property {string} [ticketNumber] - User or bookmaker ticket number (e.g. "994662668").
+     * @property {string} [eventId] - Primary ESPN event ID for single-game wagers.
+     * @property {Array<string>} [eventIds] - Array of ESPN event IDs for multi-game parlays/teasers.
+     * @property {string} matchup - Ticket-level matchup header or "Multi-Matchup Parlay (X Legs)".
+     * @property {string} target - Detailed bet summary target string.
+     * @property {'GAME' | 'PARLAY' | 'TEASER' | 'PLEASER' | 'IF_BET'} type - Bet category.
+     * @property {number} stake - Total risk amount in USD.
+     * @property {number} toWin - Potential profit amount in USD.
+     * @property {string} placedOdds - Placed American odds or parlay multiplier (e.g. "+617").
+     * @property {'PENDING' | 'WON' | 'LOST' | 'PUSH'} status - Overall ticket settlement status.
+     * @property {Array<WagerLeg>} [legs] - Individual leg details for parlays, teasers, or if-bets.
+     * @property {string} [acceptedDate] - ISO timestamp or formatted placement date.
+     * @property {string} [settledDate] - ISO timestamp of outcome resolution.
+     * @property {number} [settledPayout] - Actual amount credited back to bankroll upon settlement.
+     */
+
     // ── Listen to Window Storage Event for Multi-Tab Syncing ───────────────
     window.addEventListener('storage', function(e) {
         if (!e.key) return;
@@ -426,12 +456,39 @@
         try { parsed = JSON.parse(e.newValue); } catch(err) {}
         
         DestinyState._notify(e.key, parsed);
-        
-        // Auto-update any top nav bankroll display
-        if (e.key === KEYS.BANKROLL) {
-            document.querySelectorAll('.bankroll-amount, #bankrollVal').forEach(el => {
-                el.textContent = '$' + parseFloat(parsed || 10000).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            });
+
+        // Broadcast custom state update event for custom tab subscribers
+        window.dispatchEvent(new CustomEvent('destiny_state_updated', {
+            detail: { key: e.key, value: parsed, oldValue: e.oldValue }
+        }));
+
+        // Multi-tab UI Sync for monitored state keys
+        if ([KEYS.BANKROLL, KEYS.WAGERS, KEYS.PROPS, KEYS.KALSHI_POSITIONS, KEYS.GAME_HISTORY, 'bankroll', 'destiny_game_wagers', 'destiny_debt_tokens'].includes(e.key)) {
+            // Auto-update top nav bankroll displays
+            if (e.key === KEYS.BANKROLL || e.key === 'bankroll') {
+                document.querySelectorAll('.bankroll-amount, #bankrollVal, .bankroll-display').forEach(el => {
+                    el.textContent = '$' + parseFloat(parsed || 10000).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                });
+                if (typeof window.updateBankrollDisplay === 'function') {
+                    try { window.updateBankrollDisplay(); } catch(err) { console.warn('[DestinyState] updateBankrollDisplay error:', err); }
+                }
+            }
+
+            // Auto-update game card MY BETS badges and active bet counts across open tabs
+            if (e.key === KEYS.WAGERS || e.key === 'destiny_game_wagers') {
+                if (typeof window.updateAllCardBetsCounts === 'function') {
+                    try { window.updateAllCardBetsCounts(); } catch(err) { console.warn('[DestinyState] updateAllCardBetsCounts error:', err); }
+                }
+                if (typeof window.updateActiveBetsCountGlobal === 'function') {
+                    try { window.updateActiveBetsCountGlobal(); } catch(err) { console.warn('[DestinyState] updateActiveBetsCountGlobal error:', err); }
+                }
+                if (typeof window.renderActiveBetsInPanel === 'function') {
+                    try { window.renderActiveBetsInPanel(); } catch(err) { console.warn('[DestinyState] renderActiveBetsInPanel error:', err); }
+                }
+                if (typeof window.renderWagers === 'function') {
+                    try { window.renderWagers(); } catch(err) { console.warn('[DestinyState] renderWagers error:', err); }
+                }
+            }
         }
     });
 
