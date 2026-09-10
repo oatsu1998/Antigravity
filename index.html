@@ -5783,31 +5783,31 @@
             const legs = Math.max(2, legCount || 2);
             const p = parseFloat(pts);
 
-            if (p === -6.0) { // Pleaser (-6 PTS)
+            if (p === -6.0) { // Pleaser (-6 PTS BetOnline: 2 leg +600)
                 if (legs === 2) return '+600';
                 if (legs === 3) return '+1800';
                 if (legs === 4) return '+4500';
                 if (legs === 5) return '+10000';
                 return '+20000';
-            } else if (p === 7.5) { // +7.5 Pts
-                if (legs === 2) return '-140';
+            } else if (p === 7.5) { // +7.5 Pts (BetOnline: 2 leg -150)
+                if (legs === 2) return '-150';
                 if (legs === 3) return '+100';
                 if (legs === 4) return '+180';
                 if (legs === 5) return '+270';
                 return '+400';
-            } else if (p === 7.0) { // +7.0 Pts
+            } else if (p === 7.0) { // +7.0 Pts (BetOnline: 2 leg -130)
                 if (legs === 2) return '-130';
                 if (legs === 3) return '+120';
                 if (legs === 4) return '+200';
                 if (legs === 5) return '+300';
                 return '+450';
-            } else if (p === 6.5) { // +6.5 Pts
+            } else if (p === 6.5) { // +6.5 Pts (BetOnline: 2 leg -120)
                 if (legs === 2) return '-120';
                 if (legs === 3) return '+140';
                 if (legs === 4) return '+230';
                 if (legs === 5) return '+350';
                 return '+500';
-            } else { // +6.0 Pts (default)
+            } else { // +6.0 Pts (BetOnline default: 2 leg -110)
                 if (legs === 2) return '-110';
                 if (legs === 3) return '+160';
                 if (legs === 4) return '+260';
