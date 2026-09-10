@@ -3487,7 +3487,7 @@
 
             const kalshiTileHtml = '';
 
-            const wagersList = getWagersForGame(awayAbbr, awayName, homeAbbr, homeName);
+            const wagersList = getWagersForGame(event.id, awayAbbr, awayName, homeAbbr, homeName);
             const betsCount = wagersList.length;
             const weatherObj = comp.weather;
             const weatherText = weatherObj?.displayValue || (weatherObj?.temperature ? `${weatherObj.temperature}°F` : '');
@@ -3510,9 +3510,11 @@
           ${status.isLive ? '<span class="live-dot"></span>' : ''}
           ${weatherBadge ? `<span style="font-size:10px; font-weight:700; color:#f59e0b; background:rgba(245,158,11,0.1); padding:2px 6px; border-radius:4px; border:1px solid rgba(245,158,11,0.25); font-family:var(--font-mono);">${weatherBadge}</span>` : ''}
         </div>
-        <button class="card-my-bets-btn" onclick="event.stopPropagation(); window.location.href='my-bets.html'">
-          My Bets ${betsCount > 0 ? `<span class="bets-count">${betsCount}</span>` : ''}
+        ${betsCount > 0 ? `
+        <button class="card-my-bets-btn" onclick="event.stopPropagation(); if(window.openMyBetsModal){ openMyBetsModal('${event.id}', '${awayAbbr}', '${awayName.replace(/'/g, "\\'")}', '${homeAbbr}', '${homeName.replace(/'/g, "\\'")}'); } else { window.location.href='my-bets.html'; }">
+          My Bets <span class="bets-count">${betsCount}</span>
         </button>
+        ` : ''}
         <button class="pin-btn ${espnPinned.has(event.id) ? 'active' : ''}" onclick="event.stopPropagation(); toggleEspnPin('${event.id}', this)" title="${espnPinned.has(event.id) ? 'Unpin' : 'Pin'}">★</button>
       </div>
       ${showScoreBlock ? `
@@ -6893,7 +6895,17 @@
             }
 
             if (teamName && teamName.length >= 3) {
-                const words = teamName.toLowerCase().split(/\s+/).filter(word => word.length >= 3 && !['the', 'and', 'for', 'game', 'over', 'under'].includes(word));
+                const cleanName = teamName.toLowerCase().trim();
+                if (text.includes(cleanName)) return true;
+
+                const genericWords = [
+                    'new', 'york', 'los', 'angeles', 'san', 'diego', 'francisco', 'jose', 'bay', 
+                    'green', 'kansas', 'city', 'st.', 'st', 'louis', 'north', 'south', 'east', 'west', 
+                    'the', 'and', 'for', 'game', 'over', 'under', 'team', 'total', 'state', 'real', 'fc',
+                    'football', 'basketball', 'baseball', 'parlay', 'teaser', 'pleaser'
+                ];
+                
+                const words = cleanName.split(/\s+/).filter(word => word.length >= 3 && !genericWords.includes(word));
                 for (const word of words) {
                     const wordRegex = new RegExp('\\b' + word.replace(/[^a-z0-9]/g, '') + '\\b', 'i');
                     if (wordRegex.test(text)) return true;
@@ -6903,16 +6915,45 @@
             return false;
         }
 
-        function getWagersForGame(awayAbbr, awayName, homeAbbr, homeName) {
+        function getWagersForGame(eventIdOrAwayAbbr, awayAbbrOrName, awayNameOrHomeAbbr, homeAbbrOrName, homeNameOpt) {
             seedWagersIfEmpty();
             let saved = localStorage.getItem('destiny_game_wagers');
             if (!saved || saved === '[]') return [];
+
+            let targetEid = null;
+            let awayAbbr = '';
+            let awayName = '';
+            let homeAbbr = '';
+            let homeName = '';
+
+            if (homeNameOpt !== undefined) {
+                targetEid = String(eventIdOrAwayAbbr || '').trim();
+                awayAbbr = awayAbbrOrName;
+                awayName = awayNameOrHomeAbbr;
+                homeAbbr = homeAbbrOrName;
+                homeName = homeNameOpt;
+            } else {
+                awayAbbr = eventIdOrAwayAbbr;
+                awayName = awayAbbrOrName;
+                homeAbbr = awayNameOrHomeAbbr;
+                homeName = homeAbbrOrName;
+            }
             
             try {
                 let parsed = JSON.parse(saved);
                 if (!Array.isArray(parsed) || parsed.length === 0) return [];
 
                 const filtered = parsed.filter(w => {
+                    if (w.status && w.status !== 'PENDING') return false; // Filter strictly active wagers
+
+                    // 1. Primary match on unique Event ID
+                    if (targetEid && targetEid !== 'undefined' && targetEid !== 'null') {
+                        if (w.eventId && String(w.eventId) === targetEid) return true;
+                        if (w.eventIds && Array.isArray(w.eventIds) && w.eventIds.map(String).includes(targetEid)) return true;
+                        if (w.legs && Array.isArray(w.legs) && w.legs.some(l => l.eventId && String(l.eventId) === targetEid)) return true;
+                    }
+
+                    // 2. Team String Matching Fallback
                     const matchAway = matchesTeamWager(w, awayAbbr, awayName);
                     const matchHome = matchesTeamWager(w, homeAbbr, homeName);
                     return matchAway || matchHome;
@@ -6926,26 +6967,51 @@
 
         function updateAllCardBetsCounts() {
             document.querySelectorAll('.game-card').forEach(card => {
-                const myBetsBtn = card.querySelector('.card-my-bets-btn');
-                if (!myBetsBtn) return;
-                
+                const eid = card.getAttribute('data-eid') || card.id.replace(/^card-[^-]+-/, '');
                 const teamNames = card.querySelectorAll('.team-name');
+                let wagers = [];
                 if (teamNames.length >= 2) {
                     const awayText = teamNames[0].innerText.trim();
                     const homeText = teamNames[1].innerText.trim();
-                    const wagers = getWagersForGame(awayText, awayText, homeText, homeText);
-                    const countEl = myBetsBtn.querySelector('.bets-count');
-                    if (wagers.length > 0) {
+                    wagers = getWagersForGame(eid, awayText, awayText, homeText, homeText);
+                }
+
+                let myBetsBtn = card.querySelector('.card-my-bets-btn');
+                const topBar = card.querySelector('.card-top-bar');
+
+                if (wagers.length > 0) {
+                    if (myBetsBtn) {
+                        const countEl = myBetsBtn.querySelector('.bets-count');
                         if (countEl) {
                             countEl.innerText = wagers.length;
                         } else {
-                            const newCountEl = document.createElement('span');
-                            newCountEl.className = 'bets-count';
-                            newCountEl.innerText = wagers.length;
-                            myBetsBtn.appendChild(newCountEl);
+                            myBetsBtn.innerHTML = `My Bets <span class="bets-count">${wagers.length}</span>`;
                         }
-                    } else {
-                        if (countEl) countEl.remove();
+                    } else if (topBar) {
+                        const pinBtn = topBar.querySelector('.pin-btn');
+                        const newBtn = document.createElement('button');
+                        newBtn.className = 'card-my-bets-btn';
+                        newBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            if (window.openMyBetsModal) {
+                                const awayText = teamNames[0]?.innerText.trim() || 'AWAY';
+                                const homeText = teamNames[1]?.innerText.trim() || 'HOME';
+                                openMyBetsModal(eid, awayText, awayText, homeText, homeText);
+                            } else {
+                                window.location.href = 'my-bets.html';
+                            }
+                        };
+                        newBtn.innerHTML = `My Bets <span class="bets-count">${wagers.length}</span>`;
+                        if (pinBtn) {
+                            topBar.insertBefore(newBtn, pinBtn);
+                        } else {
+                            topBar.appendChild(newBtn);
+                        }
+                    }
+                } else {
+                    // Do NOT render or keep the badge if there are 0 wagers for this game
+                    if (myBetsBtn) {
+                        myBetsBtn.remove();
                     }
                 }
             });
