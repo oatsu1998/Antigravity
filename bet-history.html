@@ -591,6 +591,21 @@
                 const parts = cleanStr.split(' VS ');
                 awayStr = parts[0].trim();
                 homeStr = parts[1].trim();
+            } else if (cleanStr.includes('PATRIOTS') || cleanStr.includes('NEW ENGLAND') || cleanStr.includes('NE ')) {
+                awayStr = 'NE Patriots';
+                homeStr = 'SEA Seahawks';
+            } else if (cleanStr.includes('SEAHAWKS') || cleanStr.includes('SEATTLE')) {
+                awayStr = 'NE Patriots';
+                homeStr = 'SEA Seahawks';
+            } else if (cleanStr.includes('49ERS') || cleanStr.includes('SAN FRANCISCO') || cleanStr.includes('SF ')) {
+                awayStr = 'SF 49ers';
+                homeStr = 'LA Rams';
+            } else if (cleanStr.includes('RAMS') || cleanStr.includes('LOS ANGELES RAMS') || cleanStr.includes('LAR ')) {
+                awayStr = 'SF 49ers';
+                homeStr = 'LA Rams';
+            } else if (cleanStr.includes('SMU') || cleanStr.includes('MUSTANGS')) {
+                awayStr = 'SMU';
+                homeStr = 'FSU';
             } else {
                 awayStr = cleanStr;
                 homeStr = cleanStr;
@@ -970,14 +985,15 @@
                         legsHtml = `
                             <div class="wager-legs-grid" style="display:flex; flex-direction:column; gap:6px; margin:8px 0;">
                                 ${legs.map((leg, legIdx) => {
-                                    const logos = getTeamLogosForEvent(leg.event || leg.matchup, leg.matchup);
+                                    const legTitle = leg.matchup || leg.event || leg.selection || 'GAME MATCHUP';
+                                    const logos = getTeamLogosForEvent(leg.event || leg.matchup || leg.selection, leg.matchup || leg.selection);
                                     return `
                                         <div class="wager-leg-item" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-family:var(--font-mono);">
                                             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed var(--border); padding-bottom:4px; margin-bottom:4px;">
                                                 <div style="display:flex; align-items:center; gap:6px;">
                                                     <span style="font-size:8px; color:var(--accent); font-weight:800; background:rgba(245,158,11,0.15); padding:1px 4px; border-radius:3px;">LEG #${legIdx + 1}</span>
                                                     ${logos.awayLogo}
-                                                    <span style="font-size:10px; font-weight:800; color:#fff; text-transform:uppercase;">${leg.matchup || leg.event}</span>
+                                                    <span style="font-size:10px; font-weight:800; color:#fff; text-transform:uppercase;">${legTitle}</span>
                                                     ${logos.homeLogo}
                                                 </div>
                                                 <span style="font-size:9px; color:var(--muted); font-weight:700;">${leg.odds || '-110'}</span>

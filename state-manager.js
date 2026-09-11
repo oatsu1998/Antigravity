@@ -5,7 +5,7 @@
 (function() {
     'use strict';
 
-    const WAGER_VERSION = "2026-09-10-user-actual-wagers-v10";
+    const WAGER_VERSION = "2026-09-10-user-actual-wagers-v11";
     const settledWagersUpdate = [
       {
         id: "placed-994697208",
@@ -91,9 +91,9 @@
         bookmaker: "BetOnline",
         history: ["+155", "+155", "+155"],
         legs: [
-          { matchup: "NE Patriots vs SEA Seahawks", event: "NE Patriots vs SEA Seahawks", selection: "New England Patriots +9 (-113)", odds: "-113", status: "LOST" },
-          { matchup: "NE Patriots vs SEA Seahawks", event: "NE Patriots vs SEA Seahawks", selection: "NE Patriots / SEA Seahawks over 38.5 (-110)", odds: "-110", status: "LOST" },
-          { matchup: "SF 49ers vs LA Rams", event: "SF 49ers vs LA Rams", selection: "San Francisco 49ers +9.5 (-102)", odds: "-102", status: "LOST" }
+          { matchup: "NE Patriots vs SEA Seahawks", event: "NE Patriots vs SEA Seahawks", awayTag: "NE", homeTag: "SEA", selection: "New England Patriots +9 (-113)", odds: "-113", status: "LOST" },
+          { matchup: "NE Patriots vs SEA Seahawks", event: "NE Patriots vs SEA Seahawks", awayTag: "NE", homeTag: "SEA", selection: "NE Patriots / SEA Seahawks over 38.5 (-110)", odds: "-110", status: "LOST" },
+          { matchup: "SF 49ers vs LA Rams", event: "SF 49ers vs LA Rams", awayTag: "SF", homeTag: "LAR", selection: "San Francisco 49ers +9.5 (-102)", odds: "-102", status: "LOST" }
         ]
       },
       {
@@ -123,9 +123,9 @@
         bookmaker: "BetOnline",
         history: ["+617", "+617", "+617"],
         legs: [
-          { matchup: "NE Patriots vs SEA Seahawks", event: "NE Patriots vs SEA Seahawks", selection: "New England Patriots +3 (-113)", odds: "-113", status: "LOST" },
-          { matchup: "NE Patriots vs SEA Seahawks", event: "NE Patriots vs SEA Seahawks", selection: "NE Patriots / SEA Seahawks over 44.5 (-110)", odds: "-110", status: "LOST" },
-          { matchup: "SF 49ers vs LA Rams", event: "SF 49ers vs LA Rams", selection: "San Francisco 49ers +3.5 (-102)", odds: "-102", status: "LOST" }
+          { matchup: "NE Patriots vs SEA Seahawks", event: "NE Patriots vs SEA Seahawks", awayTag: "NE", homeTag: "SEA", selection: "New England Patriots +3 (-113)", odds: "-113", status: "LOST" },
+          { matchup: "NE Patriots vs SEA Seahawks", event: "NE Patriots vs SEA Seahawks", awayTag: "NE", homeTag: "SEA", selection: "NE Patriots / SEA Seahawks over 44.5 (-110)", odds: "-110", status: "LOST" },
+          { matchup: "SF 49ers vs LA Rams", event: "SF 49ers vs LA Rams", awayTag: "SF", homeTag: "LAR", selection: "San Francisco 49ers +3.5 (-102)", odds: "-102", status: "LOST" }
         ]
       },
       {
@@ -295,7 +295,7 @@
                         description: 'PATRIOTS at SEAHAWKS - Side - PATRIOTS -2.5 | Lost',
                         history: ['-115', '-115', '-115'],
                         legs: [
-                            { matchup: 'NE @ SEA', selection: 'Patriots -2.5', odds: '-115', status: 'LOST' }
+                            { matchup: 'NE @ SEA', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: 'Patriots -2.5', odds: '-115', status: 'LOST' }
                         ]
                     },
                     {
@@ -324,7 +324,7 @@
                         description: 'PATRIOTS at SEAHAWKS - Side [3rd Quarter] - SEAHAWKS +2.5 | Won',
                         history: ['+100', '+100', '+100'],
                         legs: [
-                            { matchup: 'NE @ SEA', selection: 'Seahawks +2.5 (3rd Qtr)', odds: '+100', status: 'WON' }
+                            { matchup: 'NE @ SEA', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: 'Seahawks +2.5 (3rd Qtr)', odds: '+100', status: 'WON' }
                         ]
                     },
                     {
@@ -353,9 +353,9 @@
                         description: 'Football - NFL - New England Patriots vs Seattle Seahawks - Teaser | Lost',
                         history: ['+155', '+155', '+155'],
                         legs: [
-                            { selection: 'New England Patriots +9 (-113)', odds: '-113', status: 'LOST' },
-                            { selection: 'NE Patriots / SEA Seahawks over 38.5 (-110)', odds: '-110', status: 'LOST' },
-                            { selection: 'San Francisco 49ers +9.5 (-102)', odds: '-102', status: 'PENDING' }
+                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: 'New England Patriots +9 (-113)', odds: '-113', status: 'LOST' },
+                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: 'NE Patriots / SEA Seahawks over 38.5 (-110)', odds: '-110', status: 'LOST' },
+                            { matchup: 'SF 49ers vs LA Rams', event: 'SF 49ers vs LA Rams', awayTag: 'SF', homeTag: 'LAR', selection: 'San Francisco 49ers +9.5 (-102)', odds: '-102', status: 'PENDING' }
                         ]
                     },
                     {
@@ -385,9 +385,9 @@
                         description: 'Football - NFL - New England Patriots vs Seattle Seahawks - Parlay | Lost',
                         history: ['+617', '+617', '+617'],
                         legs: [
-                            { selection: 'New England Patriots +3 (-113)', odds: '-113', status: 'LOST' },
-                            { selection: 'NE Patriots / SEA Seahawks over 44.5 (-110)', odds: '-110', status: 'LOST' },
-                            { selection: 'San Francisco 49ers +3.5 (-102)', odds: '-102', status: 'PENDING' }
+                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: 'New England Patriots +3 (-113)', odds: '-113', status: 'LOST' },
+                            { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: 'NE Patriots / SEA Seahawks over 44.5 (-110)', odds: '-110', status: 'LOST' },
+                            { matchup: 'SF 49ers vs LA Rams', event: 'SF 49ers vs LA Rams', awayTag: 'SF', homeTag: 'LAR', selection: 'San Francisco 49ers +3.5 (-102)', odds: '-102', status: 'PENDING' }
                         ]
                     }
                 ];
