@@ -524,7 +524,112 @@
         }
 
         function seedSampleData(notify = true) {
-            allWagers = [];
+            const demoWagers = [
+              {
+                id: "placed-994697208",
+                ticketNumber: "994697208",
+                type: "Live",
+                matchup: "PATRIOTS at SEAHAWKS",
+                target: "PATRIOTS at SEAHAWKS - Side - PATRIOTS -2.5",
+                stake: 25.00,
+                toWin: 21.74,
+                status: "LOST",
+                placedOdds: "-115",
+                settledPayout: 0.00,
+                acceptedDate: "2026-09-10T00:00:00Z",
+                gradedDate: "2026-09-10T00:00:00Z",
+                legs: [{ matchup: "NE @ SEA", selection: "Patriots -2.5", status: "LOST" }]
+              },
+              {
+                id: "placed-994692629",
+                ticketNumber: "994692629",
+                type: "Live",
+                matchup: "PATRIOTS at SEAHAWKS",
+                target: "PATRIOTS at SEAHAWKS - Side - SEAHAWKS +2.5 3rd Qtr",
+                stake: 20.00,
+                toWin: 20.00,
+                status: "WON",
+                placedOdds: "+100",
+                settledPayout: 40.00,
+                acceptedDate: "2026-09-10T00:00:00Z",
+                gradedDate: "2026-09-10T00:00:00Z",
+                legs: [{ matchup: "NE @ SEA", selection: "Seahawks +2.5 3rd Qtr", status: "WON" }]
+              },
+              {
+                id: "placed-994662813",
+                ticketNumber: "994662813",
+                type: "Teaser",
+                matchup: "NE @ SEA / MIA @ FSU / SF @ LAR",
+                target: "Teaser 3 Teams (Special Line)",
+                stake: 25.00,
+                toWin: 20.00,
+                status: "LOST",
+                placedOdds: "-125",
+                settledPayout: 0.00,
+                acceptedDate: "2026-09-10T00:00:00Z",
+                gradedDate: "2026-09-10T00:00:00Z",
+                legs: [
+                  { matchup: "NE @ SEA", selection: "Patriots +3.5", status: "LOST" },
+                  { matchup: "MIA @ FSU", selection: "Florida State -0.5", status: "WON" },
+                  { matchup: "SF @ LAR", selection: "Rams +7.5", status: "WON" }
+                ]
+              },
+              {
+                id: "placed-994662668",
+                ticketNumber: "994662668",
+                type: "Parlay",
+                matchup: "NE @ SEA / MIA @ FSU / SF @ LAR",
+                target: "Parlay 3 Teams",
+                stake: 10.00,
+                toWin: 60.00,
+                status: "LOST",
+                placedOdds: "+600",
+                settledPayout: 0.00,
+                acceptedDate: "2026-09-10T00:00:00Z",
+                gradedDate: "2026-09-10T00:00:00Z",
+                legs: [
+                  { matchup: "NE @ SEA", selection: "Patriots ML", status: "LOST" },
+                  { matchup: "MIA @ FSU", selection: "Florida State ML", status: "WON" },
+                  { matchup: "SF @ LAR", selection: "Rams ML", status: "WON" }
+                ]
+              },
+              {
+                id: "placed-1003",
+                ticketNumber: "1003",
+                type: "Straight",
+                matchup: "SMU Mustangs at Florida State Seminoles",
+                target: "SMU at FSU - Total [GAME] - UNDER 45.5 (-110)",
+                stake: 25.85,
+                toWin: 23.50,
+                status: "LOST",
+                placedOdds: "-110",
+                settledPayout: 0.00,
+                acceptedDate: "2026-09-07T19:30:00.000Z",
+                gradedDate: "2026-09-07T23:00:00.000Z",
+                legs: [{ matchup: "SMU Mustangs at Florida State Seminoles", selection: "SMU at FSU - Total [GAME] - UNDER 45.5 (-110)", status: "LOST" }]
+              },
+              {
+                id: "placed-993183110",
+                ticketNumber: "993183110",
+                type: "Teaser",
+                matchup: "MIA @ FSU / USC @ STAN / LSU @ CLEM",
+                target: "Teaser 3 Teams (Miami FL -18.5, USC -16.5, LSU -4)",
+                stake: 25.00,
+                toWin: 40.00,
+                status: "WON",
+                placedOdds: "+160",
+                settledPayout: 65.00,
+                acceptedDate: "2026-09-06T18:00:00.000Z",
+                gradedDate: "2026-09-06T23:00:00.000Z",
+                legs: [
+                  { matchup: "Miami Florida vs Florida State", selection: "Miami Florida -18.5", status: "WON" },
+                  { matchup: "USC vs Stanford", selection: "USC -16.5", status: "WON" },
+                  { matchup: "LSU vs Clemson", selection: "LSU -4", status: "WON" }
+                ]
+              }
+            ];
+
+            allWagers = demoWagers;
             if (window.DestinyState) {
                 DestinyState.saveWagers(allWagers);
             } else {
