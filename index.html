@@ -2839,32 +2839,87 @@
             return { label: timeStr, cls: 'status-sched', isLive: false, isFinal: false };
         }
 
-        function isValidGameEvent(e, lgId) {
+        let dateFilterMode = localStorage.getItem('destiny_date_filter_mode') || 'today';
+        let customDateVal = localStorage.getItem('destiny_custom_date_val') || '';
+
+        function setDateFilterMode(mode, dateStr = '') {
+            dateFilterMode = mode;
+            customDateVal = dateStr;
+            localStorage.setItem('destiny_date_filter_mode', mode);
+            localStorage.setItem('destiny_custom_date_val', dateStr);
+            
+            // Re-fetch all active leagues and rebuild UI
+            LEAGUES.forEach(lg => pollLeague(lg.id));
+            if (typeof buildMain === 'function') buildMain();
+        }
+        window.setDateFilterMode = setDateFilterMode;
+
+        function setCustomDateFilter(val) {
+            if (val) {
+                setDateFilterMode('custom', val);
+            }
+        }
+        window.setCustomDateFilter = setCustomDateFilter;
+
+        function isEventInDateFilter(e, lgId) {
             if (!e) return false;
             const comp = e.competitions?.[0];
             if (!comp) return false;
 
             const st = gameStatus(e, lgId);
-            if (st.isLive) return true;
+            if (st.isLive) return true; // Live games are always kept
 
-            const eventDate = e.date ? new Date(e.date) : null;
-            if (!eventDate || isNaN(eventDate.getTime())) return false;
+            const rawDate = e.date || comp.date;
+            if (!rawDate) return false;
+            const eventDate = new Date(rawDate);
+            if (isNaN(eventDate.getTime())) return false;
 
-            // 1. Strict Today's Games Date Filter:
-            // Compare local start date with today's local calendar date
-            const todayStr = new Date().toLocaleDateString();
+            const now = new Date();
+            const todayStr = now.toLocaleDateString();
             const eventDateStr = eventDate.toLocaleDateString();
 
-            if (eventDateStr !== todayStr) {
-                return false; // Reject future slate/weekend games on default daily view
+            if (dateFilterMode === 'today') {
+                return eventDateStr === todayStr;
+            } else if (dateFilterMode === '7days') {
+                const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const endOf7Days = new Date(startOfToday.getTime() + 7 * 24 * 60 * 60 * 1000 + (24 * 60 * 60 * 1000 - 1));
+                return eventDate >= startOfToday && eventDate <= endOf7Days;
+            } else if (dateFilterMode === 'weekend') {
+                const dayOfWeek = now.getDay(); // 0: Sun, 1: Mon ... 5: Fri, 6: Sat
+                let distToFri = (5 - dayOfWeek + 7) % 7;
+                if (dayOfWeek === 6) distToFri = -1; // If Sat, include Fri-Sun
+                if (dayOfWeek === 0) distToFri = -2; // If Sun, include Fri-Sun
+                const friStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + distToFri);
+                const sunEnd = new Date(friStart.getFullYear(), friStart.getMonth(), friStart.getDate() + 2, 23, 59, 59);
+                return eventDate >= friStart && eventDate <= sunEnd;
+            } else if (dateFilterMode === 'custom') {
+                if (!customDateVal) return true;
+                const targetDate = new Date(customDateVal + 'T00:00:00');
+                return eventDateStr === targetDate.toLocaleDateString();
+            } else if (dateFilterMode === 'all') {
+                return true;
             }
 
-            // 2. Out-of-season / unplayed 0-0 placeholder check for NBA & NHL
+            return true;
+        }
+
+        function isValidGameEvent(e, lgId) {
+            if (!e) return false;
+            const comp = e.competitions?.[0];
+            if (!comp) return false;
+
+            if (!isEventInDateFilter(e, lgId)) {
+                return false;
+            }
+
+            const st = gameStatus(e, lgId);
+
+            // Out-of-season / unplayed 0-0 placeholder check for NBA & NHL
             const homeScore = parseInt(comp.competitors?.find(c => c.homeAway === 'home')?.score || 0);
             const awayScore = parseInt(comp.competitors?.find(c => c.homeAway === 'away')?.score || 0);
             const hasOdds = comp.odds && comp.odds.length > 0 && (comp.odds[0].details || comp.odds[0].overUnder || comp.odds[0].spread);
 
-            if ((lgId === 'nba' || lgId === 'nhl') && homeScore === 0 && awayScore === 0 && !st.isFinal && !hasOdds) {
+            if ((lgId === 'nba' || lgId === 'nhl') && homeScore === 0 && awayScore === 0 && !st.isFinal && !st.isLive && !hasOdds) {
                 return false;
             }
 
@@ -2872,7 +2927,11 @@
         }
 
         async function fetchLeague(lg) {
-            const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard?limit=50`;
+            let url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard?limit=50`;
+            if (dateFilterMode === 'custom' && customDateVal) {
+                const ymd = customDateVal.replace(/-/g, '');
+                url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard?limit=50&dates=${ymd}`;
+            }
             try {
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -2883,6 +2942,43 @@
             } catch (e) {
                 return { ok: false, error: e.message, events: [], rawEvents: [] };
             }
+        }
+
+        function renderDateFilterBar() {
+            const todayStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            return `
+                <div class="date-filter-bar-container" style="background:#11151c; padding:12px 18px; border:1px solid var(--border); margin-bottom:20px; border-radius:12px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; box-shadow:0 4px 16px rgba(0,0,0,0.4);">
+                    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size:16px;">📅</span>
+                            <span style="font-family:var(--font-head); font-size:13px; font-weight:900; color:#fff; letter-spacing:1px; text-transform:uppercase;">GAME SLATE RANGE:</span>
+                        </div>
+                        <div class="date-filter-pills" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                            <button type="button" class="date-pill-btn ${dateFilterMode === 'today' ? 'active' : ''}" onclick="setDateFilterMode('today')" style="background:${dateFilterMode === 'today' ? 'var(--accent)' : '#1a202c'}; color:${dateFilterMode === 'today' ? '#000' : 'var(--muted)'}; font-family:var(--font-mono); font-size:11px; font-weight:800; padding:6px 12px; border-radius:6px; border:1px solid ${dateFilterMode === 'today' ? 'var(--accent)' : 'rgba(255,255,255,0.1)'}; cursor:pointer; transition:all 0.2s ease;">
+                                TODAY (${todayStr})
+                            </button>
+                            <button type="button" class="date-pill-btn ${dateFilterMode === '7days' ? 'active' : ''}" onclick="setDateFilterMode('7days')" style="background:${dateFilterMode === '7days' ? 'var(--accent)' : '#1a202c'}; color:${dateFilterMode === '7days' ? '#000' : 'var(--muted)'}; font-family:var(--font-mono); font-size:11px; font-weight:800; padding:6px 12px; border-radius:6px; border:1px solid ${dateFilterMode === '7days' ? 'var(--accent)' : 'rgba(255,255,255,0.1)'}; cursor:pointer; transition:all 0.2s ease;">
+                                NEXT 7 DAYS
+                            </button>
+                            <button type="button" class="date-pill-btn ${dateFilterMode === 'weekend' ? 'active' : ''}" onclick="setDateFilterMode('weekend')" style="background:${dateFilterMode === 'weekend' ? 'var(--accent)' : '#1a202c'}; color:${dateFilterMode === 'weekend' ? '#000' : 'var(--muted)'}; font-family:var(--font-mono); font-size:11px; font-weight:800; padding:6px 12px; border-radius:6px; border:1px solid ${dateFilterMode === 'weekend' ? 'var(--accent)' : 'rgba(255,255,255,0.1)'}; cursor:pointer; transition:all 0.2s ease;">
+                                THIS WEEKEND
+                            </button>
+                            <button type="button" class="date-pill-btn ${dateFilterMode === 'all' ? 'active' : ''}" onclick="setDateFilterMode('all')" style="background:${dateFilterMode === 'all' ? 'var(--accent)' : '#1a202c'}; color:${dateFilterMode === 'all' ? '#000' : 'var(--muted)'}; font-family:var(--font-mono); font-size:11px; font-weight:800; padding:6px 12px; border-radius:6px; border:1px solid ${dateFilterMode === 'all' ? 'var(--accent)' : 'rgba(255,255,255,0.1)'}; cursor:pointer; transition:all 0.2s ease;">
+                                ALL SCHEDULED
+                            </button>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-family:var(--font-mono); font-size:11px; font-weight:800; color:var(--accent2);">PICK DATE:</span>
+                        <input type="date" id="custom-date-picker" value="${customDateVal}" onchange="setCustomDateFilter(this.value)" style="background:#181c24; border:1.5px solid ${dateFilterMode === 'custom' ? 'var(--accent2)' : 'rgba(255,255,255,0.2)'}; color:#fff; font-family:var(--font-mono); font-size:11.5px; font-weight:800; padding:5px 10px; border-radius:6px; outline:none; cursor:pointer;" />
+                        ${dateFilterMode === 'custom' ? `
+                            <button type="button" onclick="setDateFilterMode('today')" style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#ef4444; font-family:var(--font-mono); font-size:10.5px; font-weight:800; padding:5px 8px; border-radius:6px; cursor:pointer;" title="Reset to today">
+                                &times; CLEAR
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
         }
 
         // ── Card pin & drag state ──────────────────────────────────────────
@@ -3854,15 +3950,44 @@
                         if (ia >= 0 && ib >= 0) return ia - ib;
                         return new Date(a?.date || 0) - new Date(b?.date || 0);
                     });
-                    const cardsHtml = sortedEvents.map(e => {
-                        try {
-                            return renderCard(e, lg, lg.id);
-                        } catch (err) {
-                            console.error("Error rendering card:", e?.id, err);
-                            return '';
+                    if (dateFilterMode !== 'today') {
+                        const groups = {};
+                        sortedEvents.forEach(e => {
+                            const raw = e?.date || e?.competitions?.[0]?.date;
+                            const d = raw ? new Date(raw) : null;
+                            const dayKey = (!d || isNaN(d.getTime())) ? 'SCHEDULED MATCHUPS' : d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+                            if (!groups[dayKey]) groups[dayKey] = [];
+                            groups[dayKey].push(e);
+                        });
+
+                        const groupKeys = Object.keys(groups);
+                        if (groupKeys.length > 1) {
+                            let groupedHtml = '';
+                            groupKeys.forEach(dayKey => {
+                                const cardList = groups[dayKey].map(e => {
+                                    try { return renderCard(e, lg, lg.id); } catch(err) { return ''; }
+                                }).join('');
+                                groupedHtml += `
+                                    <div style="font-family:var(--font-mono); font-size:11px; font-weight:800; color:var(--accent); background:rgba(6,182,212,0.1); border-left:3px solid var(--accent); padding:6px 12px; margin:16px 0 10px 0; border-radius:0 6px 6px 0; display:flex; align-items:center; gap:8px;">
+                                        <span>📅 ${dayKey}</span>
+                                        <span style="font-size:10px; color:var(--muted);">(${groups[dayKey].length} MATCHUP${groups[dayKey].length > 1 ? 'S' : ''})</span>
+                                    </div>
+                                    <div class="games-grid">${cardList}</div>
+                                `;
+                            });
+                            html += groupedHtml;
+                        } else {
+                            const cardsHtml = sortedEvents.map(e => {
+                                try { return renderCard(e, lg, lg.id); } catch (err) { return ''; }
+                            }).join('');
+                            html += `<div class="games-grid">${cardsHtml || `<div class="no-games"><div class="icon">🏆</div>No active ${lg?.name || 'league'} games</div>`}</div>`;
                         }
-                    }).join('');
-                    html += `<div class="games-grid">${cardsHtml || `<div class="no-games"><div class="icon">🏆</div>No active ${lg?.name || 'league'} games</div>`}</div>`;
+                    } else {
+                        const cardsHtml = sortedEvents.map(e => {
+                            try { return renderCard(e, lg, lg.id); } catch (err) { return ''; }
+                        }).join('');
+                        html += `<div class="games-grid">${cardsHtml || `<div class="no-games"><div class="icon">🏆</div>No active ${lg?.name || 'league'} games</div>`}</div>`;
+                    }
                 }
 
                 return html;
@@ -3908,14 +4033,43 @@
                     } catch(e) { return 0; }
                 });
 
-                const cardsHtml = allEvents.map(item => {
-                    try {
-                        return renderCard(item.event, item.lg, 'destiny');
-                    } catch (err) {
-                        console.error("Error rendering Destiny card for event:", item.event?.id, err);
-                        return '';
+                let gridContentHtml = '';
+                if (dateFilterMode !== 'today') {
+                    const groups = {};
+                    allEvents.forEach(item => {
+                        const raw = item.event?.date || item.event?.competitions?.[0]?.date;
+                        const d = raw ? new Date(raw) : null;
+                        const dayKey = (!d || isNaN(d.getTime())) ? 'SCHEDULED MATCHUPS' : d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+                        if (!groups[dayKey]) groups[dayKey] = [];
+                        groups[dayKey].push(item);
+                    });
+
+                    const groupKeys = Object.keys(groups);
+                    if (groupKeys.length > 1) {
+                        groupKeys.forEach(dayKey => {
+                            const cardList = groups[dayKey].map(item => {
+                                try { return renderCard(item.event, item.lg, 'destiny'); } catch(err) { return ''; }
+                            }).join('');
+                            gridContentHtml += `
+                                <div style="font-family:var(--font-mono); font-size:11px; font-weight:800; color:var(--accent); background:rgba(6,182,212,0.1); border-left:3px solid var(--accent); padding:6px 12px; margin:16px 0 10px 0; border-radius:0 6px 6px 0; display:flex; align-items:center; gap:8px;">
+                                    <span>📅 ${dayKey}</span>
+                                    <span style="font-size:10px; color:var(--muted);">(${groups[dayKey].length} MATCHUP${groups[dayKey].length > 1 ? 'S' : ''})</span>
+                                </div>
+                                <div class="games-grid">${cardList}</div>
+                            `;
+                        });
+                    } else {
+                        const cardsHtml = allEvents.map(item => {
+                            try { return renderCard(item.event, item.lg, 'destiny'); } catch (err) { return ''; }
+                        }).join('');
+                        gridContentHtml = `<div class="games-grid">${cardsHtml || '<div class="no-games"><div class="icon">👑</div>No Destiny League games active</div>'}</div>`;
                     }
-                }).join('');
+                } else {
+                    const cardsHtml = allEvents.map(item => {
+                        try { return renderCard(item.event, item.lg, 'destiny'); } catch (err) { return ''; }
+                    }).join('');
+                    gridContentHtml = `<div class="games-grid">${cardsHtml || '<div class="no-games"><div class="icon">👑</div>No Destiny League games active</div>'}</div>`;
+                }
 
                 return `
                     <div class="league-header">
@@ -3925,7 +4079,7 @@
                         </div>
                         <div style="font-family:var(--font-mono); font-size:11px; color:var(--accent2); font-weight:700;">PRO AI ALGORITHM FEATURED MATCHES</div>
                     </div>
-                    <div class="games-grid">${cardsHtml || '<div class="no-games"><div class="icon">👑</div>No Destiny League games active</div>'}</div>
+                    ${gridContentHtml}
                 `;
             } catch (err) {
                 console.error("Error in renderDestinyLeaguePanel:", err);
@@ -4749,7 +4903,8 @@
 
         function buildMain() {
             const mainEl = document.getElementById('main');
-            let html = `
+            let html = renderDateFilterBar();
+            html += `
       <div class="league-panel ${activeTab === 'destiny' ? 'active' : ''}" id="panel-destiny">
         ${renderDestinyLeaguePanel()}
       </div>
