@@ -5,7 +5,7 @@
 (function() {
     'use strict';
 
-    const WAGER_VERSION = "2026-09-10-user-actual-wagers-v11";
+    const WAGER_VERSION = "2026-09-11-user-actual-wagers-v12";
     const settledWagersUpdate = [
       {
         id: "placed-994697208",
@@ -154,6 +154,37 @@
         history: ["-110", "-110", "-110"],
         legs: [
           { matchup: "SMU Mustangs at Florida State Seminoles", event: "SMU @ FSU", awayTag: "SMU", homeTag: "FSU", selection: "SMU at FSU - Total [GAME] - UNDER 45.5 (-110)", odds: "-110", status: "LOST" }
+        ]
+      },
+      {
+        id: "placed-994900394",
+        ticketNumber: "994900394",
+        type: "Teaser",
+        betType: "TEASER",
+        matchup: "SF 49ers vs LA Rams",
+        event: "SF 49ers vs LA Rams",
+        target: "Teaser (2 Teams): 49ers +10, Under 54",
+        selection: "San Francisco 49ers +10 (-109) / Under 54 (-105)",
+        side: "49ers +10 / Under 54",
+        stake: 50.00,
+        wager: 50.00,
+        toWin: 41.67,
+        status: "WON",
+        placedOdds: "-120",
+        odds: "-120",
+        currentOdds: "-120",
+        settledPayout: 91.67,
+        acceptedDate: "2026-09-10T20:35:00Z",
+        gradedDate: "2026-09-11T00:00:00Z",
+        settledDate: "2026-09-11T00:00:00Z",
+        timestamp: "2026-09-10T20:35:00.000Z",
+        description: "Football - NFL - San Francisco 49ers vs Los Angeles Rams - Teaser | Won",
+        sportsbook: "BetOnline",
+        bookmaker: "BetOnline",
+        history: ["-120", "-120", "-120"],
+        legs: [
+          { matchup: "SF 49ers vs LA Rams", event: "SF 49ers vs LA Rams", awayTag: "SF", homeTag: "LAR", selection: "San Francisco 49ers +10 (-109)", odds: "-109", status: "WON" },
+          { matchup: "SF 49ers vs LA Rams", event: "SF 49ers vs LA Rams", awayTag: "SF", homeTag: "LAR", selection: "SF 49ers / LA Rams Under 54 (-105)", odds: "-105", status: "WON" }
         ]
       }
     ];
@@ -387,7 +418,38 @@
                         legs: [
                             { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: 'New England Patriots +3 (-113)', odds: '-113', status: 'LOST' },
                             { matchup: 'NE Patriots vs SEA Seahawks', event: 'NE Patriots vs SEA Seahawks', awayTag: 'NE', homeTag: 'SEA', selection: 'NE Patriots / SEA Seahawks over 44.5 (-110)', odds: '-110', status: 'LOST' },
-                            { matchup: 'SF 49ers vs LA Rams', event: 'SF 49ers vs LA Rams', awayTag: 'SF', homeTag: 'LAR', selection: 'San Francisco 49ers +3.5 (-102)', odds: '-102', status: 'PENDING' }
+                            { matchup: 'SF 49ers vs LA Rams', event: 'SF 49ers vs LA Rams', awayTag: 'SF', homeTag: 'LAR', selection: 'San Francisco 49ers +3.5 (-102)', odds: '-102', status: 'LOST' }
+                        ]
+                    },
+                    {
+                        id: 'placed-994900394',
+                        ticketNumber: '994900394',
+                        event: 'SF 49ers vs LA Rams',
+                        matchup: 'SF 49ers vs LA Rams',
+                        target: 'Teaser (2 Teams): 49ers +10, Under 54',
+                        selection: 'San Francisco 49ers +10 (-109) / Under 54 (-105)',
+                        type: 'Teaser',
+                        betType: 'TEASER',
+                        side: '49ers +10 / Under 54',
+                        sportsbook: 'BetOnline',
+                        bookmaker: 'BetOnline',
+                        stake: 50.00,
+                        wager: 50.00,
+                        toWin: 41.67,
+                        placedOdds: '-120',
+                        odds: '-120',
+                        currentOdds: '-120',
+                        status: 'WON',
+                        settledPayout: 91.67,
+                        acceptedDate: '2026-09-10T20:35:00Z',
+                        gradedDate: '2026-09-11T00:00:00Z',
+                        settledDate: '2026-09-11T00:00:00Z',
+                        timestamp: '2026-09-10T20:35:00.000Z',
+                        description: 'Football - NFL - San Francisco 49ers vs Los Angeles Rams - Teaser | Won',
+                        history: ['-120', '-120', '-120'],
+                        legs: [
+                            { matchup: 'SF 49ers vs LA Rams', event: 'SF 49ers vs LA Rams', awayTag: 'SF', homeTag: 'LAR', selection: 'San Francisco 49ers +10 (-109)', odds: '-109', status: 'WON' },
+                            { matchup: 'SF 49ers vs LA Rams', event: 'SF 49ers vs LA Rams', awayTag: 'SF', homeTag: 'LAR', selection: 'SF 49ers / LA Rams Under 54 (-105)', odds: '-105', status: 'WON' }
                         ]
                     }
                 ];
@@ -434,11 +496,12 @@
                     const is994697208 = ticketNum.includes('994697208') || targetStr.includes('PATRIOTS -2.5');
                     const is994662813 = ticketNum.includes('994662813') || targetStr.includes('994662813');
                     const is994662668 = ticketNum.includes('994662668') || targetStr.includes('994662668');
+                    const is994900394 = ticketNum.includes('994900394') || targetStr.includes('994900394');
 
                     let st = String(w.status || 'PENDING').toUpperCase();
                     if (isTicket1003 || is994697208 || is994662813 || is994662668) {
                         st = 'LOST';
-                    } else if (is994692629) {
+                    } else if (is994692629 || is994900394) {
                         st = 'WON';
                     }
 
