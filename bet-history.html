@@ -617,35 +617,82 @@
             }
 
             const key = raw.toUpperCase();
-            let abbr = key;
-            let category = (typeof leagueParam === 'string' ? leagueParam : '').toLowerCase();
+            let logoUrl = logoUrlParam;
+            let displayAbbr = (raw.replace(/[^a-zA-Z]/g, '').substring(0, 4) || 'BET').toUpperCase();
 
-            // NCAA Team Logos
-            if (key.includes('SMU') || key.includes('MUSTANGS')) { abbr = 'smu'; category = 'ncaa'; }
-            else if (key.includes('FSU') || key.includes('FLORIDA STATE') || key.includes('SEMINOLES')) { abbr = 'fsu'; category = 'ncaa'; }
-            else if (key.includes('NCST') || key.includes('NC STATE') || key.includes('WOLFPACK')) { abbr = 'ncst'; category = 'ncaa'; }
-            else if (key.includes('UVA') || key.includes('VIRGINIA') || key.includes('CAVALIERS')) { abbr = 'uva'; category = 'ncaa'; }
-            else if (key.includes('MEM') || key.includes('MEMPHIS') || key.includes('TIGERS')) { abbr = 'mem'; category = 'ncaa'; }
-            else if (key.includes('UNLV') || key.includes('REBELS')) { abbr = 'unlv'; category = 'ncaa'; }
-            else if (key.includes('SJSU') || key.includes('SAN JOSE') || key.includes('SPARTANS')) { abbr = 'sjsu'; category = 'ncaa'; }
-            else if (key.includes('USC') || key.includes('TROJANS')) { abbr = 'usc'; category = 'ncaa'; }
-            // NFL Team Logos
-            else if (key.includes('NE') || key.includes('PATRIOTS') || key.includes('NEW ENGLAND')) { abbr = 'ne'; category = 'nfl'; }
-            else if (key.includes('SEA') || key.includes('SEAHAWKS') || key.includes('SEATTLE')) { abbr = 'sea'; category = 'nfl'; }
-            else if (key.includes('SF') || key.includes('49ERS') || key.includes('SAN FRANCISCO')) { abbr = 'sf'; category = 'nfl'; }
-            else if (key.includes('LAR') || key.includes('RAMS') || key.includes('LOS ANGELES RAMS')) { abbr = 'lar'; category = 'nfl'; }
-            else if (key.includes('MIN') || key.includes('VIKINGS') || key.includes('MINNESOTA')) { abbr = 'min'; category = 'nfl'; }
-            else if (key.includes('DEN') || key.includes('BRONCOS') || key.includes('DENVER')) { abbr = 'den'; category = 'nfl'; }
-            else if (key.includes('KC') || key.includes('CHIEFS') || key.includes('KANSAS')) { abbr = 'kc'; category = 'nfl'; }
-            else if (key.includes('GB') || key.includes('PACKERS') || key.includes('GREEN BAY')) { abbr = 'gb'; category = 'nfl'; }
-            else {
-                const cleaned = raw.replace(/[^a-zA-Z]/g, '').toLowerCase();
-                abbr = cleaned.substring(0, 4) || 'espn';
-                if (!category) category = 'nfl';
+            if (!logoUrl) {
+                // NCAA Team Logos (Verified ESPN NCAA Numeric Team IDs)
+                if (key.includes('MIAMI') || key.includes('CANES') || key.includes('HURRICANES')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/2390.png';
+                    displayAbbr = 'MIA';
+                } else if (key.includes('STANFORD') || key.includes('CARDINAL') || key.includes('STAN')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/24.png';
+                    displayAbbr = 'STAN';
+                } else if (key.includes('FRESNO') || key.includes('BULLDOGS') || key.includes('FRES')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/278.png';
+                    displayAbbr = 'FRES';
+                } else if (key.includes('USC') || key.includes('TROJANS')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/30.png';
+                    displayAbbr = 'USC';
+                } else if (key.includes('CLEMSON') || key.includes('CLEM')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/228.png';
+                    displayAbbr = 'CLEM';
+                } else if (key.includes('LSU') || key.includes('LOUISIANA STATE') || key.includes('TIGERS')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/99.png';
+                    displayAbbr = 'LSU';
+                } else if (key.includes('SMU') || key.includes('MUSTANGS')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/2426.png';
+                    displayAbbr = 'SMU';
+                } else if (key.includes('FSU') || key.includes('FLORIDA STATE') || key.includes('SEMINOLES')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/52.png';
+                    displayAbbr = 'FSU';
+                } else if (key.includes('NCST') || key.includes('NC STATE') || key.includes('WOLFPACK')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/152.png';
+                    displayAbbr = 'NCST';
+                } else if (key.includes('UVA') || key.includes('VIRGINIA') || key.includes('CAVALIERS')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/258.png';
+                    displayAbbr = 'UVA';
+                } else if (key.includes('MEM') || key.includes('MEMPHIS')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/235.png';
+                    displayAbbr = 'MEM';
+                } else if (key.includes('UNLV') || key.includes('REBELS')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/2439.png';
+                    displayAbbr = 'UNLV';
+                } else if (key.includes('SJSU') || key.includes('SAN JOSE') || key.includes('SPARTANS')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/23.png';
+                    displayAbbr = 'SJSU';
+                } 
+                // NFL Team Logos (Verified ESPN NFL Slugs)
+                else if (key.includes('NE') || key.includes('PATRIOTS') || key.includes('NEW ENGLAND')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/nfl/500/ne.png';
+                    displayAbbr = 'NE';
+                } else if (key.includes('SEA') || key.includes('SEAHAWKS') || key.includes('SEATTLE')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/nfl/500/sea.png';
+                    displayAbbr = 'SEA';
+                } else if (key.includes('SF') || key.includes('49ERS') || key.includes('SAN FRANCISCO')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/nfl/500/sf.png';
+                    displayAbbr = 'SF';
+                } else if (key.includes('LAR') || key.includes('RAMS') || key.includes('LOS ANGELES RAMS')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/nfl/500/lar.png';
+                    displayAbbr = 'LAR';
+                } else if (key.includes('MIN') || key.includes('VIKINGS') || key.includes('MINNESOTA')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/nfl/500/min.png';
+                    displayAbbr = 'MIN';
+                } else if (key.includes('DEN') || key.includes('BRONCOS') || key.includes('DENVER')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/nfl/500/den.png';
+                    displayAbbr = 'DEN';
+                } else if (key.includes('KC') || key.includes('CHIEFS') || key.includes('KANSAS')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/nfl/500/kc.png';
+                    displayAbbr = 'KC';
+                } else if (key.includes('GB') || key.includes('PACKERS') || key.includes('GREEN BAY')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/nfl/500/gb.png';
+                    displayAbbr = 'GB';
+                } else {
+                    const cleaned = raw.replace(/[^a-zA-Z]/g, '').toLowerCase();
+                    const abbr = cleaned.substring(0, 4) || 'espn';
+                    logoUrl = `https://a.espncdn.com/i/teamlogos/nfl/500/${abbr}.png`;
+                }
             }
-
-            const logoUrl = (typeof logoUrlParam === 'string' && logoUrlParam) ? logoUrlParam : `https://a.espncdn.com/i/teamlogos/${category}/500/${abbr}.png`;
-            const displayAbbr = (raw.replace(/[^a-zA-Z]/g, '').substring(0, 4) || 'BET').toUpperCase();
 
             return `
                 <div class="team-logo-badge-container" title="${raw.replace(/"/g, '&quot;')}" style="display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; position:relative; vertical-align:middle;">
