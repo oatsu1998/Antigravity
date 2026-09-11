@@ -5919,19 +5919,11 @@
         let activeBsTab = 'slip';
 
         function ensureDefaultTicketsLoaded() {
+            const WAGER_VERSION = "2026-09-10-user-actual-wagers-v10";
             if (window.DestinyState && window.DestinyState.getWagers) {
                 window.DestinyState.getWagers();
-                return;
             }
-            const WAGER_VERSION = "2026-09-10-actual-user-wagers-v2";
-            const KEY = 'destiny_game_wagers';
-            
-            const defaults = [];
-
-            if (localStorage.getItem('destiny_wager_sync_ver') !== WAGER_VERSION) {
-                localStorage.setItem(KEY, JSON.stringify(defaults));
-                localStorage.setItem('destiny_wager_sync_ver', WAGER_VERSION);
-            }
+            localStorage.setItem('destiny_wager_sync_ver', WAGER_VERSION);
         }
 
         function toggleTicketEntryForm() {

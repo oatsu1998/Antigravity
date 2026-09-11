@@ -5,7 +5,7 @@
 (function() {
     'use strict';
 
-    const WAGER_VERSION = "2026-09-10-actual-user-wagers-v2";
+    const WAGER_VERSION = "2026-09-10-user-actual-wagers-v10";
     const settledWagersUpdate = [
       {
         id: "placed-994697208",
@@ -159,7 +159,11 @@
     ];
 
     try {
-        if (localStorage.getItem("destiny_wager_sync_ver") !== WAGER_VERSION) {
+        const rawW = localStorage.getItem("destiny_game_wagers");
+        let parsedW = [];
+        try { parsedW = JSON.parse(rawW || '[]'); } catch(e) {}
+
+        if (localStorage.getItem("destiny_wager_sync_ver") !== WAGER_VERSION || !Array.isArray(parsedW) || parsedW.length === 0) {
             localStorage.setItem("destiny_game_wagers", JSON.stringify(settledWagersUpdate));
             localStorage.setItem("destiny_wager_sync_ver", WAGER_VERSION);
         }
@@ -167,7 +171,7 @@
         const raw = localStorage.getItem('destiny_game_wagers');
         if (raw) {
             const list = JSON.parse(raw);
-            if (Array.isArray(list)) {
+            if (Array.isArray(list) && list.length > 0) {
                 const cleaned = list.filter(w => {
                     if (!w) return false;
                     const id = String(w.id || '');
@@ -181,7 +185,11 @@
                     if (text.includes('VIKINGS') || text.includes('BRONCOS') || text.includes('SAN JOSE') || text.includes('SJSU') || text.includes('NC STATE') || text.includes('NCST') || text.includes('MEMPHIS') || text.includes('GB @ DEN') || text.includes('PACKERS') || text.includes('GREEN BAY') || text.includes('THUNDER') || text.includes('SPURS') || text.includes('OKLAHOMA') || text.includes('OKC @ SAS') || text.includes('DENVER') || text.includes('GB')) return false;
                     return true;
                 });
-                localStorage.setItem('destiny_game_wagers', JSON.stringify(cleaned));
+                if (cleaned.length > 0) {
+                    localStorage.setItem('destiny_game_wagers', JSON.stringify(cleaned));
+                } else {
+                    localStorage.setItem('destiny_game_wagers', JSON.stringify(settledWagersUpdate));
+                }
             }
         }
     } catch(e) {}
