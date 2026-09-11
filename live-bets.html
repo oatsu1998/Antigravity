@@ -971,20 +971,23 @@
             if (!w) return false;
             const id = String(w.id || '');
             const ticket = String(w.ticketNumber || '');
+            const actualTickets = ['982815427', '982815092', '994901960', '994900394', '994697208', '994692629', '994662813', '994662668', '1003'];
+            if (actualTickets.some(t => id.includes(t) || ticket.includes(t))) return false;
+
             const date = String(w.acceptedDate || '');
             const ts = String(w.timestamp || '');
             const text = (String(w.event || '') + ' ' + String(w.target || '') + ' ' + String(w.matchup || '') + ' ' + String(w.selection || '') + ' ' + String(w.description || '') + ' ' + String(w.side || '')).toUpperCase();
 
             if (id.includes('9913') || id.includes('9912') || ticket.includes('9913') || ticket.includes('9912') || id.includes('wager-seed') || id.includes('mock-okc') || id.includes('993192834') || ticket.includes('993192834')) return true;
             if (date.includes('8/28') || date.includes('8/29') || ts.includes('2026-08-28') || ts.includes('2026-08-29')) return true;
-            if (text.includes('VIKINGS') || text.includes('BRONCOS') || text.includes('SAN JOSE') || text.includes('SJSU') || text.includes('NC STATE') || text.includes('NCST') || text.includes('MEMPHIS') || text.includes('GB @ DEN') || text.includes('PACKERS') || text.includes('GREEN BAY') || text.includes('THUNDER') || text.includes('SPURS') || text.includes('OKLAHOMA') || text.includes('OKC @ SAS') || text.includes('DENVER') || text.includes('GB')) return true;
+            if (text.includes('BRONCOS') || text.includes('SAN JOSE') || text.includes('SJSU') || text.includes('NC STATE') || text.includes('NCST') || text.includes('MEMPHIS') || text.includes('GB @ DEN') || text.includes('THUNDER') || text.includes('SPURS') || text.includes('OKLAHOMA') || text.includes('OKC @ SAS') || text.includes('DENVER')) return true;
 
             return false;
         }
 
         function seedInitialWagers() {
             try {
-                const WAGER_VERSION = "2026-09-11-user-actual-wagers-v14";
+                const WAGER_VERSION = "2026-09-11-user-actual-wagers-v15";
                 if (localStorage.getItem("destiny_wager_sync_ver") !== WAGER_VERSION) {
                     if (window.DestinyState && window.DestinyState.getWagers) {
                         window.DestinyState.getWagers();
@@ -1076,6 +1079,12 @@
             } else if (cleanStr.includes('SMU') || cleanStr.includes('MUSTANGS')) {
                 awayStr = 'SMU';
                 homeStr = 'FSU';
+            } else if (cleanStr.includes('PENN') || cleanStr.includes('NITTANY')) {
+                awayStr = 'Penn State';
+                homeStr = 'Penn State';
+            } else if (cleanStr.includes('OREGON') || cleanStr.includes('DUCKS')) {
+                awayStr = 'Oregon';
+                homeStr = 'Oregon';
             } else {
                 awayStr = cleanStr;
                 homeStr = cleanStr;
@@ -1134,6 +1143,12 @@
                 } else if (key.includes('FSU') || key.includes('FLORIDA STATE') || key.includes('SEMINOLES')) {
                     logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/52.png';
                     displayAbbr = 'FSU';
+                } else if (key.includes('PENN STATE') || key.includes('PENN') || key.includes('PSU') || key.includes('NITTANY')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/213.png';
+                    displayAbbr = 'PENN';
+                } else if (key.includes('OREGON') || key.includes('DUCKS') || key.includes('ORE')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/2483.png';
+                    displayAbbr = 'ORE';
                 } else if (key.includes('NCST') || key.includes('NC STATE') || key.includes('WOLFPACK')) {
                     logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/152.png';
                     displayAbbr = 'NCST';

@@ -606,6 +606,12 @@
             } else if (cleanStr.includes('SMU') || cleanStr.includes('MUSTANGS')) {
                 awayStr = 'SMU';
                 homeStr = 'FSU';
+            } else if (cleanStr.includes('PENN') || cleanStr.includes('NITTANY')) {
+                awayStr = 'Penn State';
+                homeStr = 'Penn State';
+            } else if (cleanStr.includes('OREGON') || cleanStr.includes('DUCKS')) {
+                awayStr = 'Oregon';
+                homeStr = 'Oregon';
             } else {
                 awayStr = cleanStr;
                 homeStr = cleanStr;
@@ -664,6 +670,12 @@
                 } else if (key.includes('FSU') || key.includes('FLORIDA STATE') || key.includes('SEMINOLES')) {
                     logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/52.png';
                     displayAbbr = 'FSU';
+                } else if (key.includes('PENN STATE') || key.includes('PENN') || key.includes('PSU') || key.includes('NITTANY')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/213.png';
+                    displayAbbr = 'PENN';
+                } else if (key.includes('OREGON') || key.includes('DUCKS') || key.includes('ORE')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/2483.png';
+                    displayAbbr = 'ORE';
                 } else if (key.includes('NCST') || key.includes('NC STATE') || key.includes('WOLFPACK')) {
                     logoUrl = 'https://a.espncdn.com/i/teamlogos/ncaa/500/152.png';
                     displayAbbr = 'NCST';

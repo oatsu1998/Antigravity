@@ -5,8 +5,64 @@
 (function() {
     'use strict';
 
-    const WAGER_VERSION = "2026-09-11-user-actual-wagers-v14";
+    const WAGER_VERSION = "2026-09-11-user-actual-wagers-v15";
     const settledWagersUpdate = [
+      {
+        id: "placed-982815427",
+        ticketNumber: "982815427",
+        type: "Future/Prop",
+        betType: "FUTURES",
+        matchup: "PENN STATE - PLAYOFFS",
+        event: "NCAAF 2026/27. To make the playoffs.",
+        target: "NCAAF Futures - To Make The Playoffs - Penn State - Yes +425",
+        selection: "NCAAF Futures - To Make The Playoffs - Penn State - Yes +425",
+        side: "Penn State - Yes (+425)",
+        stake: 20.90,
+        wager: 20.90,
+        toWin: 88.83,
+        status: "PENDING",
+        placedOdds: "+425",
+        odds: "+425",
+        currentOdds: "+425",
+        settledPayout: 0.00,
+        acceptedDate: "07/25/2026 12:00:00 PM (EST)",
+        timestamp: "2026-07-25T12:00:00.000Z",
+        description: "NCAAF Futures - To Make The Playoffs - Penn State - Yes +425 | NCAAF 2026/27. To make the playoffs. | Pending",
+        sportsbook: "BetOnline",
+        bookmaker: "BetOnline",
+        history: ["+425", "+425", "+425"],
+        legs: [
+          { matchup: "Penn State - To Make The Playoffs", event: "NCAAF 2026/27 - To Make The Playoffs", awayTag: "PSU", homeTag: "NCAAF", selection: "Penn State - Yes +425", odds: "+425", status: "PENDING" }
+        ]
+      },
+      {
+        id: "placed-982815092",
+        ticketNumber: "982815092",
+        type: "Future/Prop",
+        betType: "FUTURES",
+        matchup: "OREGON - BIG TEN WINNER",
+        event: "Conference Championship game.",
+        target: "NCAAF Futures - Conference Futures - Big Ten Winner - Oregon +260",
+        selection: "NCAAF Futures - Conference Futures - Big Ten Winner - Oregon +260",
+        side: "Oregon +260",
+        stake: 20.00,
+        wager: 20.00,
+        toWin: 52.00,
+        status: "PENDING",
+        placedOdds: "+260",
+        odds: "+260",
+        currentOdds: "+260",
+        settledPayout: 0.00,
+        acceptedDate: "07/25/2026 12:00:00 PM (EST)",
+        timestamp: "2026-07-25T12:00:00.000Z",
+        description: "NCAAF Futures - Conference Futures - Big Ten Winner - Oregon +260 | Conference Championship game. | Pending",
+        sportsbook: "BetOnline",
+        bookmaker: "BetOnline",
+        history: ["+260", "+260", "+260"],
+        legs: [
+          { matchup: "Oregon - Big Ten Winner", event: "NCAAF 2026/27 - Big Ten Championship", awayTag: "ORE", homeTag: "NCAAF", selection: "Oregon +260", odds: "+260", status: "PENDING" }
+        ]
+      },
       {
         id: "placed-994697208",
         ticketNumber: "994697208",
@@ -235,17 +291,20 @@
         if (raw) {
             const list = JSON.parse(raw);
             if (Array.isArray(list) && list.length > 0) {
+                const actualTickets = ['982815427', '982815092', '994901960', '994900394', '994697208', '994692629', '994662813', '994662668', '1003'];
                 const cleaned = list.filter(w => {
                     if (!w) return false;
                     const id = String(w.id || '');
                     const ticket = String(w.ticketNumber || '');
+                    if (actualTickets.some(t => id.includes(t) || ticket.includes(t))) return true;
+
                     const date = String(w.acceptedDate || '');
                     const ts = String(w.timestamp || '');
                     const text = (String(w.event || '') + ' ' + String(w.target || '') + ' ' + String(w.matchup || '') + ' ' + String(w.selection || '') + ' ' + String(w.description || '') + ' ' + String(w.side || '')).toUpperCase();
 
                     if (id.includes('wager-seed') || id.includes('mock-okc') || id.includes('9913') || id.includes('9912') || id.includes('993192834') || ticket.includes('993192834')) return false;
                     if (date.includes('8/28') || date.includes('8/29') || ts.includes('2026-08-28') || ts.includes('2026-08-29')) return false;
-                    if (text.includes('VIKINGS') || text.includes('BRONCOS') || text.includes('SAN JOSE') || text.includes('SJSU') || text.includes('NC STATE') || text.includes('NCST') || text.includes('MEMPHIS') || text.includes('GB @ DEN') || text.includes('PACKERS') || text.includes('GREEN BAY') || text.includes('THUNDER') || text.includes('SPURS') || text.includes('OKLAHOMA') || text.includes('OKC @ SAS') || text.includes('DENVER') || text.includes('GB')) return false;
+                    if (text.includes('BRONCOS') || text.includes('SAN JOSE') || text.includes('SJSU') || text.includes('NC STATE') || text.includes('NCST') || text.includes('MEMPHIS') || text.includes('GB @ DEN') || text.includes('THUNDER') || text.includes('SPURS') || text.includes('OKLAHOMA') || text.includes('OKC @ SAS') || text.includes('DENVER')) return false;
                     return true;
                 });
                 if (cleaned.length > 0) {
@@ -289,13 +348,16 @@
             if (!w) return false;
             const id = String(w.id || '');
             const ticket = String(w.ticketNumber || '');
+            const actualTickets = ['982815427', '982815092', '994901960', '994900394', '994697208', '994692629', '994662813', '994662668', '1003'];
+            if (actualTickets.some(t => id.includes(t) || ticket.includes(t))) return false;
+
             const date = String(w.acceptedDate || '');
             const ts = String(w.timestamp || '');
             const text = (String(w.event || '') + ' ' + String(w.target || '') + ' ' + String(w.matchup || '') + ' ' + String(w.selection || '') + ' ' + String(w.description || '') + ' ' + String(w.side || '')).toUpperCase();
 
             if (id.includes('9913') || id.includes('9912') || ticket.includes('9913') || ticket.includes('9912') || id.includes('wager-seed') || id.includes('mock-okc') || id.includes('993192834') || ticket.includes('993192834')) return true;
             if (date.includes('8/28') || date.includes('8/29') || ts.includes('2026-08-28') || ts.includes('2026-08-29')) return true;
-            if (text.includes('VIKINGS') || text.includes('BRONCOS') || text.includes('SAN JOSE') || text.includes('SJSU') || text.includes('NC STATE') || text.includes('NCST') || text.includes('MEMPHIS') || text.includes('GB @ DEN') || text.includes('PACKERS') || text.includes('GREEN BAY') || text.includes('THUNDER') || text.includes('SPURS') || text.includes('OKLAHOMA') || text.includes('OKC @ SAS') || text.includes('DENVER') || text.includes('GB')) return true;
+            if (text.includes('BRONCOS') || text.includes('SAN JOSE') || text.includes('SJSU') || text.includes('NC STATE') || text.includes('NCST') || text.includes('MEMPHIS') || text.includes('GB @ DEN') || text.includes('THUNDER') || text.includes('SPURS') || text.includes('OKLAHOMA') || text.includes('OKC @ SAS') || text.includes('DENVER')) return true;
 
             return false;
         },
@@ -562,9 +624,13 @@
                     const is994662668 = ticketNum.includes('994662668') || targetStr.includes('994662668');
                     const is994900394 = ticketNum.includes('994900394') || targetStr.includes('994900394');
                     const is994901960 = ticketNum.includes('994901960') || targetStr.includes('994901960');
+                    const is982815427 = ticketNum.includes('982815427') || targetStr.includes('982815427') || targetStr.includes('PENN STATE');
+                    const is982815092 = ticketNum.includes('982815092') || targetStr.includes('982815092') || targetStr.includes('OREGON');
 
                     let st = String(w.status || 'PENDING').toUpperCase();
-                    if (isTicket1003 || is994697208 || is994662813 || is994662668 || is994901960) {
+                    if (is982815427 || is982815092) {
+                        st = 'PENDING';
+                    } else if (isTicket1003 || is994697208 || is994662813 || is994662668 || is994901960) {
                         st = 'LOST';
                     } else if (is994692629 || is994900394) {
                         st = 'WON';
