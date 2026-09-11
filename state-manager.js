@@ -5,7 +5,7 @@
 (function() {
     'use strict';
 
-    const WAGER_VERSION = "2026-09-11-user-actual-wagers-v12";
+    const WAGER_VERSION = "2026-09-11-user-actual-wagers-v13";
     const settledWagersUpdate = [
       {
         id: "placed-994697208",
@@ -185,6 +185,38 @@
         legs: [
           { matchup: "SF 49ers vs LA Rams", event: "SF 49ers vs LA Rams", awayTag: "SF", homeTag: "LAR", selection: "San Francisco 49ers +10 (-109)", odds: "-109", status: "WON" },
           { matchup: "SF 49ers vs LA Rams", event: "SF 49ers vs LA Rams", awayTag: "SF", homeTag: "LAR", selection: "SF 49ers / LA Rams Under 54 (-105)", odds: "-105", status: "WON" }
+        ]
+      },
+      {
+        id: "placed-994901960",
+        ticketNumber: "994901960",
+        type: "Teaser",
+        betType: "TEASER",
+        matchup: "BUF vs HOU / SF vs LAR / GB vs MIN",
+        event: "Bills vs Texans / 49ers vs Rams / Packers vs Vikings",
+        target: "Teaser (3 Teams): Texans +7, SF/LAR Over 41.5, Packers +7",
+        selection: "Houston Texans +7 (+100) / SF/LAR Over 41.5 (-115) / Green Bay Packers +7 (-105)",
+        side: "Texans +7 / Over 41.5 / Packers +7",
+        stake: 10.00,
+        wager: 10.00,
+        toWin: 15.09,
+        status: "LOST",
+        placedOdds: "+151",
+        odds: "+151",
+        currentOdds: "+151",
+        settledPayout: 0.00,
+        acceptedDate: "2026-09-10T20:35:00Z",
+        gradedDate: "2026-09-11T00:00:00Z",
+        settledDate: "2026-09-11T00:00:00Z",
+        timestamp: "2026-09-10T20:35:00.000Z",
+        description: "Football - NFL - Teaser (3 Teams) | Lost",
+        sportsbook: "BetOnline",
+        bookmaker: "BetOnline",
+        history: ["+151", "+151", "+151"],
+        legs: [
+          { matchup: "Buffalo Bills vs Houston Texans", event: "Buffalo Bills vs Houston Texans", awayTag: "BUF", homeTag: "HOU", selection: "Houston Texans +7 (+100)", odds: "+100", status: "LOST" },
+          { matchup: "San Francisco 49ers vs Los Angeles Rams", event: "San Francisco 49ers vs Los Angeles Rams", awayTag: "SF", homeTag: "LAR", selection: "SF 49ers / LA Rams Over 41.5 (-115)", odds: "-115", status: "LOST" },
+          { matchup: "Green Bay Packers vs Minnesota Vikings", event: "Green Bay Packers vs Minnesota Vikings", awayTag: "GB", homeTag: "MIN", selection: "Green Bay Packers +7 (-105)", odds: "-105", status: "LOST" }
         ]
       }
     ];
@@ -451,6 +483,38 @@
                             { matchup: 'SF 49ers vs LA Rams', event: 'SF 49ers vs LA Rams', awayTag: 'SF', homeTag: 'LAR', selection: 'San Francisco 49ers +10 (-109)', odds: '-109', status: 'WON' },
                             { matchup: 'SF 49ers vs LA Rams', event: 'SF 49ers vs LA Rams', awayTag: 'SF', homeTag: 'LAR', selection: 'SF 49ers / LA Rams Under 54 (-105)', odds: '-105', status: 'WON' }
                         ]
+                    },
+                    {
+                        id: 'placed-994901960',
+                        ticketNumber: '994901960',
+                        event: 'Bills vs Texans / 49ers vs Rams / Packers vs Vikings',
+                        matchup: 'BUF vs HOU / SF vs LAR / GB vs MIN',
+                        target: 'Teaser (3 Teams): Texans +7, SF/LAR Over 41.5, Packers +7',
+                        selection: 'Houston Texans +7 (+100) / SF/LAR Over 41.5 (-115) / Green Bay Packers +7 (-105)',
+                        type: 'Teaser',
+                        betType: 'TEASER',
+                        side: 'Texans +7 / Over 41.5 / Packers +7',
+                        sportsbook: 'BetOnline',
+                        bookmaker: 'BetOnline',
+                        stake: 10.00,
+                        wager: 10.00,
+                        toWin: 15.09,
+                        placedOdds: '+151',
+                        odds: '+151',
+                        currentOdds: '+151',
+                        status: 'LOST',
+                        settledPayout: 0.00,
+                        acceptedDate: '2026-09-10T20:35:00Z',
+                        gradedDate: '2026-09-11T00:00:00Z',
+                        settledDate: '2026-09-11T00:00:00Z',
+                        timestamp: '2026-09-10T20:35:00.000Z',
+                        description: 'Football - NFL - Teaser (3 Teams) | Lost',
+                        history: ['+151', '+151', '+151'],
+                        legs: [
+                            { matchup: 'Buffalo Bills vs Houston Texans', event: 'Buffalo Bills vs Houston Texans', awayTag: 'BUF', homeTag: 'HOU', selection: 'Houston Texans +7 (+100)', odds: '+100', status: 'LOST' },
+                            { matchup: 'San Francisco 49ers vs Los Angeles Rams', event: 'San Francisco 49ers vs Los Angeles Rams', awayTag: 'SF', homeTag: 'LAR', selection: 'SF 49ers / LA Rams Over 41.5 (-115)', odds: '-115', status: 'LOST' },
+                            { matchup: 'Green Bay Packers vs Minnesota Vikings', event: 'Green Bay Packers vs Minnesota Vikings', awayTag: 'GB', homeTag: 'MIN', selection: 'Green Bay Packers +7 (-105)', odds: '-105', status: 'LOST' }
+                        ]
                     }
                 ];
 
@@ -497,9 +561,10 @@
                     const is994662813 = ticketNum.includes('994662813') || targetStr.includes('994662813');
                     const is994662668 = ticketNum.includes('994662668') || targetStr.includes('994662668');
                     const is994900394 = ticketNum.includes('994900394') || targetStr.includes('994900394');
+                    const is994901960 = ticketNum.includes('994901960') || targetStr.includes('994901960');
 
                     let st = String(w.status || 'PENDING').toUpperCase();
-                    if (isTicket1003 || is994697208 || is994662813 || is994662668) {
+                    if (isTicket1003 || is994697208 || is994662813 || is994662668 || is994901960) {
                         st = 'LOST';
                     } else if (is994692629 || is994900394) {
                         st = 'WON';

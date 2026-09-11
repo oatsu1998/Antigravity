@@ -4218,6 +4218,12 @@
                 } else if (key.includes('GB') || key.includes('PACKERS') || key.includes('GREEN BAY')) {
                     logoUrl = 'https://a.espncdn.com/i/teamlogos/nfl/500/gb.png';
                     displayAbbr = 'GB';
+                } else if (key.includes('BUF') || key.includes('BILLS') || key.includes('BUFFALO')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/nfl/500/buf.png';
+                    displayAbbr = 'BUF';
+                } else if (key.includes('HOU') || key.includes('TEXANS') || key.includes('HOUSTON')) {
+                    logoUrl = 'https://a.espncdn.com/i/teamlogos/nfl/500/hou.png';
+                    displayAbbr = 'HOU';
                 } else {
                     const cleaned = raw.replace(/[^a-zA-Z]/g, '').toLowerCase();
                     const abbr = cleaned.substring(0, 4) || 'espn';
@@ -5935,7 +5941,7 @@
         let activeBsTab = 'slip';
 
         function ensureDefaultTicketsLoaded() {
-            const WAGER_VERSION = "2026-09-11-user-actual-wagers-v12";
+            const WAGER_VERSION = "2026-09-11-user-actual-wagers-v13";
             if (window.DestinyState && window.DestinyState.getWagers) {
                 window.DestinyState.getWagers();
             }
