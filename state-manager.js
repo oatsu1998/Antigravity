@@ -5,7 +5,7 @@
 (function() {
     'use strict';
 
-    const WAGER_VERSION = "2026-09-11-user-actual-wagers-v13";
+    const WAGER_VERSION = "2026-09-11-user-actual-wagers-v14";
     const settledWagersUpdate = [
       {
         id: "placed-994697208",
@@ -599,6 +599,12 @@
                         bookmaker: w.bookmaker || 'BetOnline',
                         legs: legs
                     };
+                });
+
+                stored.sort((a, b) => {
+                    const da = new Date(a.timestamp || a.acceptedDate || a.gradedDate || a.settledDate || 0).getTime();
+                    const db = new Date(b.timestamp || b.acceptedDate || b.gradedDate || b.settledDate || 0).getTime();
+                    return (isNaN(db) ? 0 : db) - (isNaN(da) ? 0 : da);
                 });
 
                 localStorage.setItem(KEYS.WAGERS, JSON.stringify(stored));

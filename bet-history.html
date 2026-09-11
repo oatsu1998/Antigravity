@@ -947,6 +947,12 @@
                 return true;
             });
 
+            filtered.sort((a, b) => {
+                const da = new Date(a.timestamp || a.acceptedDate || a.gradedDate || a.settledDate || 0).getTime();
+                const db = new Date(b.timestamp || b.acceptedDate || b.gradedDate || b.settledDate || 0).getTime();
+                return (isNaN(db) ? 0 : db) - (isNaN(da) ? 0 : da);
+            });
+
             if (filtered.length === 0) {
                 if (container) {
                     container.innerHTML = `

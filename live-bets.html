@@ -984,7 +984,7 @@
 
         function seedInitialWagers() {
             try {
-                const WAGER_VERSION = "2026-09-11-user-actual-wagers-v13";
+                const WAGER_VERSION = "2026-09-11-user-actual-wagers-v14";
                 if (localStorage.getItem("destiny_wager_sync_ver") !== WAGER_VERSION) {
                     if (window.DestinyState && window.DestinyState.getWagers) {
                         window.DestinyState.getWagers();
@@ -1577,6 +1577,11 @@
         // 2. WAGER HISTORY
         function renderWagersLedger() {
             wagers = wagers.filter(w => !isLegacyWager(w));
+            wagers.sort((a, b) => {
+                const da = new Date(a.timestamp || a.acceptedDate || a.gradedDate || a.settledDate || 0).getTime();
+                const db = new Date(b.timestamp || b.acceptedDate || b.gradedDate || b.settledDate || 0).getTime();
+                return (isNaN(db) ? 0 : db) - (isNaN(da) ? 0 : da);
+            });
 
             const liveContainer = document.getElementById('liveBetsListContainer');
             const historyContainer = document.getElementById('historyBetsListContainer');
