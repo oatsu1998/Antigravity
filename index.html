@@ -4188,7 +4188,7 @@
                         <div style="font-family:var(--font-mono); font-size:12px; color:var(--muted); line-height:1.6;">
                             You have zero active wager tickets currently in play.<br>Select any live or scheduled game below to place a wager and track your ticket in real time.
                         </div>
-                        <button onclick="toggleBetSlip()" class="mb-add-btn" style="margin-top:8px; display:inline-flex; align-items:center; gap:8px;">
+                        <button onclick="openBetSlip()" class="mb-add-btn" style="margin-top:12px; display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
                             📋 OPEN BET SLIP (<span id="live-wagers-slip-cnt">${typeof betSlip !== 'undefined' && Array.isArray(betSlip) ? betSlip.length : 0}</span> DRAFT BETS)
                         </button>
                     </div>
@@ -6475,9 +6475,27 @@
         updateBankrollDisplay();
         updateActiveBetsCountGlobal();
 
-        function toggleBetSlip() {
-            document.getElementById('bet-slip-panel').classList.toggle('open');
+        function openBetSlip() {
+            const panel = document.getElementById('bet-slip-panel');
+            if (panel) {
+                panel.classList.add('open');
+                if (typeof renderBetSlip === 'function') {
+                    try { renderBetSlip(); } catch(e) { console.error('Error rendering betslip:', e); }
+                }
+            }
         }
+        window.openBetSlip = openBetSlip;
+
+        function toggleBetSlip() {
+            const panel = document.getElementById('bet-slip-panel');
+            if (panel) {
+                panel.classList.toggle('open');
+                if (panel.classList.contains('open') && typeof renderBetSlip === 'function') {
+                    try { renderBetSlip(); } catch(e) { console.error('Error rendering betslip:', e); }
+                }
+            }
+        }
+        window.toggleBetSlip = toggleBetSlip;
 
         function getBetMarketAndLine(bet) {
             let marketType = bet.marketType || '';
@@ -7025,6 +7043,8 @@
             if (activeCountEl) activeCountEl.innerText = betSlip.length;
             const slipCountEl = document.getElementById('bs-slip-count');
             if (slipCountEl) slipCountEl.innerText = betSlip.length;
+            const liveWagersSlipCnt = document.getElementById('live-wagers-slip-cnt');
+            if (liveWagersSlipCnt) liveWagersSlipCnt.innerText = betSlip.length;
 
             if (betSlip.length === 0) {
                 container.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:30px 0;">Your bet slip is empty.</div>';
