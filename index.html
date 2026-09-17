@@ -120,6 +120,7 @@
         }
 
         .sportsbook-sidebar {
+            display: none !important;
             width: 230px;
             min-width: 230px;
             background: #0b0e14;
@@ -2530,16 +2531,8 @@
         </div>
     </div>
 
-    <!-- Main Sportsbook Layout Container: Vertical Left Sidebar + Content Area -->
+    <!-- Main Sportsbook Layout Container: Content Area -->
     <div class="sportsbook-container">
-        <aside class="sportsbook-sidebar">
-            <div class="sb-sidebar-title">
-                <span>SPORTS LEAGUES</span>
-                <span style="font-size:9px; color:var(--accent2); font-family:var(--font-mono);">LIVE HQ</span>
-            </div>
-            <div class="league-tabs-vertical" id="tabs"></div>
-        </aside>
-
         <main class="main" id="main"></main>
     </div>
 
@@ -3908,15 +3901,14 @@
                 let html = `
                     <div class="league-header">
                         <div style="display:flex; align-items:center; gap:12px;">
-                            <img src="${getLeagueLogo(lg.league || lg.id, lg.sport)}" class="league-logo-hdr" alt="${lg.name}" onerror="this.src='https://a.espncdn.com/i/espn/misc_logos/500/ncaa.png'">
-                            <div class="league-title">${lg.name}</div>
+                            <img src="${getLeagueLogo(lg.league || lg.id, lg.sport)}" class="league-logo-hdr" alt="${lg.id}" onerror="this.src='https://a.espncdn.com/i/espn/misc_logos/500/ncaa.png'">
                         </div>
                         <div style="font-family:var(--font-mono); font-size:11px; color:var(--muted);">${result?.events ? result.events.length : 0} MATCHES TOTAL</div>
                     </div>
                 `;
 
                 if (!result || !result.events || result.events.length === 0) {
-                    html += `<div class="no-games"><div class="icon">🏆</div>No active ${lg?.name || 'league'} games</div>`;
+                    html += `<div class="no-games"><div class="icon">🏆</div>No active ${(lg?.id || lg?.name || 'league').toUpperCase()} games</div>`;
                     return html;
                 }
 
